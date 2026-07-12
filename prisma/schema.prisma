@@ -1,0 +1,259 @@
+// SplitFree — Prisma Schema
+// Supabase PostgreSQL backend
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Connection URL is configured in prisma.config.ts (Prisma 7+)
+}
+
+// ─── Enums ──────────────────────────────────────────────────
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  INR
+  CAD
+  AUD
+  JPY
+}
+
+enum SplitType {
+  EQUAL
+  EXACT
+  PERCENTAGE
+  SHARES
+}
+
+enum ExpenseCategory {
+  FOOD
+  TRANSPORT
+  ACCOMMODATION
+  ENTERTAINMENT
+  UTILITIES
+  SHOPPING
+  HEALTH
+  TRAVEL
+  EDUCATION
+  OTHER
+}
+
+enum GroupCategory {
+  HOME
+  TRIP
+  COUPLE
+  FRIENDS
+  WORK
+  OTHER
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+enum RecurringInterval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum NotificationType {
+  EXPENSE_ADDED
+  EXPENSE_UPDATED
+  EXPENSE_DELETED
+  SETTLEMENT_ADDED
+  GROUP_JOINED
+  GROUP_LEFT
+  FRIEND_ADDED
+  PAYMENT_REMINDER
+}
+
+enum ActivityType {
+  EXPENSE_CREATED
+  EXPENSE_UPDATED
+  EXPENSE_DELETED
+  SETTLEMENT_CREATED
+  GROUP_CREATED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+}
+
+// ─── Models ─────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) // matches Supabase auth.users.id
+  email     String   @unique
+  name      String
+  avatarUrl String?  @map("avatar_url")
+  currency  Currency @default(USD)
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  groupMemberships GroupMember[]
+  createdGroups    Group[]        @relation("GroupCreator")
+  paidExpenses     Expense[]      @relation("ExpensePayer")
+  expenseSplits    ExpenseSplit[]
+  sentSettlements  Settlement[]   @relation("SettlementSender")
+  recvSettlements  Settlement[]   @relation("SettlementReceiver")
+  notifications    Notification[]
+  activities       Activity[]
+  friendships      Friendship[]   @relation("UserFriendships")
+  friendOf         Friendship[]   @relation("FriendOf")
+
+  @@map("users")
+}
+
+model Group {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?       @map("image_url")
+  category    GroupCategory @default(OTHER)
+  currency    Currency      @default(USD)
+  createdById String        @map("created_by_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+  activities  Activity[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String    @id @default(uuid())
+  groupId  String    @map("group_id")
+  userId   String    @map("user_id")
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now()) @map("joined_at")
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model Expense {
+  id                String             @id @default(uuid())
+  groupId           String?            @map("group_id")
+  description       String
+  amount            Int                // stored in cents
+  currency          Currency           @default(USD)
+  category          ExpenseCategory    @default(OTHER)
+  splitType         SplitType          @default(EQUAL)
+  paidById          String             @map("paid_by_id")
+  date              DateTime
+  isRecurring       Boolean            @default(false) @map("is_recurring")
+  recurringInterval RecurringInterval? @map("recurring_interval")
+  notes             String?
+  receiptUrl        String?            @map("receipt_url")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  group      Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  paidBy     User           @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
+  splits     ExpenseSplit[]
+  activities Activity[]
+
+  @@index([groupId])
+  @@index([paidById])
+  @@index([date])
+  @@map("expenses")
+}
+
+model ExpenseSplit {
+  id         String   @id @default(uuid())
+  expenseId  String   @map("expense_id")
+  userId     String   @map("user_id")
+  amount     Int      // in cents
+  percentage Float?
+  shares     Int?
+  isPaid     Boolean  @default(false) @map("is_paid")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@map("expense_splits")
+}
+
+model Settlement {
+  id         String   @id @default(uuid())
+  groupId    String?  @map("group_id")
+  fromUserId String   @map("from_user_id")
+  toUserId   String   @map("to_user_id")
+  amount     Int      // in cents
+  currency   Currency @default(USD)
+  note       String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  group    Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  fromUser User   @relation("SettlementSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User   @relation("SettlementReceiver", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("settlements")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  friendId  String   @map("friend_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@map("friendships")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false) @map("is_read")
+  data      Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Activity {
+  id           String       @id @default(uuid())
+  type         ActivityType
+  userId       String       @map("user_id")
+  groupId      String?      @map("group_id")
+  expenseId    String?      @map("expense_id")
+  settlementId String?      @map("settlement_id")
+  metadata     Json         @default("{}")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  expense Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([groupId])
+  @@map("activities")
+}
