@@ -1,69 +1,67 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import {
-  TrendingUp, TrendingDown, Receipt, Users,
-} from "lucide-react";
+import { TrendingUp, TrendingDown, Receipt, Users } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { BalanceChart } from "@/components/dashboard/balance-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DebtSummary } from "@/components/dashboard/debt-summary";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { formatCurrency } from "@/lib/utils";
 
-const stats = [
-  {
-    title: "Total Owed to You",
-    value: "$124.50",
-    change: "+$45.00 this month",
-    changeType: "positive" as const,
-    icon: TrendingUp,
-    iconColor: "text-green-600",
-  },
-  {
-    title: "Total You Owe",
-    value: "$67.30",
-    change: "−$12.00 this month",
-    changeType: "positive" as const,
-    icon: TrendingDown,
-    iconColor: "text-red-600",
-  },
-  {
-    title: "Active Groups",
-    value: "4",
-    change: "3 expenses this week",
-    changeType: "neutral" as const,
-    icon: Users,
-    iconColor: "text-amber-600",
-  },
-  {
-    title: "Total Expenses",
-    value: "$1,240",
-    change: "+18% vs last month",
-    changeType: "positive" as const,
-    icon: Receipt,
-    iconColor: "text-primary",
-  },
-];
+async function fetchDashboard() {
+  const res = await fetch("/api/dashboard");
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message);
+  return json.data;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const firstName = user?.user_metadata?.name?.split(" ")[0] ?? "there";
+  const firstName = user?.user_metadata?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboard,
+    staleTime: 30_000,
+  });
+
+  const stats = [
+    {
+      title: "Total Owed to You",
+      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwed ?? 0),
+      icon: TrendingUp,
+      iconColor: "text-green-600",
+    },
+    {
+      title: "Total You Owe",
+      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwing ?? 0),
+      icon: TrendingDown,
+      iconColor: "text-red-600",
+    },
+    {
+      title: "Active Groups",
+      value: isLoading ? "—" : String(data?.stats?.groupCount ?? 0),
+      icon: Users,
+      iconColor: "text-amber-600",
+    },
+    {
+      title: "Net Balance",
+      value: isLoading ? "—" : formatCurrency(Math.abs(data?.stats?.netBalance ?? 0)),
+      icon: Receipt,
+      iconColor: "text-primary",
+    },
+  ];
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <h2 className="text-xl font-bold">
-          Good {getTimeOfDay()}, {firstName} 👋
-        </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Here&apos;s an overview of your expenses and balances.
-        </p>
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <h2 className="text-xl font-bold">Good {getTimeOfDay()}, {firstName} 👋</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s an overview of your expenses and balances.</p>
       </motion.div>
 
       {/* Onboarding */}
@@ -71,26 +69,28 @@ export default function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {stats.map((stat, i) => (
-          <StatCard key={stat.title} {...stat} index={i} />
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)
+          : stats.map((stat, i) => <StatCard key={stat.title} {...stat} index={i} />)
+        }
       </div>
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        {/* Chart — 2 cols */}
         <div className="lg:col-span-2">
-          <BalanceChart />
+          <BalanceChart data={data?.monthly} isLoading={isLoading} />
         </div>
-
-        {/* Debt summary */}
         <div>
-          <DebtSummary />
+          <DebtSummary
+            balances={data?.personBalances}
+            netBalance={data?.stats?.netBalance}
+            isLoading={isLoading}
+          />
         </div>
       </div>
 
       {/* Recent activity */}
-      <RecentActivity />
+      <RecentActivity activities={data?.recentActivity} isLoading={isLoading} />
     </div>
   );
 }

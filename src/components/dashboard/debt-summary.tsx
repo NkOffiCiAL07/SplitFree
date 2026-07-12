@@ -5,35 +5,20 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, getInitials, cn } from "@/lib/utils";
 import Link from "next/link";
 
-const DEMO_DEBTS = [
-  {
-    id: "1",
-    type: "owed",
-    user: { name: "Alex Chen", avatarUrl: null },
-    amount: 4500,
-  },
-  {
-    id: "2",
-    type: "owing",
-    user: { name: "Sarah Kim", avatarUrl: null },
-    amount: 2300,
-  },
-  {
-    id: "3",
-    type: "owed",
-    user: { name: "James Park", avatarUrl: null },
-    amount: 7800,
-  },
-];
+interface PersonBalance {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  net: number; // positive = they owe you, negative = you owe them
+}
 
-export function DebtSummary() {
-  const totalOwed  = DEMO_DEBTS.filter((d) => d.type === "owed").reduce((s, d) => s + d.amount, 0);
-  const totalOwing = DEMO_DEBTS.filter((d) => d.type === "owing").reduce((s, d) => s + d.amount, 0);
-  const net = totalOwed - totalOwing;
+interface Props { balances?: PersonBalance[]; netBalance?: number; isLoading?: boolean }
 
+export function DebtSummary({ balances = [], netBalance = 0, isLoading }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -48,62 +33,52 @@ export function DebtSummary() {
               <Link href="/settle" className="text-xs">Settle up</Link>
             </Button>
           </div>
-          {/* Net balance pill */}
-          <div
-            className={cn(
+          {isLoading ? (
+            <Skeleton className="h-8 w-36 rounded-xl" />
+          ) : (
+            <div className={cn(
               "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold w-fit",
-              net >= 0
+              netBalance >= 0
                 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                 : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-            )}
-          >
-            {net >= 0 ? (
-              <>
-                <CheckCircle2 className="size-4" />
-                You&apos;re owed {formatCurrency(Math.abs(net))}
-              </>
-            ) : (
-              <>
-                <ArrowRight className="size-4" />
-                You owe {formatCurrency(Math.abs(net))}
-              </>
-            )}
-          </div>
+            )}>
+              {netBalance >= 0 ? <CheckCircle2 className="size-4" /> : <ArrowRight className="size-4" />}
+              {netBalance >= 0
+                ? `You're owed ${formatCurrency(Math.abs(netBalance))}`
+                : `You owe ${formatCurrency(Math.abs(netBalance))}`}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
-          {DEMO_DEBTS.map((debt, i) => (
-            <motion.div
-              key={debt.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.32 + i * 0.07, duration: 0.3 }}
-              className="flex items-center gap-3"
-            >
-              <Avatar className="size-8">
-                <AvatarImage src={debt.user.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-xs">
-                  {getInitials(debt.user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{debt.user.name}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {debt.type === "owed" ? "owes you" : "you owe"}
-                </p>
-              </div>
-              <span
-                className={cn(
-                  "text-sm font-semibold",
-                  debt.type === "owed"
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                )}
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)
+          ) : balances.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-6">No outstanding balances</p>
+          ) : (
+            balances.map((b, i) => (
+              <motion.div
+                key={b.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.32 + i * 0.07, duration: 0.3 }}
+                className="flex items-center gap-3"
               >
-                {debt.type === "owing" && "−"}
-                {formatCurrency(debt.amount)}
-              </span>
-            </motion.div>
-          ))}
+                <Avatar className="size-8">
+                  <AvatarImage src={b.avatarUrl ?? undefined} />
+                  <AvatarFallback className="text-xs">{getInitials(b.name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{b.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{b.net > 0 ? "owes you" : "you owe"}</p>
+                </div>
+                <span className={cn("text-sm font-semibold",
+                  b.net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                )}>
+                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net))}
+                </span>
+              </motion.div>
+            ))
+          )}
         </CardContent>
       </Card>
     </motion.div>
