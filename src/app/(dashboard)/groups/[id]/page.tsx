@@ -1,0 +1,227 @@
+"use client";
+
+import { use } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { ArrowLeft, UserPlus, Trash2, Settings, Receipt } from "lucide-react";
+import { useGroup, useDeleteGroup, useAddMember, useRemoveMember } from "@/hooks/use-groups";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
+import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
+import { useState } from "react";
+import { toast } from "sonner";
+
+export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const { user } = useAuth();
+  const { data: group, isLoading } = useGroup(id);
+  const deleteMutation = useDeleteGroup();
+  const addMemberMutation = useAddMember();
+  const removeMemberMutation = useRemoveMember();
+  const [addEmail, setAddEmail] = useState("");
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+
+  const isAdmin = group?.members?.find((m) => m.userId === user?.id)?.role === "ADMIN";
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this group? This cannot be undone.")) return;
+    await deleteMutation.mutateAsync(id);
+    router.push("/groups");
+  };
+
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addEmail) return;
+    await addMemberMutation.mutateAsync({ groupId: id, email: addEmail });
+    setAddEmail("");
+    setAddDialogOpen(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  if (!group) return null;
+
+  const expenses = (group as any).expenses ?? [];
+  const myBalance = calculateMyBalance(group, user?.id ?? "");
+
+  return (
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
+          <ArrowLeft className="size-4" />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-bold truncate">{group.name}</h2>
+          {group.description && (
+            <p className="text-sm text-muted-foreground">{group.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <AddExpenseDialog groupId={id} members={group.members ?? []} />
+          {isAdmin && (
+            <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="size-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Balance banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          "rounded-2xl p-5 text-white",
+          myBalance >= 0 ? "gradient-brand" : "bg-red-600"
+        )}
+      >
+        <p className="text-sm text-white/80">Your balance in this group</p>
+        <p className="text-3xl font-bold mt-1">{formatCurrency(Math.abs(myBalance))}</p>
+        <p className="text-sm mt-1 text-white/80">
+          {myBalance > 0 ? "You are owed" : myBalance < 0 ? "You owe" : "All settled up!"}
+        </p>
+      </motion.div>
+
+      {/* Members */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-sm">Members ({group.members?.length})</h3>
+          {isAdmin && (
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                  <UserPlus className="size-3.5" /> Add member
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-sm">
+                <DialogHeader><DialogTitle>Add member</DialogTitle></DialogHeader>
+                <form onSubmit={handleAddMember} className="space-y-3 mt-2">
+                  <Input
+                    type="email"
+                    placeholder="friend@example.com"
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
+                    autoFocus
+                  />
+                  <Button type="submit" className="w-full" variant="brand" loading={addMemberMutation.isPending}>
+                    Add member
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {group.members?.map((member) => (
+            <motion.div
+              key={member.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3 p-3 rounded-xl border bg-card"
+            >
+              <Avatar className="size-8">
+                <AvatarImage src={member.user?.avatarUrl ?? undefined} />
+                <AvatarFallback className="text-xs">{getInitials(member.user?.name ?? "?")}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{member.user?.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{member.user?.email}</p>
+              </div>
+              {member.role === "ADMIN" && <Badge variant="secondary" className="text-[10px]">Admin</Badge>}
+              {isAdmin && member.userId !== user?.id && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => removeMemberMutation.mutate({ groupId: id, userId: member.userId })}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Expenses */}
+      <div className="space-y-3">
+        <h3 className="font-semibold text-sm">Expenses ({expenses.length})</h3>
+        {expenses.length === 0 ? (
+          <div className="text-center py-10 text-sm text-muted-foreground">
+            No expenses yet. Add the first one!
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {expenses.map((exp: any, i: number) => (
+              <ExpenseRow key={exp.id} expense={exp} userId={user?.id ?? ""} index={i} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ExpenseRow({ expense, userId, index }: { expense: any; userId: string; index: number }) {
+  const myShare = expense.splits?.find((s: any) => s.userId === userId);
+  const isPayer = expense.paidById === userId;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-shadow"
+    >
+      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+        <Receipt className="size-4 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{expense.description}</p>
+        <p className="text-xs text-muted-foreground">
+          {expense.paidBy?.name} · {formatDate(expense.date)}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="text-sm font-semibold">{formatCurrency(expense.amount)}</p>
+        {myShare && (
+          <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount)}` : `-${formatCurrency(myShare.amount)}`}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function calculateMyBalance(group: any, userId: string): number {
+  const expenses: any[] = group.expenses ?? [];
+  let balance = 0;
+  expenses.forEach((exp) => {
+    if (exp.paidById === userId) {
+      balance += exp.splits?.reduce((s: number, split: any) => s + split.amount, 0) ?? 0;
+    }
+    const myShare = exp.splits?.find((s: any) => s.userId === userId);
+    if (myShare) balance -= myShare.amount;
+  });
+  return balance;
+}

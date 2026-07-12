@@ -8,6 +8,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { BalanceChart } from "@/components/dashboard/balance-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DebtSummary } from "@/components/dashboard/debt-summary";
+import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import { useAuth } from "@/hooks/use-auth";
 
 const stats = [
@@ -64,6 +65,9 @@ export default function DashboardPage() {
           Here&apos;s an overview of your expenses and balances.
         </p>
       </motion.div>
+
+      {/* Onboarding */}
+      <OnboardingBanner />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

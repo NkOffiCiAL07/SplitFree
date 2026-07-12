@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
+import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
+            <ServiceWorkerRegistration />
             {children}
             <Toaster
               position="bottom-right"

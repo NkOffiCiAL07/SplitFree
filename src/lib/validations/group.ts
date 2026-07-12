@@ -3,8 +3,8 @@ import { z } from "zod";
 export const createGroupSchema = z.object({
   name: z.string().min(1, "Group name is required").max(100),
   description: z.string().max(500).optional().nullable(),
-  category: z.enum(["HOME", "TRIP", "COUPLE", "FRIENDS", "WORK", "OTHER"]).default("OTHER"),
-  currency: z.enum(["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"]).default("USD"),
+  category: z.enum(["HOME", "TRIP", "COUPLE", "FRIENDS", "WORK", "OTHER"]),
+  currency: z.enum(["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"]),
   memberEmails: z.array(z.string().email()).optional(),
 });
 
