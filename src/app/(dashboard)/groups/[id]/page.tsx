@@ -122,8 +122,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-sm">Members ({group.members?.length})</h3>
-          {isAdmin && (
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                   <UserPlus className="size-3.5" /> Add member
@@ -145,7 +144,6 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </form>
               </DialogContent>
             </Dialog>
-          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {group.members?.map((member) => (

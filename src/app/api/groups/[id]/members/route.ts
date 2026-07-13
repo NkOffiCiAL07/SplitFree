@@ -9,10 +9,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (error) return error;
     const { id: groupId } = await params;
 
-    const adminMember = await prisma.groupMember.findUnique({
+    const callerMember = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId: user!.id } },
     });
-    if (!adminMember || adminMember.role !== "ADMIN") return err("Admin required", 403);
+    if (!callerMember) return err("Not a member of this group", 403);
 
     const body = await req.json();
     const { email } = addMemberSchema.parse(body);
