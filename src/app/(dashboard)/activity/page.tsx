@@ -1,8 +1,8 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Activity, Receipt, Users, ArrowRightLeft, UserPlus, Plus, Pencil, Trash2 } from "lucide-react";
+import { Activity, Receipt, Users, ArrowRightLeft, UserPlus, Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,29 @@ export default function ActivityPage() {
   });
 
   const unread = items?.filter((n: any) => !n.isRead) ?? [];
+
+  const friendAction = useMutation({
+    mutationFn: async ({ requesterId, action, notifId }: { requesterId: string; action: "accept" | "decline"; notifId: string }) => {
+      const res = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, requesterId }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [notifId] }),
+      });
+      return { action };
+    },
+    onSuccess: ({ action }: { action: string }) => {
+      qc.invalidateQueries({ queryKey: ["activity"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      import("sonner").then(({ toast }) => toast.success(action === "accept" ? "Friend request accepted!" : "Friend request declined"));
+    },
+  });
 
   const markAllRead = async () => {
     await fetch("/api/notifications", {
@@ -122,6 +145,18 @@ export default function ActivityPage() {
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.body}</p>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-1">{formatRelativeTime(item.createdAt)}</p>
+                  {item.type === "FRIEND_ADDED" && item.data?.pending && item.data?.userId && (
+                    <div className="flex gap-2 mt-2">
+                      <Button size="sm" variant="brand" className="h-7 text-xs px-3 gap-1" loading={friendAction.isPending}
+                        onClick={() => friendAction.mutate({ requesterId: item.data.userId, action: "accept", notifId: item.id.replace("notif_", "") })}>
+                        <Check className="size-3" /> Accept
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs px-3 gap-1" loading={friendAction.isPending}
+                        onClick={() => friendAction.mutate({ requesterId: item.data.userId, action: "decline", notifId: item.id.replace("notif_", "") })}>
+                        <X className="size-3" /> Decline
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 {!item.isRead && <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />}
               </motion.div>

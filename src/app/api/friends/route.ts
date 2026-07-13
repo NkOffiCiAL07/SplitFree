@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest) {
     if (error) return error;
 
     const friendships = await prisma.friendship.findMany({
-      where: { userId: user!.id },
+      where: { userId: user!.id, status: "ACCEPTED" },
       include: { friend: true },
       orderBy: { createdAt: "desc" },
     });
@@ -30,8 +30,47 @@ export async function POST(req: NextRequest) {
     await ensureUserProfile(user!.id, user!.email!);
 
     const body = await req.json();
-    const { email } = addFriendSchema.parse(body);
 
+    // Handle accept/decline actions
+    if (body.action === "accept" || body.action === "decline") {
+      const { requesterId, action } = body as { requesterId: string; action: "accept" | "decline" };
+
+      if (action === "decline") {
+        await prisma.friendship.deleteMany({
+          where: { userId: requesterId, friendId: user!.id },
+        });
+        return ok({ declined: true });
+      }
+
+      // Accept: update pending to accepted + create reverse
+      await prisma.$transaction([
+        prisma.friendship.update({
+          where: { userId_friendId: { userId: requesterId, friendId: user!.id } },
+          data: { status: "ACCEPTED" },
+        }),
+        prisma.friendship.upsert({
+          where: { userId_friendId: { userId: user!.id, friendId: requesterId } },
+          create: { userId: user!.id, friendId: requesterId, status: "ACCEPTED" },
+          update: { status: "ACCEPTED" },
+        }),
+      ]);
+
+      // Notify requester
+      await prisma.notification.create({
+        data: {
+          userId: requesterId,
+          type: "FRIEND_ADDED",
+          title: "Friend request accepted",
+          body: `${user!.email} accepted your friend request`,
+          data: { userId: user!.id, accepted: true },
+        },
+      });
+
+      return ok({ accepted: true });
+    }
+
+    // Regular add friend (send request)
+    const { email } = addFriendSchema.parse(body);
     if (email === user!.email) return err("You can't add yourself", 400);
 
     const friend = await prisma.user.findUnique({ where: { email } });
@@ -40,26 +79,21 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.friendship.findUnique({
       where: { userId_friendId: { userId: user!.id, friendId: friend.id } },
     });
-    if (existing) return err("Already friends", 409);
+    if (existing) return err(existing.status === "ACCEPTED" ? "Already friends" : "Request already sent", 409);
 
-    // Create bidirectional friendship
-    const [friendship] = await prisma.$transaction([
-      prisma.friendship.create({
-        data: { userId: user!.id, friendId: friend.id },
-        include: { friend: true },
-      }),
-      prisma.friendship.create({
-        data: { userId: friend.id, friendId: user!.id },
-      }),
-    ]);
+    // Create single PENDING request
+    const friendship = await prisma.friendship.create({
+      data: { userId: user!.id, friendId: friend.id, status: "PENDING" },
+      include: { friend: true },
+    });
 
     await prisma.notification.create({
       data: {
         userId: friend.id,
         type: "FRIEND_ADDED",
-        title: "New friend connection",
-        body: `${user!.email} added you as a friend on SplitFree`,
-        data: { userId: user!.id },
+        title: "New friend request",
+        body: `${user!.email} wants to connect with you on SplitFree`,
+        data: { userId: user!.id, email: user!.email, pending: true },
       },
     });
 

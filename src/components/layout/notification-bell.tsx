@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuLabel,
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 async function fetchNotifications() {
   const res = await fetch("/api/notifications");
@@ -20,7 +21,11 @@ async function fetchNotifications() {
 }
 
 async function markAllReadAPI() {
-  await fetch("/api/notifications", { method: "PATCH" });
+  await fetch("/api/notifications", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markAll: true }),
+  });
 }
 
 export function NotificationBell() {
@@ -35,6 +40,31 @@ export function NotificationBell() {
   const markAllRead = useMutation({
     mutationFn: markAllReadAPI,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const friendAction = useMutation({
+    mutationFn: async ({ requesterId, action, notifId }: { requesterId: string; action: "accept" | "decline"; notifId: string }) => {
+      const res = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, requesterId }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      // Mark the notification as read
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [notifId] }),
+      });
+      return { action };
+    },
+    onSuccess: ({ action }) => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["friends"] });
+      toast.success(action === "accept" ? "Friend request accepted!" : "Friend request declined");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
@@ -82,24 +112,51 @@ export function NotificationBell() {
             </div>
           ) : (
             <div className="py-1">
-              {notifications.map((n: any) => (
-                <div
-                  key={n.id}
-                  className={`w-full text-left px-4 py-3 border-b last:border-0 ${!n.isRead ? "bg-primary/5" : ""}`}
-                >
-                  <div className="flex items-start gap-2">
-                    {!n.isRead && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />}
-                    {n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0" />}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{n.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {formatRelativeTime(new Date(n.createdAt))}
-                      </p>
+              {notifications.map((n: any) => {
+                const isPendingFriendRequest = n.type === "FRIEND_ADDED" && n.data?.pending === true;
+                const requesterId = n.data?.userId as string | undefined;
+
+                return (
+                  <div
+                    key={n.id}
+                    className={`w-full text-left px-4 py-3 border-b last:border-0 ${!n.isRead ? "bg-primary/5" : ""}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!n.isRead && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />}
+                      {n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{n.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {formatRelativeTime(new Date(n.createdAt))}
+                        </p>
+                        {isPendingFriendRequest && requesterId && (
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="brand"
+                              className="h-7 text-xs px-3 gap-1"
+                              loading={friendAction.isPending}
+                              onClick={(e) => { e.stopPropagation(); friendAction.mutate({ requesterId, action: "accept", notifId: n.id }); }}
+                            >
+                              <Check className="size-3" /> Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs px-3 gap-1"
+                              loading={friendAction.isPending}
+                              onClick={(e) => { e.stopPropagation(); friendAction.mutate({ requesterId, action: "decline", notifId: n.id }); }}
+                            >
+                              <X className="size-3" /> Decline
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </ScrollArea>
