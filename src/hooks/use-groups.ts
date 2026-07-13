@@ -110,3 +110,37 @@ export function useRemoveMember() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export function useLeaveGroup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ groupId, userId }: { groupId: string; userId: string }) =>
+      fetchJSON(`/api/groups/${groupId}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["groups"] });
+      toast.success("Left the group");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useTransferOwnership() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ groupId, userId }: { groupId: string; userId: string }) =>
+      fetchJSON(`/api/groups/${groupId}/members`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role: "ADMIN" }),
+      }),
+    onSuccess: (_data, { groupId }) => {
+      qc.invalidateQueries({ queryKey: ["groups", groupId] });
+      toast.success("Ownership transferred");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

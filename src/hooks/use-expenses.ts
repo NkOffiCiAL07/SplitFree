@@ -78,3 +78,33 @@ export function useDeleteExpense() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export function useDuplicateExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (expense: Expense) =>
+      fetchJSON("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: `${expense.description} (copy)`,
+          amount: expense.amount / 100,
+          currency: expense.currency,
+          category: expense.category,
+          splitType: expense.splitType,
+          paidById: expense.paidById,
+          groupId: expense.groupId ?? null,
+          date: new Date(),
+          notes: expense.notes,
+          isRecurring: false,
+          participants: expense.splits?.map((s) => s.userId) ?? [],
+        }),
+      }),
+    onSuccess: (dup: Expense) => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      if (dup.groupId) qc.invalidateQueries({ queryKey: ["groups", dup.groupId] });
+      toast.success("Expense duplicated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

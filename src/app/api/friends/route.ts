@@ -22,6 +22,17 @@ export async function GET(req: NextRequest) {
       return ok(requests);
     }
 
+    const sent = new URL(req.url).searchParams.get("sent") === "true";
+    if (sent) {
+      // Outgoing pending requests (I sent to others)
+      const requests = await prisma.friendship.findMany({
+        where: { userId: user!.id, status: "PENDING" },
+        include: { friend: true },
+        orderBy: { createdAt: "desc" },
+      });
+      return ok(requests);
+    }
+
     const friendships = await prisma.friendship.findMany({
       where: { userId: user!.id, status: "ACCEPTED" },
       include: { friend: true },

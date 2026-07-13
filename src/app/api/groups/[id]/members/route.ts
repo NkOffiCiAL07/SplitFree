@@ -90,6 +90,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { user, error } = await requireAuth();
+    if (error) return error;
+    const { id: groupId } = await params;
+
+    const callerMember = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: user!.id } },
+    });
+    if (!callerMember || callerMember.role !== "ADMIN") return err("Admin required", 403);
+
+    const { userId, role } = await req.json();
+    if (!userId || !["ADMIN", "MEMBER"].includes(role)) return err("Invalid request", 400);
+    if (userId === user!.id) return err("Cannot change your own role this way", 400);
+
+    const updated = await prisma.groupMember.update({
+      where: { groupId_userId: { groupId, userId } },
+      data: { role },
+      include: { user: true },
+    });
+
+    await prisma.activity.create({
+      data: {
+        type: "MEMBER_ADDED",
+        userId: user!.id,
+        groupId,
+        metadata: { memberId: userId, role },
+      },
+    });
+
+    return ok(updated);
+  } catch (e) {
+    return handleError(e);
+  }
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { user, error } = await requireAuth();

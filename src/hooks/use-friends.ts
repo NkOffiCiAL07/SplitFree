@@ -25,6 +25,30 @@ export function usePendingFriendRequests() {
   });
 }
 
+export function useSentFriendRequests() {
+  return useQuery<any[]>({
+    queryKey: ["friends", "sent"],
+    queryFn: () => fetchJSON("/api/friends?sent=true"),
+  });
+}
+
+export function useCancelFriendRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (friendId: string) =>
+      fetchJSON("/api/friends", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ friendId }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["friends", "sent"] });
+      toast.success("Request cancelled");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useRespondToFriendRequest() {
   const qc = useQueryClient();
   return useMutation({

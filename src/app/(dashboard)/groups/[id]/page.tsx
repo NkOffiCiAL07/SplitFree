@@ -1,10 +1,10 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Settings, Receipt, CheckCircle2 } from "lucide-react";
-import { useGroup, useDeleteGroup, useAddMember, useRemoveMember } from "@/hooks/use-groups";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown } from "lucide-react";
+import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
-import { useState } from "react";
+import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { toast } from "sonner";
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,17 +28,28 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const deleteMutation = useDeleteGroup();
   const addMemberMutation = useAddMember();
   const removeMemberMutation = useRemoveMember();
+  const leaveGroup = useLeaveGroup();
+  const transferOwnership = useTransferOwnership();
   const settleUp = useSettleUp();
   const [addEmail, setAddEmail] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
   const [settleNote, setSettleNote] = useState("");
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
 
-  const isAdmin = group?.members?.find((m) => m.userId === user?.id)?.role === "ADMIN";
+  const myMember = group?.members?.find((m) => m.userId === user?.id);
+  const isAdmin = myMember?.role === "ADMIN";
+  const isCreator = group?.createdById === user?.id;
 
   const handleDelete = async () => {
     if (!confirm("Delete this group? This cannot be undone.")) return;
     await deleteMutation.mutateAsync(id);
+    router.push("/groups");
+  };
+
+  const handleLeave = async () => {
+    if (!confirm("Leave this group?")) return;
+    await leaveGroup.mutateAsync({ groupId: id, userId: user!.id });
     router.push("/groups");
   };
 
@@ -62,6 +73,14 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     });
     setSettleTarget(null);
     setSettleNote("");
+  };
+
+  const handleTransferOwnership = async () => {
+    if (!transferTarget) return;
+    const target = group?.members?.find((m) => m.userId === transferTarget);
+    if (!confirm(`Transfer admin rights to ${target?.user?.name}?`)) return;
+    await transferOwnership.mutateAsync({ groupId: id, userId: transferTarget });
+    setTransferTarget(null);
   };
 
   if (isLoading) {
@@ -92,10 +111,28 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
             <p className="text-sm text-muted-foreground">{group.description}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []} />
-          {isAdmin && (
-            <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+          {isAdmin && <EditGroupDialog group={group} />}
+          {!isCreator && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="Leave group"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={handleLeave}
+            >
+              <LogOut className="size-4" />
+            </Button>
+          )}
+          {isCreator && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleDelete}
+              title="Delete group"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
               <Trash2 className="size-4" />
             </Button>
           )}
@@ -122,7 +159,42 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-sm">Members ({group.members?.length})</h3>
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Dialog open={!!transferTarget} onOpenChange={(o) => { if (!o) setTransferTarget(null); }}>
+                <DialogContent className="sm:max-w-sm">
+                  <DialogHeader><DialogTitle>Transfer ownership</DialogTitle></DialogHeader>
+                  <div className="space-y-2 mt-2">
+                    {group.members?.filter((m) => m.userId !== user?.id && m.role !== "ADMIN").map((m) => (
+                      <button
+                        key={m.userId}
+                        onClick={() => setTransferTarget(m.userId)}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors",
+                          transferTarget === m.userId ? "border-primary bg-primary/5" : "hover:bg-accent"
+                        )}
+                      >
+                        <Avatar className="size-8">
+                          <AvatarImage src={m.user?.avatarUrl ?? undefined} />
+                          <AvatarFallback className="text-xs">{getInitials(m.user?.name ?? "?")}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">{m.user?.name}</span>
+                      </button>
+                    ))}
+                    <Button
+                      className="w-full mt-2"
+                      variant="brand"
+                      disabled={!transferTarget}
+                      loading={transferOwnership.isPending}
+                      onClick={handleTransferOwnership}
+                    >
+                      <Crown className="size-4 mr-1.5" /> Transfer ownership
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                   <UserPlus className="size-3.5" /> Add member
@@ -144,6 +216,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </form>
               </DialogContent>
             </Dialog>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {group.members?.map((member) => (
@@ -163,14 +236,27 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               {member.role === "ADMIN" && <Badge variant="secondary" className="text-[10px]">Admin</Badge>}
               {isAdmin && member.userId !== user?.id && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={() => removeMemberMutation.mutate({ groupId: id, userId: member.userId })}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {member.role !== "ADMIN" && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Make admin"
+                      className="text-muted-foreground hover:text-amber-500 size-7"
+                      onClick={() => setTransferTarget(member.userId)}
+                    >
+                      <Crown className="size-3.5" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:text-destructive size-7"
+                    onClick={() => removeMemberMutation.mutate({ groupId: id, userId: member.userId })}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
               )}
             </motion.div>
           ))}

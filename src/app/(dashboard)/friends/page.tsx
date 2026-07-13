@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { UserPlus, UserMinus, Mail, Check, X, Clock } from "lucide-react";
-import { useFriends, useAddFriend, useRemoveFriend, usePendingFriendRequests, useRespondToFriendRequest } from "@/hooks/use-friends";
+import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal } from "lucide-react";
+import {
+  useFriends, useAddFriend, useRemoveFriend,
+  usePendingFriendRequests, useRespondToFriendRequest,
+  useSentFriendRequests, useCancelFriendRequest,
+} from "@/hooks/use-friends";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,10 +19,12 @@ import { getInitials, formatRelativeTime } from "@/lib/utils";
 
 export default function FriendsPage() {
   const { data: friendships, isLoading } = useFriends();
-  const { data: pending, isLoading: pendingLoading } = usePendingFriendRequests();
+  const { data: pending } = usePendingFriendRequests();
+  const { data: sent } = useSentFriendRequests();
   const addFriend = useAddFriend();
   const removeFriend = useRemoveFriend();
   const respond = useRespondToFriendRequest();
+  const cancelRequest = useCancelFriendRequest();
   const [email, setEmail] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -31,16 +37,14 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Friends</h2>
           <p className="text-sm text-muted-foreground">
             {friendships?.length ?? 0} friends
             {(pending?.length ?? 0) > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                · {pending!.length} pending
-              </span>
+              <span className="ml-2 text-amber-600 dark:text-amber-400">· {pending!.length} pending</span>
             )}
           </p>
         </div>
@@ -71,12 +75,12 @@ export default function FriendsPage() {
         </Dialog>
       </div>
 
-      {/* Pending requests section */}
-      {!pendingLoading && (pending?.length ?? 0) > 0 && (
+      {/* Incoming pending requests */}
+      {(pending?.length ?? 0) > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             <Clock className="size-3.5 text-amber-500" />
-            Pending requests
+            Received requests
             <Badge variant="secondary" className="text-[10px] px-1.5">{pending!.length}</Badge>
           </h3>
           {pending!.map((req: any, i: number) => (
@@ -121,23 +125,66 @@ export default function FriendsPage() {
         </div>
       )}
 
-      {/* Friends list */}
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+      {/* Sent pending requests */}
+      {(sent?.length ?? 0) > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            <SendHorizonal className="size-3.5 text-blue-500" />
+            Sent requests
+            <Badge variant="secondary" className="text-[10px] px-1.5">{sent!.length}</Badge>
+          </h3>
+          {sent!.map((req: any, i: number) => (
+            <motion.div
+              key={req.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center gap-3 p-4 rounded-xl border bg-blue-50/60 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30"
+            >
+              <Avatar className="size-10">
+                <AvatarImage src={req.friend?.avatarUrl ?? undefined} />
+                <AvatarFallback>{getInitials(req.friend?.name ?? "?")}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{req.friend?.name}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                  <Mail className="size-3" /> {req.friend?.email}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2.5 text-xs gap-1 shrink-0"
+                loading={cancelRequest.isPending}
+                onClick={() => cancelRequest.mutate(req.friendId)}
+              >
+                <X className="size-3" /> Cancel
+              </Button>
+            </motion.div>
           ))}
         </div>
-      ) : friendships?.length === 0 ? (
-        <EmptyState
-          icon={UserPlus}
-          title="No friends yet"
-          description="Add friends by email to track shared expenses with them outside of groups."
-          action={{ label: "Add your first friend", onClick: () => setDialogOpen(true) }}
-        />
-      ) : (
-        <div className="space-y-2">
-          {friendships?.map((friendship, i) => (
+      )}
+
+      {/* Friends list */}
+      <div className="space-y-2">
+        {friendships?.length !== 0 && (
+          <h3 className="text-sm font-semibold">Friends ({friendships?.length ?? 0})</h3>
+        )}
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : friendships?.length === 0 ? (
+          <EmptyState
+            icon={UserPlus}
+            title="No friends yet"
+            description="Add friends by email to track shared expenses with them outside of groups."
+            action={{ label: "Add your first friend", onClick: () => setDialogOpen(true) }}
+          />
+        ) : (
+          friendships?.map((friendship, i) => (
             <motion.div
               key={friendship.id}
               initial={{ opacity: 0, y: 8 }}
@@ -167,9 +214,9 @@ export default function FriendsPage() {
                 <UserMinus className="size-4" />
               </Button>
             </motion.div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

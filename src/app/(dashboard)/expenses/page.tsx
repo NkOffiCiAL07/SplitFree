@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Receipt, Trash2, Download, Search, X, ChevronRight } from "lucide-react";
-import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
+import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText } from "lucide-react";
+import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
+import { EditExpenseDialog } from "@/components/expenses/edit-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +29,12 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useExpenses();
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
+  const duplicateMutation = useDuplicateExpense();
   const userCurrency = useUserCurrency();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const filtered = useMemo(() => {
     if (!expenses) return [];
@@ -42,8 +45,12 @@ export default function ExpensesPage() {
     });
   }, [expenses, search, category]);
 
-  const handleExport = () => {
+  const handleExportCSV = () => {
     window.location.href = "/api/export";
+  };
+
+  const handleExportPDF = () => {
+    window.open("/print/expenses", "_blank");
   };
 
   return (
@@ -54,9 +61,14 @@ export default function ExpensesPage() {
           <p className="text-sm text-muted-foreground">{filtered.length} of {expenses?.length ?? 0}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport}>
-            <Download className="size-4" /> Export CSV
-          </Button>
+          <div className="hidden sm:flex items-center gap-1">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={handleExportCSV}>
+              <Download className="size-3.5" /> CSV
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={handleExportPDF}>
+              <FileText className="size-3.5" /> PDF
+            </Button>
+          </div>
           <AddExpenseDialog />
         </div>
       </div>
@@ -176,20 +188,55 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               )}
-              {selectedExpense.paidById === user?.id && (
+
+              {/* Action buttons */}
+              <div className="flex gap-2 pt-1">
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   size="sm"
-                  className="w-full gap-1.5"
-                  onClick={() => { deleteMutation.mutate(selectedExpense.id); setSelectedExpense(null); }}
+                  className="flex-1 gap-1.5"
+                  onClick={() => {
+                    duplicateMutation.mutate(selectedExpense);
+                    setSelectedExpense(null);
+                  }}
+                  loading={duplicateMutation.isPending}
                 >
-                  <Trash2 className="size-3.5" /> Delete expense
+                  <Copy className="size-3.5" /> Duplicate
                 </Button>
-              )}
+                {selectedExpense.paidById === user?.id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5"
+                    onClick={() => { setEditingExpense(selectedExpense); setSelectedExpense(null); }}
+                  >
+                    <Pencil className="size-3.5" /> Edit
+                  </Button>
+                )}
+                {selectedExpense.paidById === user?.id && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => { deleteMutation.mutate(selectedExpense.id); setSelectedExpense(null); }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit expense dialog */}
+      {editingExpense && (
+        <EditExpenseDialog
+          expense={editingExpense}
+          open={!!editingExpense}
+          onClose={() => setEditingExpense(null)}
+        />
+      )}
     </div>
   );
 }
