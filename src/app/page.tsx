@@ -114,15 +114,12 @@ export default function LandingPage() {
             with groups and friends — zero ads, zero paywalls, zero friction.
           </motion.p>
 
-          <motion.div variants={item} className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <motion.div variants={item} className="flex justify-center pt-2">
             <Button variant="brand" size="xl" asChild>
               <Link href="/signup">
                 Start splitting for free
                 <ArrowRight className="size-4" />
               </Link>
-            </Button>
-            <Button variant="outline" size="xl" asChild>
-              <Link href="/login">Sign in</Link>
             </Button>
           </motion.div>
 
