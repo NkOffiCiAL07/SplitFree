@@ -35,25 +35,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </p>
           </blockquote>
 
-          <div className="flex items-center gap-4 text-white/70 text-sm">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              Free forever
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              No ads
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              Open source
-            </div>
-          </div>
         </div>
-
-        <p className="relative z-10 text-white/50 text-xs">
-          © 2024 SplitFree. All rights reserved.
-        </p>
       </div>
 
       {/* Right — auth form */}

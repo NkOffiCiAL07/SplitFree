@@ -1,19 +1,26 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, handleError } from "@/lib/api-helpers";
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
 
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
+    const cursor = searchParams.get("cursor");
+
     const notifications = await prisma.notification.findMany({
       where: { userId: user!.id },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: limit,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
-    return ok(notifications);
+    const res = ok(notifications);
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (e) {
     return handleError(e);
   }

@@ -82,9 +82,13 @@ export function useAddMember() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       }),
-    onSuccess: (_data, { groupId }) => {
+    onSuccess: (data: any, { groupId }) => {
       qc.invalidateQueries({ queryKey: ["groups", groupId] });
-      toast.success("Member added");
+      if (data?.invited) {
+        toast.success(`Invite sent to ${data.email}`);
+      } else {
+        toast.success("Member added");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });

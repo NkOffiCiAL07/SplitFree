@@ -19,6 +19,13 @@ export function useSettlements(groupId?: string) {
   });
 }
 
+export function useBalance() {
+  return useQuery({
+    queryKey: ["balance"],
+    queryFn: () => fetchJSON("/api/balance"),
+  });
+}
+
 export function useSettleUp() {
   const qc = useQueryClient();
   return useMutation({
@@ -31,6 +38,8 @@ export function useSettleUp() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settlements"] });
       qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["groups"] });
       toast.success("Payment recorded!");
     },
     onError: (e: Error) => toast.error(e.message),

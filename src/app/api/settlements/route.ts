@@ -1,9 +1,11 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
 import { z } from "zod";
 import { toCents } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
+
+const userSelect = { select: { id: true, name: true, avatarUrl: true } } as const;
 
 const createSettlementSchema = z.object({
   toUserId: z.string().uuid(),
@@ -21,21 +23,24 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const groupId = searchParams.get("groupId");
     const simplified = searchParams.get("simplified") === "true";
+    const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
+    const cursor = searchParams.get("cursor");
 
     const settlements = await prisma.settlement.findMany({
       where: {
         OR: [{ fromUserId: user!.id }, { toUserId: user!.id }],
         ...(groupId ? { groupId } : {}),
       },
-      include: { fromUser: true, toUser: true },
+      include: { fromUser: userSelect, toUser: userSelect },
       orderBy: { createdAt: "desc" },
+      take: limit,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
     if (simplified && groupId) {
-      // Calculate raw debts from expenses and simplify them
       const expenses = await prisma.expense.findMany({
         where: { groupId },
-        include: { splits: true },
+        select: { paidById: true, splits: { select: { userId: true, amount: true, isPaid: true } } },
       });
 
       const rawDebts = expenses.flatMap((exp) =>
@@ -44,24 +49,25 @@ export async function GET(req: NextRequest) {
           .map((s) => ({ fromUserId: s.userId, toUserId: exp.paidById, amount: s.amount }))
       );
 
-      // Subtract existing settlements
       const settledMap = new Map<string, number>();
       settlements.forEach((s) => {
         const key = `${s.fromUserId}→${s.toUserId}`;
         settledMap.set(key, (settledMap.get(key) ?? 0) + s.amount);
       });
 
-      const adjustedDebts = rawDebts.map((d) => {
-        const key = `${d.fromUserId}→${d.toUserId}`;
-        const settled = settledMap.get(key) ?? 0;
-        return { ...d, amount: Math.max(0, d.amount - settled) };
-      }).filter((d) => d.amount > 0);
+      const adjustedDebts = rawDebts
+        .map((d) => {
+          const key = `${d.fromUserId}→${d.toUserId}`;
+          return { ...d, amount: Math.max(0, d.amount - (settledMap.get(key) ?? 0)) };
+        })
+        .filter((d) => d.amount > 0);
 
-      const simplified = simplifyDebts(adjustedDebts);
-      return ok({ settlements, simplified });
+      return ok({ settlements, simplified: simplifyDebts(adjustedDebts) });
     }
 
-    return ok(settlements);
+    const res = ok(settlements);
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (e) {
     return handleError(e);
   }
@@ -79,36 +85,64 @@ export async function POST(req: NextRequest) {
 
     if (data.toUserId === user!.id) return err("Cannot settle with yourself", 400);
 
-    const settlement = await prisma.settlement.create({
-      data: {
-        fromUserId: user!.id,
-        toUserId: data.toUserId,
-        amount: toCents(data.amount),
-        currency: data.currency,
-        groupId: data.groupId ?? null,
-        note: data.note ?? null,
-      },
-      include: { fromUser: true, toUser: true },
-    });
+    // Wrap settlement + all notifications in a transaction
+    const settlement = await prisma.$transaction(async (tx) => {
+      const s = await tx.settlement.create({
+        data: {
+          fromUserId: user!.id,
+          toUserId: data.toUserId,
+          amount: toCents(data.amount),
+          currency: data.currency,
+          groupId: data.groupId ?? null,
+          note: data.note ?? null,
+        },
+        include: { fromUser: userSelect, toUser: userSelect },
+      });
 
-    await prisma.notification.create({
-      data: {
-        userId: data.toUserId,
-        type: "SETTLEMENT_ADDED",
-        title: "Payment received",
-        body: `${settlement.fromUser.name} paid you $${data.amount.toFixed(2)}`,
-        data: { settlementId: settlement.id },
-      },
-    });
+      await tx.notification.create({
+        data: {
+          userId: data.toUserId,
+          type: "SETTLEMENT_ADDED",
+          title: "Payment received",
+          body: `${s.fromUser.name} paid you $${data.amount.toFixed(2)}`,
+          data: { settlementId: s.id, groupId: data.groupId },
+        },
+      });
 
-    await prisma.activity.create({
-      data: {
-        type: "SETTLEMENT_CREATED",
-        userId: user!.id,
-        settlementId: settlement.id,
-        groupId: data.groupId ?? null,
-        metadata: { amount: toCents(data.amount), toUserId: data.toUserId },
-      },
+      if (data.groupId) {
+        const groupMembers = await tx.groupMember.findMany({
+          where: { groupId: data.groupId },
+          select: { userId: true },
+        });
+        const otherIds = groupMembers
+          .map((m) => m.userId)
+          .filter((id) => id !== user!.id && id !== data.toUserId);
+
+        if (otherIds.length > 0) {
+          await tx.notification.createMany({
+            data: otherIds.map((uid) => ({
+              userId: uid,
+              type: "SETTLEMENT_ADDED" as const,
+              title: "Payment recorded",
+              body: `${s.fromUser.name} paid ${s.toUser.name} $${data.amount.toFixed(2)}`,
+              data: { settlementId: s.id, groupId: data.groupId },
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      await tx.activity.create({
+        data: {
+          type: "SETTLEMENT_CREATED",
+          userId: user!.id,
+          settlementId: s.id,
+          groupId: data.groupId ?? null,
+          metadata: { amount: toCents(data.amount), toUserId: data.toUserId },
+        },
+      });
+
+      return s;
     });
 
     return ok(settlement, 201);

@@ -3,8 +3,9 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Settings, Receipt } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Settings, Receipt, CheckCircle2 } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember } from "@/hooks/use-groups";
+import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
@@ -26,8 +28,11 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const deleteMutation = useDeleteGroup();
   const addMemberMutation = useAddMember();
   const removeMemberMutation = useRemoveMember();
+  const settleUp = useSettleUp();
   const [addEmail, setAddEmail] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
+  const [settleNote, setSettleNote] = useState("");
 
   const isAdmin = group?.members?.find((m) => m.userId === user?.id)?.role === "ADMIN";
 
@@ -43,6 +48,20 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     await addMemberMutation.mutateAsync({ groupId: id, email: addEmail });
     setAddEmail("");
     setAddDialogOpen(false);
+  };
+
+  const handleQuickSettle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!settleTarget) return;
+    const amountDollars = Math.abs(settleTarget.balance) / 100;
+    await settleUp.mutateAsync({
+      toUserId: settleTarget.userId,
+      amount: amountDollars,
+      groupId: id,
+      note: settleNote || undefined,
+    });
+    setSettleTarget(null);
+    setSettleNote("");
   };
 
   if (isLoading) {
@@ -74,7 +93,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
         <div className="flex items-center gap-2">
-          <AddExpenseDialog groupId={id} members={group.members ?? []} />
+          <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []} />
           {isAdmin && (
             <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10">
               <Trash2 className="size-4" />
@@ -89,11 +108,11 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "rounded-2xl p-5 text-white",
-          myBalance >= 0 ? "gradient-brand" : "bg-red-600"
+          myBalance >= 0 ? "bg-green-600" : "bg-red-600"
         )}
       >
         <p className="text-sm text-white/80">Your balance in this group</p>
-        <p className="text-3xl font-bold mt-1">{formatCurrency(Math.abs(myBalance))}</p>
+        <p className="text-3xl font-bold mt-1">{formatCurrency(Math.abs(myBalance), group.currency)}</p>
         <p className="text-sm mt-1 text-white/80">
           {myBalance > 0 ? "You are owed" : myBalance < 0 ? "You owe" : "All settled up!"}
         </p>
@@ -160,6 +179,75 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
+      {/* Per-member balances */}
+      {(() => {
+        const memberBalances = (group as any).memberBalances ?? [];
+        if (memberBalances.length === 0) return null;
+        return (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm">Who owes who</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {memberBalances.map((mb: any) => (
+                <motion.div
+                  key={mb.userId}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border",
+                    mb.balance > 0 ? "bg-green-50 border-green-100 dark:bg-green-900/10 dark:border-green-900/30" : "bg-red-50 border-red-100 dark:bg-red-900/10 dark:border-red-900/30"
+                  )}
+                >
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage src={mb.avatarUrl ?? undefined} />
+                    <AvatarFallback className="text-xs">{getInitials(mb.name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{mb.name}</p>
+                    <p className={cn("text-xs", mb.balance > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                      {mb.balance > 0 ? "owes you" : "you owe"}
+                    </p>
+                  </div>
+                  <span className={cn("text-sm font-bold shrink-0", mb.balance > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                    {formatCurrency(Math.abs(mb.balance), group.currency)}
+                  </span>
+                  {mb.balance < 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-2 shrink-0"
+                      onClick={() => setSettleTarget({ userId: mb.userId, name: mb.name, balance: mb.balance })}
+                    >
+                      Settle
+                    </Button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Quick settle dialog */}
+      <Dialog open={!!settleTarget} onOpenChange={(open) => { if (!open) { setSettleTarget(null); setSettleNote(""); } }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Settle with {settleTarget?.name}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleQuickSettle} className="space-y-4 mt-2">
+            <div className="rounded-xl bg-muted/50 p-3 text-sm text-center">
+              You owe <span className="font-bold">{settleTarget && formatCurrency(Math.abs(settleTarget.balance), group.currency)}</span> to {settleTarget?.name}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Note (optional)</Label>
+              <Input placeholder="Paid via UPI, cash…" value={settleNote} onChange={(e) => setSettleNote(e.target.value)} />
+            </div>
+            <Button type="submit" className="w-full" variant="brand" loading={settleUp.isPending}>
+              <CheckCircle2 className="size-4 mr-1.5" /> Record full payment
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Separator />
 
       {/* Expenses */}
@@ -172,7 +260,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         ) : (
           <div className="space-y-2">
             {expenses.map((exp: any, i: number) => (
-              <ExpenseRow key={exp.id} expense={exp} userId={user?.id ?? ""} index={i} />
+              <ExpenseRow key={exp.id} expense={exp} userId={user?.id ?? ""} index={i} groupCurrency={group.currency} />
             ))}
           </div>
         )}
@@ -181,7 +269,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   );
 }
 
-function ExpenseRow({ expense, userId, index }: { expense: any; userId: string; index: number }) {
+function ExpenseRow({ expense, userId, index, groupCurrency }: { expense: any; userId: string; index: number; groupCurrency?: string }) {
   const myShare = expense.splits?.find((s: any) => s.userId === userId);
   const isPayer = expense.paidById === userId;
 
@@ -202,10 +290,10 @@ function ExpenseRow({ expense, userId, index }: { expense: any; userId: string; 
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold">{formatCurrency(expense.amount)}</p>
+        <p className="text-sm font-semibold">{formatCurrency(expense.amount, groupCurrency ?? expense.currency)}</p>
         {myShare && (
           <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount)}` : `-${formatCurrency(myShare.amount)}`}
+            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount, groupCurrency ?? expense.currency)}` : `-${formatCurrency(myShare.amount, groupCurrency ?? expense.currency)}`}
           </p>
         )}
       </div>

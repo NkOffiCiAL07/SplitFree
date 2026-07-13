@@ -18,7 +18,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { email } = addMemberSchema.parse(body);
 
     const invitee = await prisma.user.findUnique({ where: { email } });
-    if (!invitee) return err("User not found. They must sign up first.", 404);
+
+    if (!invitee) {
+      // Store pending invite
+      await prisma.groupInvite.upsert({
+        where: { groupId_email: { groupId, email } },
+        update: { invitedBy: user!.id, createdAt: new Date() },
+        create: { groupId, email, invitedBy: user!.id },
+      });
+
+      // Send invite email via Supabase
+      const { createAdminClient } = await import("@/lib/supabase/server");
+      const admin = await createAdminClient();
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://splitfree-xi.vercel.app";
+      await admin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${appUrl}/auth/callback?next=/groups/${groupId}`,
+      });
+
+      return ok({ invited: true, email });
+    }
 
     const existing = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId: invitee.id } },
@@ -30,19 +48,40 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: { user: true },
     });
 
-    // Notify the invitee
+    const group = await prisma.group.findUnique({ where: { id: groupId }, select: { name: true } });
+
+    // Notify the new member
     await prisma.notification.create({
       data: {
         userId: invitee.id,
         type: "GROUP_JOINED",
-        title: "You were added to a group",
-        body: `You've been added to the group by ${user!.email}`,
+        title: `You were added to "${group?.name}"`,
+        body: `${user!.email} added you to the group`,
         data: { groupId },
       },
     });
 
+    // Notify all existing members that someone new joined
+    const existingMemberIds = (await prisma.groupMember.findMany({
+      where: { groupId, userId: { notIn: [invitee.id, user!.id] } },
+      select: { userId: true },
+    })).map((m) => m.userId);
+
+    if (existingMemberIds.length > 0) {
+      await prisma.notification.createMany({
+        data: existingMemberIds.map((uid) => ({
+          userId: uid,
+          type: "FRIEND_ADDED" as const,
+          title: `${invitee.name} joined "${group?.name}"`,
+          body: `${user!.email} added ${invitee.name} to the group`,
+          data: { groupId, memberId: invitee.id },
+        })),
+        skipDuplicates: true,
+      });
+    }
+
     await prisma.activity.create({
-      data: { type: "MEMBER_ADDED", userId: user!.id, groupId, metadata: { memberId: invitee.id } },
+      data: { type: "MEMBER_ADDED", userId: user!.id, groupId, metadata: { memberId: invitee.id, memberName: invitee.name } },
     });
 
     return ok(member, 201);

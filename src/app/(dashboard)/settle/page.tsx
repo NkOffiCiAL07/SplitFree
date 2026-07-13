@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Zap } from "lucide-react";
-import { useSettlements, useSettleUp } from "@/hooks/use-settlements";
+import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
 import { useFriends } from "@/hooks/use-friends";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,15 +14,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, getInitials, formatDate } from "@/lib/utils";
 
-// Demo simplified debts shown until real data is wired
-const DEMO_DEBTS = [
-  { fromUser: { name: "Alex Chen", avatarUrl: null }, toUser: { name: "You", avatarUrl: null }, amount: 4500 },
-  { fromUser: { name: "You", avatarUrl: null }, toUser: { name: "Sarah Kim", avatarUrl: null }, amount: 2300 },
-];
-
 export default function SettlePage() {
   const { data, isLoading } = useSettlements();
+  const { data: balanceData, isLoading: balanceLoading } = useBalance();
   const { data: friends } = useFriends();
+  const { user } = useAuth();
   const settleUp = useSettleUp();
   const [selectedFriend, setSelectedFriend] = useState<string>("");
   const [amount, setAmount] = useState("");
@@ -29,6 +26,7 @@ export default function SettlePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const settlements = Array.isArray(data) ? data : [];
+  const simplified: any[] = (balanceData as any)?.simplified ?? [];
 
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,29 +93,53 @@ export default function SettlePage() {
         <p className="text-xs text-muted-foreground">
           Minimum transactions to settle all balances across all groups.
         </p>
-        <div className="space-y-2">
-          {DEMO_DEBTS.map((debt, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="flex items-center gap-3 p-4 rounded-xl border bg-card"
-            >
-              <Avatar className="size-8">
-                <AvatarFallback className="text-xs">{getInitials(debt.fromUser.name)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 flex items-center gap-2 min-w-0">
-                <span className="text-sm font-medium truncate">{debt.fromUser.name}</span>
-                <ArrowRight className="size-4 text-muted-foreground shrink-0" />
-                <span className="text-sm font-medium truncate">{debt.toUser.name}</span>
-              </div>
-              <span className="text-sm font-bold text-primary shrink-0">
-                {formatCurrency(debt.amount)}
-              </span>
-            </motion.div>
-          ))}
-        </div>
+        {balanceLoading ? (
+          <Skeleton className="h-24 w-full rounded-xl" />
+        ) : simplified.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">All settled up!</p>
+        ) : (
+          <div className="space-y-2">
+            {simplified.map((debt: any, i: number) => {
+              const isMyDebt = debt.fromUserId === user?.id;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                  className="flex items-center gap-3 p-4 rounded-xl border bg-card"
+                >
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage src={debt.fromUser?.avatarUrl ?? undefined} />
+                    <AvatarFallback className="text-xs">{getInitials(debt.fromUser?.name ?? "?")}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium truncate">{isMyDebt ? "You" : debt.fromUser?.name}</span>
+                    <ArrowRight className="size-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-medium truncate">{isMyDebt ? debt.toUser?.name : "You"}</span>
+                  </div>
+                  <span className="text-sm font-bold text-primary shrink-0">
+                    {formatCurrency(debt.amount)}
+                  </span>
+                  {isMyDebt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-2 shrink-0"
+                      onClick={() => {
+                        setSelectedFriend(debt.toUserId);
+                        setAmount((debt.amount / 100).toFixed(2));
+                        setDialogOpen(true);
+                      }}
+                    >
+                      Settle
+                    </Button>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Settlement history */}

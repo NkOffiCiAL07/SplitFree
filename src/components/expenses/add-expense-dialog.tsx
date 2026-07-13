@@ -38,11 +38,12 @@ type FormValues = z.infer<typeof schema>;
 
 interface Props {
   groupId?: string;
+  groupCurrency?: string;
   members?: GroupMember[];
   children?: React.ReactNode;
 }
 
-export function AddExpenseDialog({ groupId, members = [], children }: Props) {
+export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [], children }: Props) {
   const [open, setOpen] = useState(false);
   const [splitType, setSplitType] = useState<"EQUAL"|"EXACT"|"PERCENTAGE"|"SHARES">("EQUAL");
   const [participants, setParticipants] = useState<string[]>([]);
@@ -84,7 +85,7 @@ export function AddExpenseDialog({ groupId, members = [], children }: Props) {
     await mutateAsync({
       description: values.description,
       amount: parseFloat(values.amount),
-      currency: "USD",
+      currency: groupCurrency,
       category: values.category,
       splitType,
       paidById,

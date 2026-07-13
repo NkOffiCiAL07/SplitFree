@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import {
@@ -41,17 +41,19 @@ export function CommandPalette() {
   const { setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
 
-  // ⌘K / Ctrl+K shortcut
+  // ⌘K / Ctrl+K shortcut — stable listener via ref to avoid re-binding on every state change
+  const openRef = useRef(commandPaletteOpen);
+  openRef.current = commandPaletteOpen;
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setCommandPaletteOpen(!commandPaletteOpen);
+        setCommandPaletteOpen(!openRef.current);
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [commandPaletteOpen, setCommandPaletteOpen]);
+  }, [setCommandPaletteOpen]);
 
   const navigate = useCallback(
     (href: string) => {

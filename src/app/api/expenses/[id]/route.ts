@@ -5,6 +5,15 @@ import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
 
+async function getGroupMemberIds(groupId: string | null, excludeId: string): Promise<string[]> {
+  if (!groupId) return [];
+  const members = await prisma.groupMember.findMany({
+    where: { groupId },
+    select: { userId: true },
+  });
+  return members.map((m) => m.userId).filter((id) => id !== excludeId);
+}
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { user, error } = await requireAuth();
@@ -70,11 +79,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       include: { paidBy: true, splits: { include: { user: true } }, group: true },
     });
 
+    // Notify all group members (except editor) about the update
+    const notifyIds = await getGroupMemberIds(existing.groupId, user!.id);
+    if (notifyIds.length > 0) {
+      await prisma.notification.createMany({
+        data: notifyIds.map((uid) => ({
+          userId: uid,
+          type: "EXPENSE_UPDATED" as const,
+          title: `${updated.paidBy.name} updated an expense`,
+          body: `"${updated.description}" was edited`,
+          data: { expenseId: id, groupId: existing.groupId },
+        })),
+        skipDuplicates: true,
+      });
+    }
+
     await prisma.activity.create({
       data: {
         type: "EXPENSE_UPDATED",
         userId: user!.id,
         expenseId: id,
+        groupId: existing.groupId,
         metadata: { description: updated.description },
       },
     });
@@ -93,16 +118,34 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
     const expense = await prisma.expense.findFirst({
       where: { id, splits: { some: { userId: user!.id } } },
+      include: { paidBy: true },
     });
     if (!expense) return err("Expense not found", 404);
     if (expense.paidById !== user!.id) return err("Only the payer can delete", 403);
 
+    // Fetch group members before deleting (cascade will remove related data)
+    const notifyIds = await getGroupMemberIds(expense.groupId, user!.id);
+
     await prisma.expense.delete({ where: { id } });
+
+    if (notifyIds.length > 0) {
+      await prisma.notification.createMany({
+        data: notifyIds.map((uid) => ({
+          userId: uid,
+          type: "EXPENSE_DELETED" as const,
+          title: `${expense.paidBy.name} deleted an expense`,
+          body: `"${expense.description}" was removed`,
+          data: { groupId: expense.groupId },
+        })),
+        skipDuplicates: true,
+      });
+    }
 
     await prisma.activity.create({
       data: {
         type: "EXPENSE_DELETED",
         userId: user!.id,
+        groupId: expense.groupId,
         metadata: { description: expense.description },
       },
     });

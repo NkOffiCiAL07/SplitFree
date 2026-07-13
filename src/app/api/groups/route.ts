@@ -11,13 +11,18 @@ export async function GET(req: NextRequest) {
     const groups = await prisma.group.findMany({
       where: { members: { some: { userId: user!.id } } },
       include: {
-        members: { include: { user: true }, take: 5 },
+        members: {
+          take: 5,
+          select: { userId: true, role: true, user: { select: { id: true, name: true, avatarUrl: true } } },
+        },
         _count: { select: { expenses: true, members: true } },
       },
       orderBy: { updatedAt: "desc" },
     });
 
-    return ok(groups);
+    const res = ok(groups);
+    res.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
+    return res;
   } catch (e) {
     return handleError(e);
   }

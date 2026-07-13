@@ -4,10 +4,9 @@ import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
 import { updateGroupSchema } from "@/lib/validations/group";
 
 async function assertMember(groupId: string, userId: string) {
-  const member = await prisma.groupMember.findUnique({
+  return prisma.groupMember.findUnique({
     where: { groupId_userId: { groupId, userId } },
   });
-  return member;
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -19,21 +18,74 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const member = await assertMember(id, user!.id);
     if (!member) return err("Not a member of this group", 403);
 
-    const group = await prisma.group.findUnique({
-      where: { id },
-      include: {
-        members: { include: { user: true }, orderBy: { joinedAt: "asc" } },
-        expenses: {
-          include: { paidBy: true, splits: { include: { user: true } } },
-          orderBy: { date: "desc" },
-          take: 20,
+    const [group, allExpenses, allSettlements] = await Promise.all([
+      prisma.group.findUnique({
+        where: { id },
+        include: {
+          members: { include: { user: true }, orderBy: { joinedAt: "asc" } },
+          expenses: {
+            include: { paidBy: true, splits: { include: { user: true } } },
+            orderBy: { date: "desc" },
+            take: 20,
+          },
+          _count: { select: { expenses: true, members: true } },
         },
-        _count: { select: { expenses: true, members: true } },
-      },
-    });
+      }),
+      // All expenses for accurate balance calculation
+      prisma.expense.findMany({
+        where: { groupId: id },
+        include: { splits: true },
+      }),
+      // All settlements in this group involving me
+      prisma.settlement.findMany({
+        where: {
+          groupId: id,
+          OR: [{ fromUserId: user!.id }, { toUserId: user!.id }],
+        },
+      }),
+    ]);
 
     if (!group) return err("Group not found", 404);
-    return ok(group);
+
+    // Compute per-member net balance from my perspective
+    // positive = they owe me, negative = I owe them
+    const balances: Record<string, number> = {};
+
+    for (const expense of allExpenses) {
+      for (const split of expense.splits) {
+        if (split.userId === user!.id && expense.paidById !== user!.id) {
+          // I owe the payer my share
+          balances[expense.paidById] = (balances[expense.paidById] ?? 0) - split.amount;
+        } else if (expense.paidById === user!.id && split.userId !== user!.id) {
+          // The split person owes me their share
+          balances[split.userId] = (balances[split.userId] ?? 0) + split.amount;
+        }
+      }
+    }
+
+    // Adjust for settlements
+    for (const s of allSettlements) {
+      if (s.fromUserId === user!.id) {
+        // I paid someone — reduces what they owe me (or reduces what I owe them)
+        balances[s.toUserId] = (balances[s.toUserId] ?? 0) + s.amount;
+      } else {
+        // Someone paid me — reduces what I owe them
+        balances[s.fromUserId] = (balances[s.fromUserId] ?? 0) - s.amount;
+      }
+    }
+
+    // Attach balance to each member
+    const memberBalances = group.members
+      .filter((m) => m.userId !== user!.id)
+      .map((m) => ({
+        userId: m.userId,
+        name: m.user.name,
+        avatarUrl: m.user.avatarUrl,
+        balance: balances[m.userId] ?? 0, // cents
+      }))
+      .filter((m) => m.balance !== 0);
+
+    return ok({ ...group, memberBalances });
   } catch (e) {
     return handleError(e);
   }

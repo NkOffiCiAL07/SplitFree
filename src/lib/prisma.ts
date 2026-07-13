@@ -10,12 +10,19 @@ function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is not set");
 
-  // Decode any percent-encoded characters (e.g. %40 → @) so pg parses correctly
-  const decoded = connectionString.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) =>
-    String.fromCharCode(parseInt(hex, 16))
-  );
+  // Use WHATWG URL to correctly decode percent-encoded credentials (e.g. %40 → @)
+  // and pass each field separately so pg never has to re-parse a URL with @ in the password.
+  const u = new URL(connectionString);
+  const pool = new Pool({
+    host: u.hostname,
+    port: u.port ? parseInt(u.port) : 5432,
+    user: decodeURIComponent(u.username),
+    password: decodeURIComponent(u.password),
+    database: u.pathname.replace(/^\//, ""),
+    ssl: { rejectUnauthorized: false },
+    max: 3, // keep pool small for serverless
+  });
 
-  const pool = new Pool({ connectionString: decoded, ssl: { rejectUnauthorized: false } });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,

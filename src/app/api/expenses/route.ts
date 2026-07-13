@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
-import { toCents } from "@/lib/utils";
+import { toCents, formatCurrency } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createExpenseSchema.parse(body);
 
-    // Validate group membership if groupId provided
     if (data.groupId) {
       const member = await prisma.groupMember.findUnique({
         where: { groupId_userId: { groupId: data.groupId, userId: user!.id } },
@@ -57,7 +56,6 @@ export async function POST(req: NextRequest) {
       if (!member) return err("Not a member of this group", 403);
     }
 
-    // Calculate split amounts (stored in cents)
     const totalCents = toCents(data.amount);
     const splitAmounts = calculateSplits(
       totalCents,
@@ -95,17 +93,32 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notify participants (skip the payer)
-    const notifyIds = data.participants.filter((id) => id !== data.paidById);
+    // Notify every group member except the payer
+    let notifyIds: string[] = data.participants.filter((id) => id !== data.paidById);
+
+    if (data.groupId) {
+      const groupMembers = await prisma.groupMember.findMany({
+        where: { groupId: data.groupId },
+        select: { userId: true },
+      });
+      const memberIds = groupMembers.map((m) => m.userId).filter((id) => id !== data.paidById);
+      // Union of split participants + other group members
+      notifyIds = [...new Set([...notifyIds, ...memberIds])];
+    }
+
     if (notifyIds.length > 0) {
       await prisma.notification.createMany({
-        data: notifyIds.map((uid) => ({
-          userId: uid,
-          type: "EXPENSE_ADDED" as const,
-          title: `${expense.paidBy.name} added an expense`,
-          body: `${data.description} — you owe $${(splitAmounts[uid] ?? 0) / 100}`,
-          data: { expenseId: expense.id },
-        })),
+        data: notifyIds.map((uid) => {
+          const myShare = splitAmounts[uid];
+          return {
+            userId: uid,
+            type: "EXPENSE_ADDED" as const,
+            title: `${expense.paidBy.name} added an expense`,
+            body: `${data.description}${myShare != null ? ` — your share: ${formatCurrency(myShare, data.currency)}` : ""}`,
+            data: { expenseId: expense.id, groupId: data.groupId },
+          };
+        }),
+        skipDuplicates: true,
       });
     }
 
