@@ -43,23 +43,6 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Alex Chen",
-    role: "Software Engineer",
-    quote: "Finally a Splitwise alternative that doesn't nickel-and-dime me with a premium plan.",
-  },
-  {
-    name: "Sarah Kim",
-    role: "Product Designer",
-    quote: "The UI is honestly more beautiful than any expense app I've used. And it's completely free!",
-  },
-  {
-    name: "James Park",
-    role: "Student",
-    quote: "My roommates and I use this daily. The debt simplification feature saves so many back-and-forths.",
-  },
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -245,44 +228,6 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold text-center mb-12"
-          >
-            Loved by thousands
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {testimonials.map(({ name, role, quote }, i) => (
-              <motion.div
-                key={name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="rounded-2xl border bg-card p-6"
-              >
-                <div className="flex gap-1 mb-3">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} className="size-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  &ldquo;{quote}&rdquo;
-                </p>
-                <div>
-                  <p className="text-sm font-semibold">{name}</p>
-                  <p className="text-xs text-muted-foreground">{role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-24 px-4">
         <motion.div
