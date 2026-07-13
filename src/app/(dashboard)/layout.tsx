@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopNav } from "@/components/layout/top-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { CommandPalette } from "@/components/layout/command-palette";
 
 export default function DashboardLayout({
@@ -25,6 +26,9 @@ export default function DashboardLayout({
 
       {/* Mobile bottom nav */}
       <MobileNav />
+
+      {/* Mobile slide-in drawer */}
+      <MobileDrawer />
 
       {/* Global command palette */}
       <CommandPalette />

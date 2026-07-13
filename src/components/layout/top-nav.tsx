@@ -22,7 +22,7 @@ const pageTitles: Record<string, string> = {
 };
 
 export function TopNav() {
-  const { toggleSidebar, setCommandPaletteOpen } = useUIStore();
+  const { toggleSidebar, toggleMobileMenu, setCommandPaletteOpen } = useUIStore();
   const pathname = usePathname();
 
   const title = Object.entries(pageTitles).find(([path]) =>
@@ -37,7 +37,7 @@ export function TopNav() {
     <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-xl px-4">
       {/* Mobile menu */}
       <button
-        onClick={toggleSidebar}
+        onClick={toggleMobileMenu}
         className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors"
         aria-label="Toggle menu"
       >
