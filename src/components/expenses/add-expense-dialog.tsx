@@ -80,7 +80,21 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     return result;
   };
 
+  const splitValidationError = (() => {
+    if (splitType === "EQUAL" || activeParticipants.length === 0) return null;
+    const total = parseFloat(amountStr ?? "0") || 0;
+    const sum = activeParticipants.reduce((acc, uid) => acc + (parseFloat(splitValues[uid] ?? "0") || 0), 0);
+    if (splitType === "EXACT" && total > 0 && Math.abs(sum - total) > 0.01) {
+      return `Split amounts must sum to ${total.toFixed(2)} (currently ${sum.toFixed(2)})`;
+    }
+    if (splitType === "PERCENTAGE" && sum > 0 && Math.abs(sum - 100) > 0.01) {
+      return `Percentages must sum to 100% (currently ${sum.toFixed(1)}%)`;
+    }
+    return null;
+  })();
+
   const onSubmit = async (values: FormValues) => {
+    if (splitValidationError) return;
     const paidById = user?.id ?? "";
     await mutateAsync({
       description: values.description,
@@ -103,6 +117,16 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     setParticipants([]);
   };
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      reset();
+      setSplitValues({});
+      setParticipants([]);
+      setSplitType("EQUAL");
+    }
+  };
+
   const splitTabs = [
     { value: "EQUAL", label: "Equal", icon: Equal },
     { value: "EXACT", label: "Exact $", icon: SplitSquareHorizontal },
@@ -111,7 +135,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   ];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children ?? (
           <Button variant="brand" size="sm" className="gap-1.5">
@@ -289,9 +313,13 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             />
           )}
 
+          {splitValidationError && (
+            <p className="text-xs text-destructive">{splitValidationError}</p>
+          )}
+
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="ghost" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="brand" className="flex-1" loading={isPending}>Add expense</Button>
+            <Button type="button" variant="ghost" className="flex-1" onClick={() => handleOpenChange(false)}>Cancel</Button>
+            <Button type="submit" variant="brand" className="flex-1" loading={isPending} disabled={!!splitValidationError}>Add expense</Button>
           </div>
         </form>
       </DialogContent>

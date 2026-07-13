@@ -18,6 +18,30 @@ export function useFriends() {
   });
 }
 
+export function usePendingFriendRequests() {
+  return useQuery<any[]>({
+    queryKey: ["friends", "pending"],
+    queryFn: () => fetchJSON("/api/friends?pending=true"),
+  });
+}
+
+export function useRespondToFriendRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ requesterId, action }: { requesterId: string; action: "accept" | "decline" }) =>
+      fetchJSON("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, requesterId }),
+      }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["friends"] });
+      toast.success(vars.action === "accept" ? "Friend request accepted!" : "Request declined");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useAddFriend() {
   const qc = useQueryClient();
   return useMutation({

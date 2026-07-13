@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
 import { z } from "zod";
-import { toCents } from "@/lib/utils";
+import { toCents, formatCurrency } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
 
 const userSelect = { select: { id: true, name: true, avatarUrl: true } } as const;
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
           userId: data.toUserId,
           type: "SETTLEMENT_ADDED",
           title: "Payment received",
-          body: `${s.fromUser.name} paid you $${data.amount.toFixed(2)}`,
+          body: `${s.fromUser.name} paid you ${formatCurrency(toCents(data.amount), data.currency)}`,
           data: { settlementId: s.id, groupId: data.groupId },
         },
       });
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
               userId: uid,
               type: "SETTLEMENT_ADDED" as const,
               title: "Payment recorded",
-              body: `${s.fromUser.name} paid ${s.toUser.name} $${data.amount.toFixed(2)}`,
+              body: `${s.fromUser.name} paid ${s.toUser.name} ${formatCurrency(toCents(data.amount), data.currency)}`,
               data: { settlementId: s.id, groupId: data.groupId },
             })),
             skipDuplicates: true,

@@ -62,7 +62,7 @@ export async function GET(_req: NextRequest) {
       .filter((s) => s.fromUserId === user!.id)
       .reduce((sum, s) => sum + s.amount, 0);
 
-    return ok({
+    const res = ok({
       monthly: Array.from(monthlyMap.entries()).map(([month, data]) => ({ month, ...data })),
       categoryTotals,
       totalExpenses: expenses.reduce((s, e) => s + (e.splits[0]?.amount ?? 0), 0),
@@ -70,6 +70,8 @@ export async function GET(_req: NextRequest) {
       totalOwing,
       groupCount: groups.length,
     });
+    res.headers.set("Cache-Control", "private, max-age=60, stale-while-revalidate=120");
+    return res;
   } catch (e) {
     return handleError(e);
   }
