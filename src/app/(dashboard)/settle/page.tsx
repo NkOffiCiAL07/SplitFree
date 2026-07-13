@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, Zap } from "lucide-react";
 import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
 import { useFriends } from "@/hooks/use-friends";
 import { useAuth } from "@/hooks/use-auth";
+import { useUserCurrency } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ export default function SettlePage() {
   const [note, setNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const userCurrency = useUserCurrency();
   const settlements = Array.isArray(data) ? data : [];
   const simplified: any[] = (balanceData as any)?.simplified ?? [];
 
@@ -119,7 +121,7 @@ export default function SettlePage() {
                     <span className="text-sm font-medium truncate">{isMyDebt ? debt.toUser?.name : "You"}</span>
                   </div>
                   <span className="text-sm font-bold text-primary shrink-0">
-                    {formatCurrency(debt.amount)}
+                    {formatCurrency(debt.amount, userCurrency)}
                   </span>
                   {isMyDebt && (
                     <Button
@@ -164,7 +166,7 @@ export default function SettlePage() {
                   {s.fromUser?.name} → {s.toUser?.name}
                 </span>
                 <span className="font-semibold text-green-600 dark:text-green-400 shrink-0">
-                  {formatCurrency(s.amount)}
+                  {formatCurrency(s.amount, userCurrency)}
                 </span>
                 <span className="text-xs text-muted-foreground shrink-0">{formatDate(s.createdAt)}</span>
               </motion.div>

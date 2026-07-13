@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Moon, Sun, Monitor, Bell, Download, Trash2, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,9 +12,42 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
+const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const qc = useQueryClient();
+  const [currency, setCurrency] = useState("USD");
+  const [savingCurrency, setSavingCurrency] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((j) => { if (j.data?.currency) setCurrency(j.data.currency); })
+      .catch(() => {});
+  }, []);
+
+  const handleCurrencyChange = async (val: string) => {
+    setCurrency(val);
+    setSavingCurrency(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency: val }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Default currency updated");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save currency");
+    } finally {
+      setSavingCurrency(false);
+    }
+  };
 
   const themes = [
     { value: "light", label: "Light", icon: Sun },
@@ -62,7 +96,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Notifications</CardTitle>
-            <CardDescription>Control what you're notified about</CardDescription>
+            <CardDescription>Control what you&apos;re notified about</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-4">
             {[
@@ -87,19 +121,22 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Currency</CardTitle>
-            <CardDescription>Default currency for new expenses</CardDescription>
+            <CardDescription>Default currency for your dashboard display</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <Select defaultValue="USD">
+            <Select value={currency} onValueChange={handleCurrencyChange} disabled={savingCurrency}>
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["USD","EUR","GBP","INR","CAD","AUD","JPY"].map((c) => (
+                {CURRENCIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-2">
+              This sets how amounts are displayed on the dashboard.
+            </p>
           </CardContent>
         </Card>
       </motion.div>
@@ -137,13 +174,12 @@ export default function SettingsPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Shield className="size-4 text-green-500" />
-              <CardTitle className="text-base">Privacy & Security</CardTitle>
+              <CardTitle className="text-base">Privacy &amp; Security</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-xs text-muted-foreground">
-              SplitFree is open source and does not sell your data. All data is encrypted at rest and in transit via Supabase.{" "}
-              <a href="/privacy" className="text-primary underline">Privacy Policy</a>
+              SplitFree does not sell your data. All data is encrypted at rest and in transit via Supabase.
             </p>
           </CardContent>
         </Card>

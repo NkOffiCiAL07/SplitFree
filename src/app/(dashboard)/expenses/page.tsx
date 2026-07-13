@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
+import { useUserCurrency } from "@/hooks/use-profile";
 import type { Expense } from "@/types";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -27,6 +28,7 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useExpenses();
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
+  const userCurrency = useUserCurrency();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
@@ -110,6 +112,7 @@ export default function ExpensesPage() {
               onDelete={() => deleteMutation.mutate(expense.id)}
               canDelete={expense.paidById === user?.id}
               onClick={() => setSelectedExpense(expense)}
+              userCurrency={userCurrency}
             />
           ))}
         </div>
@@ -128,7 +131,7 @@ export default function ExpensesPage() {
             <div className="space-y-4 mt-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Total amount</span>
-                <span className="font-bold text-lg">{formatCurrency(selectedExpense.amount, selectedExpense.currency)}</span>
+                <span className="font-bold text-lg">{formatCurrency(selectedExpense.amount, selectedExpense.group?.currency ?? userCurrency)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Paid by</span>
@@ -166,7 +169,7 @@ export default function ExpensesPage() {
                         </Avatar>
                         <span className="text-sm flex-1 truncate">{split.user?.name ?? split.userId}</span>
                         <span className={cn("text-sm font-semibold", split.userId === user?.id ? "text-primary" : "")}>
-                          {formatCurrency(split.amount, selectedExpense.currency)}
+                          {formatCurrency(split.amount, selectedExpense.group?.currency ?? userCurrency)}
                         </span>
                       </div>
                     ))}
@@ -192,13 +195,14 @@ export default function ExpensesPage() {
 }
 
 function ExpenseRow({
-  expense, userId, index, onDelete, canDelete, onClick,
+  expense, userId, index, onDelete, canDelete, onClick, userCurrency,
 }: {
   expense: Expense; userId: string; index: number;
-  onDelete: () => void; canDelete: boolean; onClick: () => void;
+  onDelete: () => void; canDelete: boolean; onClick: () => void; userCurrency: string;
 }) {
   const myShare = expense.splits?.find((s) => s.userId === userId);
   const isPayer = expense.paidById === userId;
+  const displayCurrency = expense.group?.currency ?? userCurrency;
 
   return (
     <motion.div
@@ -224,10 +228,10 @@ function ExpenseRow({
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold">{formatCurrency(expense.amount, expense.currency)}</p>
+        <p className="text-sm font-semibold">{formatCurrency(expense.amount, displayCurrency)}</p>
         {myShare && (
           <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {isPayer ? "you paid" : `you owe ${formatCurrency(myShare.amount, expense.currency)}`}
+            {isPayer ? "you paid" : `you owe ${formatCurrency(myShare.amount, displayCurrency)}`}
           </p>
         )}
       </div>

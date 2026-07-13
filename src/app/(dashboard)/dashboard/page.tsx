@@ -29,16 +29,18 @@ export default function DashboardPage() {
     staleTime: 30_000,
   });
 
+  const currency = data?.currency ?? "USD";
+
   const stats = [
     {
       title: "Total Owed to You",
-      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwed ?? 0),
+      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwed ?? 0, currency),
       icon: TrendingUp,
       iconColor: "text-green-600",
     },
     {
       title: "Total You Owe",
-      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwing ?? 0),
+      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwing ?? 0, currency),
       icon: TrendingDown,
       iconColor: "text-red-600",
     },
@@ -50,7 +52,7 @@ export default function DashboardPage() {
     },
     {
       title: "Net Balance",
-      value: isLoading ? "—" : formatCurrency(Math.abs(data?.stats?.netBalance ?? 0)),
+      value: isLoading ? "—" : formatCurrency(Math.abs(data?.stats?.netBalance ?? 0), currency),
       icon: Receipt,
       iconColor: "text-primary",
     },
@@ -84,13 +86,14 @@ export default function DashboardPage() {
           <DebtSummary
             balances={data?.personBalances}
             netBalance={data?.stats?.netBalance}
+            currency={currency}
             isLoading={isLoading}
           />
         </div>
       </div>
 
       {/* Recent activity */}
-      <RecentActivity activities={data?.recentActivity} isLoading={isLoading} />
+      <RecentActivity activities={data?.recentActivity} currency={currency} isLoading={isLoading} />
     </div>
   );
 }

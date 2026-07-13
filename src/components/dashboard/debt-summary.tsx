@@ -16,9 +16,9 @@ interface PersonBalance {
   net: number; // positive = they owe you, negative = you owe them
 }
 
-interface Props { balances?: PersonBalance[]; netBalance?: number; isLoading?: boolean }
+interface Props { balances?: PersonBalance[]; netBalance?: number; currency?: string; isLoading?: boolean }
 
-export function DebtSummary({ balances = [], netBalance = 0, isLoading }: Props) {
+export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", isLoading }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -44,8 +44,8 @@ export function DebtSummary({ balances = [], netBalance = 0, isLoading }: Props)
             )}>
               {netBalance >= 0 ? <CheckCircle2 className="size-4" /> : <ArrowRight className="size-4" />}
               {netBalance >= 0
-                ? `You're owed ${formatCurrency(Math.abs(netBalance))}`
-                : `You owe ${formatCurrency(Math.abs(netBalance))}`}
+                ? `You're owed ${formatCurrency(Math.abs(netBalance), currency)}`
+                : `You owe ${formatCurrency(Math.abs(netBalance), currency)}`}
             </div>
           )}
         </CardHeader>
@@ -74,7 +74,7 @@ export function DebtSummary({ balances = [], netBalance = 0, isLoading }: Props)
                 <span className={cn("text-sm font-semibold",
                   b.net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 )}>
-                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net))}
+                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net), currency)}
                 </span>
               </motion.div>
             ))

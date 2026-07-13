@@ -12,7 +12,7 @@ export async function GET() {
     const userId = user!.id;
     const sixMonthsAgo = subMonths(new Date(), 6);
 
-    const [mySplits, myPaidSplits, groups, recentActivity] = await Promise.all([
+    const [mySplits, myPaidSplits, groups, recentActivity, profile] = await Promise.all([
       prisma.expenseSplit.findMany({
         where: { userId, expense: { paidById: { not: userId }, date: { gte: sixMonthsAgo } } },
         select: {
@@ -45,6 +45,7 @@ export async function GET() {
           user: { select: { name: true, avatarUrl: true } },
         },
       }),
+      prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }),
     ]);
 
     // Totals (keep in cents until final output)
@@ -93,6 +94,7 @@ export async function GET() {
         monthly: months,
         personBalances,
         recentActivity,
+        currency: profile?.currency ?? "USD",
       },
     });
 

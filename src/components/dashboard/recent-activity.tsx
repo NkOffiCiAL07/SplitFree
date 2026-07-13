@@ -33,7 +33,7 @@ interface ActivityItem {
   createdAt: string | Date;
 }
 
-interface Props { activities?: ActivityItem[]; isLoading?: boolean }
+interface Props { activities?: ActivityItem[]; currency?: string; isLoading?: boolean }
 
 function activityLabel(a: ActivityItem): { text: string; amount?: number } {
   const m = a.metadata as any ?? {};
@@ -49,7 +49,7 @@ function activityLabel(a: ActivityItem): { text: string; amount?: number } {
   }
 }
 
-export function RecentActivity({ activities = [], isLoading }: Props) {
+export function RecentActivity({ activities = [], currency = "USD", isLoading }: Props) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
       <Card>
@@ -91,7 +91,7 @@ export function RecentActivity({ activities = [], isLoading }: Props) {
                       </div>
                       {amount != null && (
                         <span className="text-xs font-semibold shrink-0 text-green-600 dark:text-green-400">
-                          {formatCurrency(amount)}
+                          {formatCurrency(amount, currency)}
                         </span>
                       )}
                     </div>

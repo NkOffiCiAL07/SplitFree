@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { useUserCurrency } from "@/hooks/use-profile";
 import { format } from "date-fns";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -26,6 +27,7 @@ async function fetchAnalytics() {
 
 export default function AnalyticsPage() {
   const { data, isLoading } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics });
+  const currency = useUserCurrency();
 
   const monthlyData = data?.monthly?.map((m: any) => ({
     name: format(new Date(m.month + "-01"), "MMM"),
@@ -41,9 +43,9 @@ export default function AnalyticsPage() {
     : [];
 
   const stats = [
-    { label: "Total spent (6mo)", value: formatCurrency(data?.totalExpenses ?? 0) },
-    { label: "Total owed to you", value: formatCurrency(data?.totalOwed ?? 0), positive: true },
-    { label: "Total you owe", value: formatCurrency(data?.totalOwing ?? 0), negative: true },
+    { label: "Total spent (6mo)", value: formatCurrency(data?.totalExpenses ?? 0, currency) },
+    { label: "Total owed to you", value: formatCurrency(data?.totalOwed ?? 0, currency), positive: true },
+    { label: "Total you owe", value: formatCurrency(data?.totalOwing ?? 0, currency), negative: true },
     { label: "Active groups", value: data?.groupCount ?? 0 },
   ];
 
@@ -91,10 +93,10 @@ export default function AnalyticsPage() {
                   <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => formatCurrency(v * 100, currency)} />
                     <Tooltip
                       contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}
-                      formatter={(v) => [`$${Number(v).toFixed(2)}`, "Spending"]}
+                      formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Spending"]}
                     />
                     <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
                   </BarChart>
@@ -122,7 +124,7 @@ export default function AnalyticsPage() {
                             <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(v) => [`$${Number(v).toFixed(2)}`, "Amount"]} contentStyle={{ borderRadius: "0.75rem", fontSize: 12 }} />
+                        <Tooltip formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Amount"]} contentStyle={{ borderRadius: "0.75rem", fontSize: 12 }} />
                         <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
                       </PieChart>
                     </ResponsiveContainer>
