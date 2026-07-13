@@ -224,42 +224,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      {/* CTA */}
-      <section className="py-24 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto text-center rounded-3xl gradient-brand p-12 relative overflow-hidden"
-        >
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 left-4 w-48 h-48 bg-white rounded-full blur-2xl" />
-            <div className="absolute bottom-4 right-4 w-64 h-64 bg-white rounded-full blur-3xl" />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-white mb-3">
-              Start splitting today
-            </h2>
-            <p className="text-white/80 mb-8 text-balance">
-              Join thousands of people who use SplitFree to manage shared
-              expenses — no subscription required.
-            </p>
-            <Button
-              size="xl"
-              className="bg-white text-violet-700 hover:bg-white/90 font-semibold"
-              asChild
-            >
-              <Link href="/signup">
-                Create free account
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
