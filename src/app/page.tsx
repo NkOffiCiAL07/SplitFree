@@ -4,10 +4,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Zap, Users, Receipt, BarChart3, Shield, Smartphone,
-  ArrowRight, Check, Star, SplitSquareHorizontal,
+  ArrowRight, Check, SplitSquareHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const features = [
@@ -120,13 +119,6 @@ export default function LandingPage() {
           variants={container}
           className="max-w-3xl mx-auto text-center space-y-6"
         >
-          <motion.div variants={item}>
-            <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs rounded-full">
-              <Star className="size-3 fill-amber-400 text-amber-400" />
-              Free forever · No ads · Open source
-            </Badge>
-          </motion.div>
-
           <motion.h1
             variants={item}
             className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance"
