@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Zap, Users, Receipt, BarChart3, Shield, Smartphone,
-  ArrowRight, Check, Star, SplitSquareHorizontal, Wallet, X,
+  ArrowRight, Check, Star, SplitSquareHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,15 +67,6 @@ const steps = [
   },
 ];
 
-const comparison = [
-  { feature: "Unlimited groups", us: true, them: false },
-  { feature: "All split types", us: true, them: false },
-  { feature: "Analytics & reports", us: true, them: false },
-  { feature: "Debt simplification", us: true, them: false },
-  { feature: "Export to CSV / PDF", us: true, them: false },
-  { feature: "Zero ads", us: true, them: false },
-  { feature: "Free forever", us: true, them: false },
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -323,59 +314,6 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Comparison */}
-      <section className="py-24 px-4">
-        <div className="max-w-2xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2">Why SplitFree?</p>
-            <h2 className="text-3xl sm:text-4xl font-bold">Premium features, zero cost</h2>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="rounded-2xl border overflow-hidden"
-          >
-            <div className="grid grid-cols-3 bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground border-b">
-              <span>Feature</span>
-              <span className="text-center text-violet-600 dark:text-violet-400">SplitFree</span>
-              <span className="text-center">Splitwise Free</span>
-            </div>
-            {comparison.map(({ feature, us, them }, i) => (
-              <div key={feature} className={`grid grid-cols-3 px-6 py-3.5 text-sm items-center ${i % 2 === 0 ? "" : "bg-muted/20"}`}>
-                <span className="text-foreground">{feature}</span>
-                <span className="flex justify-center">
-                  {us ? <Check className="size-4 text-green-500" /> : <X className="size-4 text-muted-foreground/40" />}
-                </span>
-                <span className="flex justify-center">
-                  {them ? <Check className="size-4 text-green-500" /> : <X className="size-4 text-muted-foreground/40" />}
-                </span>
-              </div>
-            ))}
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-center mt-8"
-          >
-            <Button variant="brand" size="lg" asChild>
-              <Link href="/signup">
-                Get started free — it takes 30 seconds
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </motion.div>
         </div>
       </section>
 
