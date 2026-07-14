@@ -96,7 +96,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   if (!group) return null;
 
   const expenses = (group as any).expenses ?? [];
-  const myBalance = calculateMyBalance(group, user?.id ?? "");
+  const myBalance = ((group as any).memberBalances ?? []).reduce((sum: number, mb: any) => sum + mb.balance, 0);
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
@@ -385,15 +385,3 @@ function ExpenseRow({ expense, userId, index, groupCurrency }: { expense: any; u
   );
 }
 
-function calculateMyBalance(group: any, userId: string): number {
-  const expenses: any[] = group.expenses ?? [];
-  let balance = 0;
-  expenses.forEach((exp) => {
-    if (exp.paidById === userId) {
-      balance += exp.splits?.reduce((s: number, split: any) => s + split.amount, 0) ?? 0;
-    }
-    const myShare = exp.splits?.find((s: any) => s.userId === userId);
-    if (myShare) balance -= myShare.amount;
-  });
-  return balance;
-}

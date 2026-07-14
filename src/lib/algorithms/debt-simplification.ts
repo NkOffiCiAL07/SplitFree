@@ -89,8 +89,14 @@ export function calculateSplits(
       const totalPct = Object.values(overrides).reduce((a, b) => a + b, 0);
       if (Math.abs(totalPct - 100) > 0.01)
         throw new Error("Percentages must sum to 100");
-      participants.forEach((id) => {
-        result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / 100));
+      let allocatedPct = 0;
+      participants.forEach((id, idx) => {
+        if (idx === participants.length - 1) {
+          result[id] = totalCents - allocatedPct;
+        } else {
+          result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / 100));
+          allocatedPct += result[id];
+        }
       });
       break;
     }
@@ -99,8 +105,14 @@ export function calculateSplits(
       if (!overrides) throw new Error("SHARES split requires share counts");
       const totalShares = Object.values(overrides).reduce((a, b) => a + b, 0);
       if (totalShares === 0) throw new Error("Total shares cannot be zero");
-      participants.forEach((id) => {
-        result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / totalShares));
+      let allocatedShares = 0;
+      participants.forEach((id, idx) => {
+        if (idx === participants.length - 1) {
+          result[id] = totalCents - allocatedShares;
+        } else {
+          result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / totalShares));
+          allocatedShares += result[id];
+        }
       });
       break;
     }

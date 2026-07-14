@@ -43,26 +43,21 @@ export async function GET(req: NextRequest) {
         select: { paidById: true, splits: { select: { userId: true, amount: true, isPaid: true } } },
       });
 
-      const rawDebts = expenses.flatMap((exp) =>
+      const expenseDebts = expenses.flatMap((exp) =>
         exp.splits
           .filter((s) => !s.isPaid && s.userId !== exp.paidById)
           .map((s) => ({ fromUserId: s.userId, toUserId: exp.paidById, amount: s.amount }))
       );
 
-      const settledMap = new Map<string, number>();
-      settlements.forEach((s) => {
-        const key = `${s.fromUserId}→${s.toUserId}`;
-        settledMap.set(key, (settledMap.get(key) ?? 0) + s.amount);
-      });
+      // Represent each settlement as a counter-debt so simplifyDebts can net everything correctly.
+      // This handles overpayments and cross-direction payments that settledMap would lose.
+      const settlementCounterDebts = settlements.map((s) => ({
+        fromUserId: s.toUserId,
+        toUserId: s.fromUserId,
+        amount: s.amount,
+      }));
 
-      const adjustedDebts = rawDebts
-        .map((d) => {
-          const key = `${d.fromUserId}→${d.toUserId}`;
-          return { ...d, amount: Math.max(0, d.amount - (settledMap.get(key) ?? 0)) };
-        })
-        .filter((d) => d.amount > 0);
-
-      return ok({ settlements, simplified: simplifyDebts(adjustedDebts) });
+      return ok({ settlements, simplified: simplifyDebts([...expenseDebts, ...settlementCounterDebts]) });
     }
 
     const res = ok(settlements);
