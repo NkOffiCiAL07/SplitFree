@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
-  CartesianGrid, PieChart, Pie, Cell, Legend,
+  CartesianGrid, PieChart, Pie, Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,9 +13,14 @@ import { useUserCurrency } from "@/hooks/use-profile";
 import { format } from "date-fns";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  FOOD:"#8b5cf6",TRANSPORT:"#3b82f6",ACCOMMODATION:"#10b981",
-  ENTERTAINMENT:"#f59e0b",UTILITIES:"#ef4444",SHOPPING:"#ec4899",
-  HEALTH:"#06b6d4",TRAVEL:"#84cc16",EDUCATION:"#a855f7",OTHER:"#6b7280",
+  FOOD:"#8b5cf6", TRANSPORT:"#3b82f6", ACCOMMODATION:"#10b981",
+  ENTERTAINMENT:"#f59e0b", UTILITIES:"#ef4444", SHOPPING:"#ec4899",
+  HEALTH:"#06b6d4", TRAVEL:"#84cc16", EDUCATION:"#a855f7", OTHER:"#6b7280",
+};
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  FOOD:"🍔", TRANSPORT:"🚗", ACCOMMODATION:"🏨", ENTERTAINMENT:"🎭",
+  UTILITIES:"💡", SHOPPING:"🛒", HEALTH:"💊", TRAVEL:"✈️", EDUCATION:"📚", OTHER:"📦",
 };
 
 async function fetchAnalytics() {
@@ -26,7 +31,7 @@ async function fetchAnalytics() {
 }
 
 export default function AnalyticsPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics });
+  const { data, isLoading } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics, staleTime: 60_000 });
   const currency = useUserCurrency();
 
   const monthlyData = data?.monthly?.map((m: any) => ({
@@ -35,18 +40,24 @@ export default function AnalyticsPage() {
   })) ?? [];
 
   const categoryData = data?.categoryTotals
-    ? Object.entries(data.categoryTotals).map(([cat, amt]) => ({
-        name: cat.charAt(0) + cat.slice(1).toLowerCase(),
-        value: (amt as number) / 100,
-        color: CATEGORY_COLORS[cat] ?? "#6b7280",
-      }))
+    ? Object.entries(data.categoryTotals)
+        .map(([cat, amt]) => ({
+          cat,
+          name: cat.charAt(0) + cat.slice(1).toLowerCase(),
+          value: (amt as number) / 100,
+          cents: amt as number,
+          color: CATEGORY_COLORS[cat] ?? "#6b7280",
+        }))
+        .sort((a, b) => b.cents - a.cents)
     : [];
 
+  const totalCents = categoryData.reduce((s, c) => s + c.cents, 0);
+
   const stats = [
-    { label: "Total spent (6mo)", value: formatCurrency(data?.totalExpenses ?? 0, currency) },
-    { label: "Total owed to you", value: formatCurrency(data?.totalOwed ?? 0, currency), positive: true },
-    { label: "Total you owe", value: formatCurrency(data?.totalOwing ?? 0, currency), negative: true },
-    { label: "Active groups", value: data?.groupCount ?? 0 },
+    { label: "Total spent", value: formatCurrency(data?.totalExpenses ?? 0, currency) },
+    { label: "Owed to you", value: formatCurrency(data?.totalOwed ?? 0, currency), positive: true },
+    { label: "You owe", value: formatCurrency(data?.totalOwing ?? 0, currency), negative: true },
+    { label: "Groups", value: String(data?.groupCount ?? 0) },
   ];
 
   return (
@@ -61,12 +72,7 @@ export default function AnalyticsPage() {
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
           : stats.map(({ label, value, positive, negative }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-            >
+            <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{label}</p>
@@ -89,18 +95,26 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="pt-0">
               {isLoading ? <Skeleton className="h-52 w-full rounded-lg" /> : (
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => formatCurrency(v * 100, currency)} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}
-                      formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Spending"]}
-                    />
-                    <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                monthlyData.every((d: any) => d.total === 0) ? (
+                  <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                        axisLine={false} tickLine={false}
+                        tickFormatter={(v) => formatCurrency(v * 100, currency)}
+                      />
+                      <Tooltip
+                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}
+                        formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Total"]}
+                      />
+                      <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )
               )}
             </CardContent>
           </Card>
@@ -113,27 +127,74 @@ export default function AnalyticsPage() {
               <CardTitle className="text-base">Spending by Category</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              {isLoading ? <Skeleton className="h-52 w-full rounded-lg" /> : (
-                categoryData.length === 0
-                  ? <p className="text-sm text-muted-foreground text-center py-16">No data yet</p>
-                  : (
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} paddingAngle={3}>
-                          {categoryData.map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Amount"]} contentStyle={{ borderRadius: "0.75rem", fontSize: 12 }} />
-                        <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )
+              {isLoading ? <Skeleton className="h-52 w-full rounded-lg" /> : categoryData.length === 0 ? (
+                <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={2}>
+                      {categoryData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Amount"]}
+                      contentStyle={{ borderRadius: "0.75rem", fontSize: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               )}
             </CardContent>
           </Card>
         </motion.div>
       </div>
+
+      {/* Category breakdown list */}
+      {categoryData.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Category Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-full rounded-lg" />)
+                : categoryData.map((c, i) => {
+                    const pct = totalCents > 0 ? (c.cents / totalCents) * 100 : 0;
+                    return (
+                      <motion.div
+                        key={c.cat}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.38 + i * 0.04 }}
+                        className="space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-2">
+                            <span>{CATEGORY_EMOJI[c.cat]}</span>
+                            <span className="font-medium">{c.name}</span>
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground">{pct.toFixed(1)}%</span>
+                            <span className="font-semibold w-24 text-right">{formatCurrency(c.cents, currency)}</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.6, delay: 0.4 + i * 0.04, ease: "easeOut" }}
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: c.color }}
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }
