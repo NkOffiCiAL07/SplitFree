@@ -3,6 +3,7 @@ import { TopNav } from "@/components/layout/top-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { CommandPalette } from "@/components/layout/command-palette";
+import { DemoBanner } from "@/components/dashboard/demo-banner";
 
 export default function DashboardLayout({
   children,
@@ -18,6 +19,7 @@ export default function DashboardLayout({
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <DemoBanner />
         <TopNav />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           {children}

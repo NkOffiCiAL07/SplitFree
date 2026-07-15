@@ -123,6 +123,9 @@ model Group {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
+  inviteToken          String?       @unique @map("invite_token")
+  inviteTokenExpiresAt DateTime?     @map("invite_token_expires_at")
+
   createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
   members     GroupMember[]
   expenses    Expense[]
@@ -158,21 +161,26 @@ model Expense {
   splitType         SplitType          @default(EQUAL)
   paidById          String             @map("paid_by_id")
   date              DateTime
-  isRecurring       Boolean            @default(false) @map("is_recurring")
-  recurringInterval RecurringInterval? @map("recurring_interval")
+  isRecurring          Boolean            @default(false) @map("is_recurring")
+  recurringInterval    RecurringInterval? @map("recurring_interval")
+  recurringParentId    String?            @map("recurring_parent_id")
+  lastRecurredAt       DateTime?          @map("last_recurred_at")
   notes             String?
   receiptUrl        String?            @map("receipt_url")
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
 
-  group      Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  paidBy     User           @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
-  splits     ExpenseSplit[]
-  activities Activity[]
+  group             Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  paidBy            User           @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
+  splits            ExpenseSplit[]
+  activities        Activity[]
+  recurringParent   Expense?       @relation("RecurringChildren", fields: [recurringParentId], references: [id], onDelete: SetNull)
+  recurringChildren Expense[]      @relation("RecurringChildren")
 
   @@index([groupId])
   @@index([paidById])
   @@index([date])
+  @@index([recurringParentId])
   @@map("expenses")
 }
 

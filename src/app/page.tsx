@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Zap, Users, Receipt, BarChart3, Shield, Smartphone,
-  ArrowRight, Check, SplitSquareHorizontal,
+  ArrowRight, Check, SplitSquareHorizontal, Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 const features = [
   {
@@ -76,6 +80,39 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
+function DemoButton() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleDemo = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/demo-login", { method: "POST" });
+      const json = await res.json();
+      if (json.error) { toast.error("Demo not available right now"); return; }
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email: json.email, password: json.password });
+      if (error) { toast.error("Demo login failed"); return; }
+      router.push("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="xl"
+      className="w-full sm:w-auto px-8 h-12 text-base gap-2"
+      onClick={handleDemo}
+      disabled={loading}
+    >
+      <Play className="size-4" />
+      {loading ? "Loading demo…" : "Try demo — no signup"}
+    </Button>
+  );
+}
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -141,7 +178,7 @@ export default function LandingPage() {
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
-            <p className="text-xs text-muted-foreground">No credit card required</p>
+            <DemoButton />
           </motion.div>
 
           <motion.div

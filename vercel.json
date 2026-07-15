@@ -3,6 +3,12 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/process-recurring",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

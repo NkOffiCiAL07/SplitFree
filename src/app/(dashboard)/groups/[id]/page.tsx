@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2 } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
@@ -114,6 +114,25 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-center gap-1">
           <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []} />
           {isAdmin && <EditGroupDialog group={group} />}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Copy invite link"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={async () => {
+              const res = await fetch(`/api/groups/${id}/invite-link`);
+              const json = await res.json();
+              if (json.data?.token) {
+                const url = `${window.location.origin}/join/${json.data.token}`;
+                await navigator.clipboard.writeText(url);
+                toast.success("Invite link copied!");
+              } else {
+                toast.error("Failed to generate invite link");
+              }
+            }}
+          >
+            <Link2 className="size-4" />
+          </Button>
           {!isCreator && (
             <Button
               variant="ghost"
