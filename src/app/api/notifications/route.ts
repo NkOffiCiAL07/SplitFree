@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = ok(notifications);
-    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e) {
     return handleError(e);

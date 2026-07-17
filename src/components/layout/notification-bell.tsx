@@ -39,7 +39,21 @@ export function NotificationBell() {
 
   const markAllRead = useMutation({
     mutationFn: markAllReadAPI,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    onMutate: async () => {
+      // Cancel any in-flight refetch so it doesn't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      const previous = queryClient.getQueryData<any[]>(["notifications"]);
+      // Immediately mark all as read in the local cache
+      queryClient.setQueryData(["notifications"], (old: any[]) =>
+        (old ?? []).map((n) => ({ ...n, isRead: true }))
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      // Roll back on failure
+      if (ctx?.previous) queryClient.setQueryData(["notifications"], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const friendAction = useMutation({
