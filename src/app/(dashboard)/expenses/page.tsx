@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText } from "lucide-react";
+import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
 import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
@@ -33,6 +33,8 @@ export default function ExpensesPage() {
   const userCurrency = useUserCurrency();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
@@ -41,9 +43,12 @@ export default function ExpensesPage() {
     return expenses.filter((e) => {
       const matchSearch = !search || e.description.toLowerCase().includes(search.toLowerCase()) || e.paidBy?.name?.toLowerCase().includes(search.toLowerCase());
       const matchCat = category === "ALL" || e.category === category;
-      return matchSearch && matchCat;
+      const expDate = new Date(e.date);
+      const matchFrom = !dateFrom || expDate >= new Date(dateFrom);
+      const matchTo = !dateTo || expDate <= new Date(dateTo + "T23:59:59");
+      return matchSearch && matchCat && matchFrom && matchTo;
     });
-  }, [expenses, search, category]);
+  }, [expenses, search, category, dateFrom, dateTo]);
 
   const handleExportCSV = () => {
     window.location.href = "/api/export";
@@ -74,30 +79,59 @@ export default function ExpensesPage() {
       </div>
 
       {/* Search + filter bar */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search expenses…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 h-9 text-sm"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c === "ALL" ? "All categories" : CATEGORY_EMOJI[c] + " " + c.charAt(0) + c.slice(1).toLowerCase()}</option>
+            ))}
+          </select>
+        </div>
+        {/* Date range filter */}
+        <div className="flex items-center gap-2">
+          <CalendarDays className="size-3.5 text-muted-foreground flex-shrink-0" />
           <Input
-            placeholder="Search expenses…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-9 text-sm"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-8 text-xs flex-1"
+            placeholder="From"
           />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <span className="text-xs text-muted-foreground">–</span>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-8 text-xs flex-1"
+            placeholder="To"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(""); setDateTo(""); }}
+              className="text-muted-foreground hover:text-foreground flex-shrink-0"
+            >
               <X className="size-3.5" />
             </button>
           )}
         </div>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground"
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c === "ALL" ? "All categories" : CATEGORY_EMOJI[c] + " " + c.charAt(0) + c.slice(1).toLowerCase()}</option>
-          ))}
-        </select>
       </div>
 
       {isLoading ? (
@@ -110,7 +144,7 @@ export default function ExpensesPage() {
         <EmptyState
           icon={Receipt}
           title={expenses?.length === 0 ? "No expenses yet" : "No results"}
-          description={expenses?.length === 0 ? "Add your first expense to start tracking shared costs." : "Try a different search or filter."}
+          description={expenses?.length === 0 ? "Add your first expense to start tracking shared costs." : "Try a different search, category, or date range."}
           action={expenses?.length === 0 ? { label: "Add first expense", onClick: () => {} } : undefined}
         />
       ) : (

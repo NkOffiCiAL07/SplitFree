@@ -25,14 +25,18 @@ const CATEGORY_EMOJI: Record<string, string> = {
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
 };
 
+const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"] as const;
+
 const schema = z.object({
   description: z.string().min(1, "Required"),
   amount: z.string().min(1, "Required"),
+  currency: z.string(),
   category: z.enum(CATEGORIES),
   date: z.string(),
   notes: z.string().optional(),
   isRecurring: z.boolean(),
   recurringInterval: z.enum(["DAILY","WEEKLY","MONTHLY","YEARLY"]).optional(),
+  paidById: z.string().min(1),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -53,11 +57,19 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
 
   const { register, handleSubmit, control, watch, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { date: new Date().toISOString().split("T")[0], category: "OTHER", isRecurring: false },
+    defaultValues: {
+      date: new Date().toISOString().split("T")[0],
+      category: "OTHER",
+      isRecurring: false,
+      paidById: user?.id ?? "",
+      currency: groupCurrency,
+    },
   });
 
   const isRecurring = watch("isRecurring");
   const amountStr = watch("amount");
+  const paidById = watch("paidById");
+  const selectedCurrency = watch("currency");
 
   const allMemberIds = members.length > 0
     ? members.map((m) => m.userId)
@@ -95,20 +107,19 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
 
   const onSubmit = async (values: FormValues) => {
     if (splitValidationError) return;
-    const paidById = user?.id ?? "";
     await mutateAsync({
       description: values.description,
       amount: parseFloat(values.amount),
-      currency: groupCurrency,
+      currency: values.currency,
       category: values.category,
       splitType,
-      paidById,
+      paidById: values.paidById,
       groupId: groupId ?? null,
       date: new Date(values.date),
       notes: values.notes,
       isRecurring: values.isRecurring,
       recurringInterval: values.recurringInterval,
-      participants: activeParticipants.length > 0 ? activeParticipants : [paidById],
+      participants: activeParticipants.length > 0 ? activeParticipants : [values.paidById],
       splits: buildSplits(),
     });
     setOpen(false);
@@ -120,7 +131,13 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      reset();
+      reset({
+        date: new Date().toISOString().split("T")[0],
+        category: "OTHER",
+        isRecurring: false,
+        paidById: user?.id ?? "",
+        currency: groupCurrency,
+      });
       setSplitValues({});
       setParticipants([]);
       setSplitType("EQUAL");
@@ -156,7 +173,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>
 
-          {/* Amount + Category */}
+          {/* Amount + Currency */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Amount</Label>
@@ -164,9 +181,9 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
               {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>Category</Label>
+              <Label>Currency</Label>
               <Controller
-                name="category"
+                name="currency"
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
@@ -174,10 +191,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {CATEGORY_EMOJI[c]} {c.charAt(0) + c.slice(1).toLowerCase()}
-                        </SelectItem>
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -185,6 +200,62 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
               />
             </div>
           </div>
+
+          {/* Category */}
+          <div className="space-y-1.5">
+            <Label>Category</Label>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {CATEGORY_EMOJI[c]} {c.charAt(0) + c.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          {/* Paid by — show member picker in group context */}
+          {members.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Paid by</Label>
+              <Controller
+                name="paidById"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-wrap gap-2">
+                    {members.map((m) => (
+                      <button
+                        key={m.userId}
+                        type="button"
+                        onClick={() => field.onChange(m.userId)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs transition-all",
+                          field.value === m.userId
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border text-muted-foreground hover:bg-accent"
+                        )}
+                      >
+                        <Avatar className="size-4">
+                          <AvatarFallback className="text-[8px]">{getInitials(m.user?.name ?? "?")}</AvatarFallback>
+                        </Avatar>
+                        {m.userId === user?.id ? "You" : m.user?.name?.split(" ")[0]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
 
           {/* Date */}
           <div className="space-y-1.5">

@@ -3,10 +3,13 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2 } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
+import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
+import { EditExpenseDialog } from "@/components/expenses/edit-expense-dialog";
+import type { Expense } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +39,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
   const [settleNote, setSettleNote] = useState("");
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
+
+  const deleteExpense = useDeleteExpense();
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const myMember = group?.members?.find((m) => m.userId === user?.id);
   const isAdmin = myMember?.role === "ADMIN";
@@ -68,6 +74,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     await settleUp.mutateAsync({
       toUserId: settleTarget.userId,
       amount: amountDollars,
+      currency: group?.currency,
       groupId: id,
       note: settleNote || undefined,
     });
@@ -363,28 +370,52 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         ) : (
           <div className="space-y-2">
             {expenses.map((exp: any, i: number) => (
-              <ExpenseRow key={exp.id} expense={exp} userId={user?.id ?? ""} index={i} groupCurrency={group.currency} />
+              <ExpenseRow
+                key={exp.id}
+                expense={exp}
+                userId={user?.id ?? ""}
+                index={i}
+                groupCurrency={group.currency}
+                onEdit={() => setEditingExpense(exp as Expense)}
+                onDelete={() => deleteExpense.mutate(exp.id)}
+              />
             ))}
           </div>
+        )}
+        {editingExpense && (
+          <EditExpenseDialog
+            expense={editingExpense}
+            open={!!editingExpense}
+            onClose={() => setEditingExpense(null)}
+          />
         )}
       </div>
     </div>
   );
 }
 
-function ExpenseRow({ expense, userId, index, groupCurrency }: { expense: any; userId: string; index: number; groupCurrency?: string }) {
+const EXPENSE_EMOJI: Record<string, string> = {
+  FOOD:"🍔",TRANSPORT:"🚗",ACCOMMODATION:"🏨",ENTERTAINMENT:"🎭",
+  UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
+};
+
+function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete }: {
+  expense: any; userId: string; index: number; groupCurrency?: string;
+  onEdit: () => void; onDelete: () => void;
+}) {
   const myShare = expense.splits?.find((s: any) => s.userId === userId);
   const isPayer = expense.paidById === userId;
+  const currency = groupCurrency ?? expense.currency;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-shadow"
+      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-all group"
     >
-      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Receipt className="size-4 text-primary" />
+      <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-base shrink-0">
+        {EXPENSE_EMOJI[expense.category] ?? "📦"}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{expense.description}</p>
@@ -393,13 +424,23 @@ function ExpenseRow({ expense, userId, index, groupCurrency }: { expense: any; u
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold">{formatCurrency(expense.amount, groupCurrency ?? expense.currency)}</p>
+        <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>
         {myShare && (
           <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount, groupCurrency ?? expense.currency)}` : `-${formatCurrency(myShare.amount, groupCurrency ?? expense.currency)}`}
+            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount, currency)}` : `-${formatCurrency(myShare.amount, currency)}`}
           </p>
         )}
       </div>
+      {isPayer && (
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-foreground" onClick={onEdit}>
+            <Pencil className="size-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-destructive" onClick={onDelete}>
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 }

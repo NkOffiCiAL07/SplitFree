@@ -41,6 +41,9 @@ export function useCreateExpense() {
     },
     onSuccess: (expense: Expense) => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+      qc.invalidateQueries({ queryKey: ["balance"] });
       if (expense.groupId) qc.invalidateQueries({ queryKey: ["groups", expense.groupId] });
       toast.success("Expense added");
     },
@@ -60,6 +63,10 @@ export function useUpdateExpense() {
     onSuccess: (expense: Expense) => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["expenses", expense.id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+      qc.invalidateQueries({ queryKey: ["balance"] });
+      if (expense.groupId) qc.invalidateQueries({ queryKey: ["groups", expense.groupId] });
       toast.success("Expense updated");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -73,6 +80,10 @@ export function useDeleteExpense() {
       fetchJSON(`/api/expenses/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+      qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["groups"] });
       toast.success("Expense deleted");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -102,6 +113,9 @@ export function useDuplicateExpense() {
       }),
     onSuccess: (dup: Expense) => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+      qc.invalidateQueries({ queryKey: ["balance"] });
       if (dup.groupId) qc.invalidateQueries({ queryKey: ["groups", dup.groupId] });
       toast.success("Expense duplicated");
     },

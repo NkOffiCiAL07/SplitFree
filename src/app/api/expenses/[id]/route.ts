@@ -61,18 +61,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         recurringInterval: data.recurringInterval ?? null,
         ...(participants.length > 0 && data.splitType
           ? {
-              splits: {
+              splits: (() => {
+              const splitAmounts = calculateSplits(totalCents, participants, data.splitType!, data.splits);
+              return {
                 deleteMany: {},
-                create: participants.map((uid) => {
-                  const splitAmounts = calculateSplits(totalCents, participants, data.splitType!, data.splits);
-                  return {
-                    userId: uid,
-                    amount: splitAmounts[uid] ?? 0,
-                    percentage: data.splitType === "PERCENTAGE" ? (data.splits?.[uid] ?? 0) : null,
-                    shares: data.splitType === "SHARES" ? (data.splits?.[uid] ?? 0) : null,
-                  };
-                }),
-              },
+                create: participants.map((uid) => ({
+                  userId: uid,
+                  amount: splitAmounts[uid] ?? 0,
+                  percentage: data.splitType === "PERCENTAGE" ? (data.splits?.[uid] ?? 0) : null,
+                  shares: data.splitType === "SHARES" ? (data.splits?.[uid] ?? 0) : null,
+                })),
+              };
+            })(),
             }
           : {}),
       },

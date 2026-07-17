@@ -10,23 +10,27 @@ export async function GET(_req: NextRequest) {
 
     const sixMonthsAgo = subMonths(startOfMonth(new Date()), 5);
 
-    const [expenses, settlements, groups] = await Promise.all([
+    const userId = user!.id;
+    const [expenses, allExpensesForBalance, allSettlements, groups] = await Promise.all([
       prisma.expense.findMany({
         where: {
-          splits: { some: { userId: user!.id } },
+          splits: { some: { userId } },
           date: { gte: sixMonthsAgo },
         },
-        include: { splits: { where: { userId: user!.id } } },
+        include: { splits: { where: { userId } } },
         orderBy: { date: "asc" },
       }),
+      // All-time data for accurate outstanding balance
+      prisma.expense.findMany({
+        where: { splits: { some: { userId } } },
+        select: { paidById: true, splits: { select: { userId: true, amount: true } } },
+      }),
       prisma.settlement.findMany({
-        where: {
-          OR: [{ fromUserId: user!.id }, { toUserId: user!.id }],
-          createdAt: { gte: sixMonthsAgo },
-        },
+        where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
+        select: { fromUserId: true, toUserId: true, amount: true },
       }),
       prisma.group.findMany({
-        where: { members: { some: { userId: user!.id } } },
+        where: { members: { some: { userId } } },
         select: { id: true, name: true },
       }),
     ]);
@@ -54,13 +58,26 @@ export async function GET(_req: NextRequest) {
       categoryTotals[exp.category] = (categoryTotals[exp.category] ?? 0) + myShare;
     });
 
-    // Balance
-    const totalOwed = settlements
-      .filter((s) => s.toUserId === user!.id)
-      .reduce((sum, s) => sum + s.amount, 0);
-    const totalOwing = settlements
-      .filter((s) => s.fromUserId === user!.id)
-      .reduce((sum, s) => sum + s.amount, 0);
+    // Outstanding balance from expense splits + settlements
+    const netMap = new Map<string, number>();
+    for (const expense of allExpensesForBalance) {
+      for (const split of expense.splits) {
+        if (split.userId === userId && expense.paidById !== userId) {
+          netMap.set(expense.paidById, (netMap.get(expense.paidById) ?? 0) - split.amount);
+        } else if (expense.paidById === userId && split.userId !== userId) {
+          netMap.set(split.userId, (netMap.get(split.userId) ?? 0) + split.amount);
+        }
+      }
+    }
+    for (const s of allSettlements) {
+      if (s.fromUserId === userId) {
+        netMap.set(s.toUserId, (netMap.get(s.toUserId) ?? 0) + s.amount);
+      } else {
+        netMap.set(s.fromUserId, (netMap.get(s.fromUserId) ?? 0) - s.amount);
+      }
+    }
+    const totalOwed = Array.from(netMap.values()).filter((n) => n > 0).reduce((s, n) => s + n, 0);
+    const totalOwing = Array.from(netMap.values()).filter((n) => n < 0).reduce((s, n) => s + Math.abs(n), 0);
 
     const res = ok({
       monthly: Array.from(monthlyMap.entries()).map(([month, data]) => ({ month, ...data })),

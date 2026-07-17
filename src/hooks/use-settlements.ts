@@ -29,7 +29,7 @@ export function useBalance() {
 export function useSettleUp() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { toUserId: string; amount: number; groupId?: string; note?: string }) =>
+    mutationFn: (data: { toUserId: string; amount: number; currency?: string; groupId?: string | null; note?: string }) =>
       fetchJSON("/api/settlements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,6 +40,8 @@ export function useSettleUp() {
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
       qc.invalidateQueries({ queryKey: ["groups"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment recorded!");
     },
     onError: (e: Error) => toast.error(e.message),

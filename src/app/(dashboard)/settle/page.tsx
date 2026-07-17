@@ -36,7 +36,7 @@ export default function SettlePage() {
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFriend || !amount) return;
-    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), note });
+    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), currency: userCurrency, note });
     setDialogOpen(false);
     setAmount("");
     setNote("");
