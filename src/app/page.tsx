@@ -516,15 +516,9 @@ export default function LandingPage() {
                 Actually free.<br />
                 <span className="gradient-brand-text">Not "free trial" free.</span>
               </h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
+              <p className="text-muted-foreground leading-relaxed">
                 Most expense apps hide their best features behind a paywall. We don&apos;t. Every feature — from debt simplification to analytics — is free, forever, for everyone.
               </p>
-              <Button variant="brand" size="lg" className="gap-2" asChild>
-                <Link href="/signup">
-                  Create your free account
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
             </motion.div>
 
             <motion.div
@@ -590,20 +584,17 @@ export default function LandingPage() {
               <p className="text-white/80 text-lg mb-8 max-w-lg mx-auto leading-relaxed">
                 Join thousands of groups already splitting smarter. Takes 30 seconds to set up.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  variant="secondary"
-                  size="xl"
-                  className="w-full sm:w-auto px-8 h-12 text-base font-semibold bg-white text-violet-700 hover:bg-white/90 border-0"
-                  asChild
-                >
-                  <Link href="/signup">
-                    Get started — it&apos;s free
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-                <DemoButton />
-              </div>
+              <Button
+                variant="secondary"
+                size="xl"
+                className="px-10 h-12 text-base font-semibold bg-white text-violet-700 hover:bg-white/90 border-0"
+                asChild
+              >
+                <Link href="/signup">
+                  Get started — it&apos;s free
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -624,7 +615,6 @@ export default function LandingPage() {
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
-              <Link href="/signup" className="hover:text-foreground transition-colors">Sign up</Link>
               <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
             </div>
           </div>
