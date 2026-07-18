@@ -224,14 +224,6 @@ export default function LandingPage() {
           variants={container}
           className="max-w-3xl mx-auto text-center space-y-6"
         >
-          {/* Announcement chip */}
-          <motion.div variants={item} className="flex justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3.5 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
-              <Sparkles className="size-3" />
-              Recurring expenses & invite links — now live
-            </span>
-          </motion.div>
-
           <motion.h1
             variants={item}
             className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance"
