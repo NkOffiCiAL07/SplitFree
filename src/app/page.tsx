@@ -60,7 +60,7 @@ const features = [
   {
     icon: Smartphone,
     title: "Works Everywhere",
-    description: "PWA-ready — install on any device. Works offline and syncs automatically when you're back online.",
+    description: "Install on any device like a native app. Fast, lightweight, and works great on mobile.",
     color: "from-indigo-500 to-violet-600",
     bg: "bg-indigo-500/8",
   },
@@ -136,7 +136,7 @@ const freeForeverItems = [
   "Recurring expenses",
   "Group invite links",
   "Multi-currency support",
-  "Offline PWA mode",
+  "Mobile-friendly PWA",
 ];
 
 const container = {
@@ -253,7 +253,7 @@ export default function LandingPage() {
             variants={item}
             className="flex items-center justify-center gap-8 pt-2 text-xs text-muted-foreground"
           >
-            {["No credit card", "Free forever", "Works offline"].map((t) => (
+            {["No credit card", "Free forever", "Mobile friendly"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
                 <Check className="size-3.5 text-green-500" />
                 {t}
