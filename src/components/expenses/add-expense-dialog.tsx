@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, getInitials, toCents } from "@/lib/utils";
+import { toast } from "sonner";
 import type { GroupMember } from "@/types";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
@@ -55,7 +56,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   const { user } = useAuth();
   const { mutateAsync, isPending } = useCreateExpense();
 
-  const { register, handleSubmit, control, watch, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, watch, reset, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
@@ -65,6 +66,11 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
       currency: groupCurrency,
     },
   });
+
+  // Auth may resolve after form mounts — keep paidById in sync
+  useEffect(() => {
+    if (user?.id) setValue("paidById", user.id);
+  }, [user?.id, setValue]);
 
   const isRecurring = watch("isRecurring");
   const amountStr = watch("amount");
@@ -104,6 +110,11 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     }
     return null;
   })();
+
+  const onInvalid = (errs: Record<string, any>) => {
+    const first = Object.values(errs)[0] as any;
+    toast.error(first?.message ?? "Please fill in all required fields");
+  };
 
   const onSubmit = async (values: FormValues) => {
     if (splitValidationError) return;
@@ -165,7 +176,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
           <DialogTitle>Add expense</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-2">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5 mt-2">
           {/* Description */}
           <div className="space-y-1.5">
             <Label>Description</Label>

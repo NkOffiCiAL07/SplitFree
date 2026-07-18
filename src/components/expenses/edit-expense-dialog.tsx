@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import type { Expense } from "@/types";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
@@ -60,6 +61,11 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
     }
   }, [open, expense, reset]);
 
+  const onInvalid = (errs: Record<string, any>) => {
+    const first = Object.values(errs)[0] as any;
+    toast.error(first?.message ?? "Please fill in all required fields");
+  };
+
   const onSubmit = async (values: FormValues) => {
     await updateExpense.mutateAsync({
       id: expense.id,
@@ -80,7 +86,7 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
         <DialogHeader>
           <DialogTitle>Edit expense</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 mt-2">
           <div className="space-y-1.5">
             <Label>Description</Label>
             <Input {...register("description")} autoFocus />
