@@ -1,4 +1,4 @@
-const CACHE_NAME = "splitfree-v2";
+const CACHE_NAME = "splitfree-v3";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",

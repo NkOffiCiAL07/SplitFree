@@ -286,50 +286,38 @@ export default function LandingPage() {
                 ))}
               </div>
               {/* Main content */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2 rounded-xl border bg-card p-4">
-                  <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
-                  <div className="space-y-2">
-                    {[
-                      { emoji: "🍔", name: "Dinner at Barbeque Nation", amount: "₹1,800", share: "your share −₹600", color: "text-red-500" },
-                      { emoji: "🏨", name: "Hotel booking — Goa trip", amount: "₹6,500", share: "you lent +₹2,166", color: "text-green-600 dark:text-green-400" },
-                      { emoji: "🚗", name: "Ola cab to airport", amount: "₹340", share: "your share −₹170", color: "text-red-500" },
-                    ].map(({ emoji, name, amount, share, color }) => (
-                      <div key={name} className="flex items-center gap-2.5 py-1.5 border-b border-border/40 last:border-0">
-                        <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-sm flex-shrink-0">{emoji}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{name}</p>
-                          <p className={`text-[10px] ${color}`}>{share}</p>
-                        </div>
-                        <p className="text-xs font-semibold flex-shrink-0">{amount}</p>
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
+                <div className="space-y-2">
+                  {[
+                    { emoji: "🍔", name: "Dinner at Barbeque Nation", amount: "₹1,800", share: "your share −₹600", color: "text-red-500" },
+                    { emoji: "🏨", name: "Hotel booking — Goa trip", amount: "₹6,500", share: "you lent +₹2,166", color: "text-green-600 dark:text-green-400" },
+                    { emoji: "🚗", name: "Ola cab to airport", amount: "₹340", share: "your share −₹170", color: "text-red-500" },
+                  ].map(({ emoji, name, amount, share, color }) => (
+                    <div key={name} className="flex items-center gap-2.5 py-1.5 border-b border-border/40 last:border-0">
+                      <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-sm flex-shrink-0">{emoji}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{name}</p>
+                        <p className={`text-[10px] ${color}`}>{share}</p>
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-xs font-semibold flex-shrink-0">{amount}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="rounded-xl border bg-card p-4">
-                  <p className="text-xs font-medium mb-3 text-muted-foreground">Who owes who</p>
-                  <div className="space-y-2.5">
+                {/* Who owes who — inline row below on mobile, hidden on very small */}
+                <div className="mt-3 pt-3 border-t flex items-center justify-between gap-3">
+                  <p className="text-[10px] font-medium text-muted-foreground shrink-0">Balances</p>
+                  <div className="flex items-center gap-2 overflow-x-auto">
                     {[
-                      { name: "Rahul", amount: "+₹850", color: "bg-emerald-500", label: "owes you" },
-                      { name: "Priya", amount: "−₹320", color: "bg-rose-400", label: "you owe" },
-                      { name: "Aditya", amount: "+₹700", color: "bg-emerald-500", label: "owes you" },
-                    ].map(({ name, amount, color, label }) => (
-                      <div key={name} className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-full ${color} flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0`}>
-                          {name[0]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium">{name}</p>
-                          <p className="text-[9px] text-muted-foreground">{label}</p>
-                        </div>
-                        <span className={`text-[11px] font-semibold ${amount.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>{amount}</span>
+                      { name: "Rahul", amount: "+₹850", color: "bg-emerald-500" },
+                      { name: "Priya", amount: "−₹320", color: "bg-rose-400" },
+                      { name: "Aditya", amount: "+₹700", color: "bg-emerald-500" },
+                    ].map(({ name, amount, color }) => (
+                      <div key={name} className="flex items-center gap-1 shrink-0">
+                        <div className={`w-5 h-5 rounded-full ${color} flex items-center justify-center text-[8px] text-white font-bold`}>{name[0]}</div>
+                        <span className={`text-[10px] font-semibold ${amount.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>{amount}</span>
                       </div>
                     ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-t">
-                    <button className="w-full text-[10px] font-medium text-violet-600 dark:text-violet-400 hover:underline">
-                      Simplify debts →
-                    </button>
                   </div>
                 </div>
               </div>
