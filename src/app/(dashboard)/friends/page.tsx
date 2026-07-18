@@ -208,7 +208,7 @@ export default function FriendsPage() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
                 onClick={() => removeFriend.mutate(friendship.friendId)}
               >
                 <UserMinus className="size-4" />

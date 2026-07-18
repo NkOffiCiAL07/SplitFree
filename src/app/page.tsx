@@ -185,11 +185,11 @@ export default function LandingPage() {
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
               <Link href="/login">Sign in</Link>
             </Button>
             <Button variant="brand" size="sm" asChild>
-              <Link href="/signup">Get started free</Link>
+              <Link href="/signup"><span className="hidden sm:inline">Get started free</span><span className="sm:hidden">Sign up</span></Link>
             </Button>
           </div>
         </div>
@@ -272,22 +272,22 @@ export default function LandingPage() {
             {/* Mock dashboard */}
             <div className="p-5 space-y-4 bg-background/50">
               {/* Stat cards */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: "Total Owed to You", value: "₹2,400", color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/20" },
                   { label: "You Owe Others", value: "₹850", color: "text-red-500 dark:text-red-400", bg: "bg-red-500/10 border-red-500/20" },
                   { label: "Active Groups", value: "4", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
                   { label: "Net Balance", value: "+₹1,550", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
                 ].map(({ label, value, color, bg }) => (
-                  <div key={label} className={`rounded-xl border p-3.5 space-y-1 ${bg}`}>
-                    <p className="text-[10px] text-muted-foreground">{label}</p>
-                    <p className={`text-lg font-bold ${color}`}>{value}</p>
+                  <div key={label} className={`rounded-xl border p-3 sm:p-3.5 space-y-1 ${bg}`}>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">{label}</p>
+                    <p className={`text-base sm:text-lg font-bold ${color}`}>{value}</p>
                   </div>
                 ))}
               </div>
               {/* Main content */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 rounded-xl border bg-card p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 rounded-xl border bg-card p-4">
                   <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
                   <div className="space-y-2">
                     {[

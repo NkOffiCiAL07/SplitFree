@@ -40,17 +40,17 @@ export function BalanceChart({ data = [], isLoading, currency = "USD" }: Props) 
     >
       <Card className="h-full">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <CardTitle className="text-base">Balance Overview</CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">Money flow over the last 6 months</p>
             </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-violet-500" />Owed to you
+                <span className="w-2.5 h-2.5 rounded-full bg-violet-500 shrink-0" />Owed to you
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-400" />You owe
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />You owe
               </span>
             </div>
           </div>

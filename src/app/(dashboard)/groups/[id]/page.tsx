@@ -432,7 +432,7 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete }:
         )}
       </div>
       {isPayer && (
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
           <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-foreground" onClick={onEdit}>
             <Pencil className="size-3.5" />
           </Button>

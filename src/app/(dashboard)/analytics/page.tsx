@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatCompactCurrency } from "@/lib/utils";
 import { useUserCurrency } from "@/hooks/use-profile";
 import { format } from "date-fns";
 
@@ -54,10 +54,10 @@ export default function AnalyticsPage() {
   const totalCents = categoryData.reduce((s, c) => s + c.cents, 0);
 
   const stats = [
-    { label: "Total spent", value: formatCurrency(data?.totalExpenses ?? 0, currency) },
-    { label: "Owed to you", value: formatCurrency(data?.totalOwed ?? 0, currency), positive: true },
-    { label: "You owe", value: formatCurrency(data?.totalOwing ?? 0, currency), negative: true },
-    { label: "Groups", value: String(data?.groupCount ?? 0) },
+    { label: "Total spent", value: isLoading ? "—" : formatCompactCurrency(data?.totalExpenses ?? 0, currency) },
+    { label: "Owed to you", value: isLoading ? "—" : formatCompactCurrency(data?.totalOwed ?? 0, currency), positive: true },
+    { label: "You owe", value: isLoading ? "—" : formatCompactCurrency(data?.totalOwing ?? 0, currency), negative: true },
+    { label: "Groups", value: isLoading ? "—" : String(data?.groupCount ?? 0) },
   ];
 
   return (
@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className={`text-xl font-bold mt-1 ${positive ? "text-green-600 dark:text-green-400" : negative ? "text-red-600 dark:text-red-400" : ""}`}>
+                  <p className={`text-lg md:text-xl font-bold mt-1 leading-tight ${positive ? "text-green-600 dark:text-green-400" : negative ? "text-red-600 dark:text-red-400" : ""}`}>
                     {value}
                   </p>
                 </CardContent>

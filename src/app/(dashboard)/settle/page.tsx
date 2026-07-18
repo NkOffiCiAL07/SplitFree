@@ -138,10 +138,10 @@ export default function SettlePage() {
 
       {/* Simplified debts */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Zap className="size-4 text-primary" />
           <h3 className="font-semibold text-sm">Simplified debts</h3>
-          <span className="text-xs text-muted-foreground">— minimum transactions to settle everything</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">— minimum transactions to settle everything</span>
         </div>
 
         {balanceLoading ? (
