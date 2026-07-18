@@ -128,16 +128,6 @@ const stats = [
   { value: "₹0", label: "Cost. Forever." },
 ];
 
-const freeForeverItems = [
-  "Unlimited groups & members",
-  "All split methods (equal, exact, percentage, shares)",
-  "Debt simplification algorithm",
-  "Spending analytics & charts",
-  "Recurring expenses",
-  "Group invite links",
-  "Multi-currency support",
-  "Mobile-friendly PWA",
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -494,61 +484,6 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Free forever */}
-      <section className="py-24 px-4 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-3 flex items-center gap-1.5">
-                <span className="w-4 h-px bg-violet-500/50" />
-                Pricing
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                Actually free.<br />
-                <span className="gradient-brand-text">Not "free trial" free.</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Most expense apps hide their best features behind a paywall. We don&apos;t. Every feature — from debt simplification to analytics — is free, forever, for everyone.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="rounded-2xl border bg-card p-6"
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <p className="font-bold text-lg">SplitFree</p>
-                  <p className="text-muted-foreground text-sm">All features included</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold gradient-brand-text">₹0</p>
-                  <p className="text-xs text-muted-foreground">per month</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-2">
-                {freeForeverItems.map((f) => (
-                  <div key={f} className="flex items-center gap-2.5 text-sm">
-                    <div className="w-4 h-4 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                      <Check className="size-2.5 text-green-600 dark:text-green-400" />
-                    </div>
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
