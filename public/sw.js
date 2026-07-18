@@ -1,9 +1,11 @@
-const CACHE_NAME = "splitfree-v1";
+const CACHE_NAME = "splitfree-v2";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",
   "/manifest.json",
-  "/favicon.ico",
+  "/apple-touch-icon.png",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png",
 ];
 
 // Install: cache static shell

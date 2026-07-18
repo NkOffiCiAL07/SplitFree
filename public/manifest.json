@@ -60,14 +60,6 @@
       "purpose": "maskable any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "label": "Dashboard overview"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Add Expense",

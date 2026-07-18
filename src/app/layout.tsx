@@ -30,8 +30,12 @@ export const metadata: Metadata = {
   creator: "SplitFree",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
     apple: "/apple-touch-icon.png",
+    shortcut: "/icons/icon-192x192.png",
   },
   openGraph: {
     type: "website",
