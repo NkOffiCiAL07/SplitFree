@@ -36,7 +36,7 @@ export function StatCard({ title, value, sub, icon: Icon, variant = "violet", in
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-muted-foreground truncate">{title}</p>
-              <p className={cn("text-xl md:text-2xl font-bold mt-1 truncate", styles.text)}>{value}</p>
+              <p className={cn("text-lg md:text-2xl font-bold mt-1 leading-tight", styles.text)}>{value}</p>
               {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
             </div>
             <div className={cn("w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0", styles.icon)}>

@@ -10,7 +10,7 @@ import { DebtSummary } from "@/components/dashboard/debt-summary";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCompactCurrency, cn } from "@/lib/utils";
 
 async function fetchDashboard() {
   const res = await fetch("/api/dashboard");
@@ -35,14 +35,14 @@ export default function DashboardPage() {
   const stats = [
     {
       title: "Owed to You",
-      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwed ?? 0, currency),
+      value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwed ?? 0, currency),
       sub: "others owe you",
       icon: TrendingUp,
       variant: "green" as const,
     },
     {
       title: "You Owe",
-      value: isLoading ? "—" : formatCurrency(data?.stats?.totalOwing ?? 0, currency),
+      value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwing ?? 0, currency),
       sub: "settle up soon",
       icon: TrendingDown,
       variant: "red" as const,
@@ -56,7 +56,7 @@ export default function DashboardPage() {
     },
     {
       title: "Net Balance",
-      value: isLoading ? "—" : `${netBalance >= 0 ? "+" : "−"}${formatCurrency(Math.abs(netBalance), currency)}`,
+      value: isLoading ? "—" : formatCompactCurrency(netBalance, currency),
       sub: netBalance >= 0 ? "you're ahead" : "you're behind",
       icon: Wallet,
       variant: netBalance >= 0 ? "violet" as const : "red" as const,

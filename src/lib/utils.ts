@@ -18,6 +18,26 @@ export function formatCurrency(
   }).format(amount / 100); // amounts stored in cents
 }
 
+/**
+ * Compact currency for tight UI spaces (stat cards on mobile).
+ * ₹10,100 → ₹10.1K  |  ₹1,50,000 → ₹1.5L  |  ₹500 → ₹500
+ */
+export function formatCompactCurrency(cents: number, currency = "USD"): string {
+  const abs = Math.abs(cents) / 100;
+  const sign = cents < 0 ? "−" : "";
+  // Get the currency symbol from a small formatted string
+  const symbol = new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
+    .format(0)
+    .replace(/[\d,.\s]/g, "")
+    .trim();
+
+  if (abs >= 10_00_000) return `${sign}${symbol}${(abs / 10_00_000).toFixed(1)}M`;
+  if (abs >= 1_00_000)  return `${sign}${symbol}${(abs / 1_00_000).toFixed(1)}L`;
+  if (abs >= 10_000)    return `${sign}${symbol}${(abs / 1_000).toFixed(1)}K`;
+  if (abs >= 1_000)     return `${sign}${symbol}${(abs / 1_000).toFixed(1)}K`;
+  return `${sign}${formatCurrency(Math.abs(cents), currency)}`;
+}
+
 export function formatAmount(cents: number): string {
   return formatCurrency(cents);
 }
