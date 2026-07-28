@@ -13,31 +13,18 @@ import { useTheme } from "next-themes";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const commands = [
-  {
-    group: "Navigate",
-    items: [
-      { label: "Dashboard",  icon: LayoutDashboard, href: "/dashboard" },
-      { label: "Groups",     icon: Users,           href: "/groups" },
-      { label: "Expenses",   icon: Receipt,         href: "/expenses" },
-      { label: "Friends",    icon: UserPlus,        href: "/friends" },
-      { label: "Activity",   icon: Activity,        href: "/activity" },
-      { label: "Analytics",  icon: BarChart3,       href: "/analytics" },
-      { label: "Settings",   icon: Settings,        href: "/settings" },
-    ],
-  },
-  {
-    group: "Create",
-    items: [
-      { label: "New expense",  icon: Plus, href: "/expenses/new" },
-      { label: "New group",    icon: Plus, href: "/groups/new" },
-      { label: "Add friend",   icon: Plus, href: "/friends?add=1" },
-    ],
-  },
+const navCommands = [
+  { label: "Dashboard",  icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Groups",     icon: Users,           href: "/groups" },
+  { label: "Expenses",   icon: Receipt,         href: "/expenses" },
+  { label: "Friends",    icon: UserPlus,        href: "/friends" },
+  { label: "Activity",   icon: Activity,        href: "/activity" },
+  { label: "Analytics",  icon: BarChart3,       href: "/analytics" },
+  { label: "Settings",   icon: Settings,        href: "/settings" },
 ];
 
 export function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, setAddExpenseOpen } = useUIStore();
   const { setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
 
@@ -62,6 +49,11 @@ export function CommandPalette() {
     },
     [router, setCommandPaletteOpen]
   );
+
+  const openAddExpense = () => {
+    setCommandPaletteOpen(false);
+    setAddExpenseOpen(true);
+  };
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -93,29 +85,68 @@ export function CommandPalette() {
               No results found.
             </Command.Empty>
 
-            {commands.map(({ group, items }) => (
-              <Command.Group key={group} heading={group} className="px-2">
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                  {group}
-                </div>
-                {items.map(({ label, icon: Icon, href }) => (
-                  <Command.Item
-                    key={href}
-                    value={label}
-                    onSelect={() => navigate(href)}
-                    className={cn(
-                      "flex items-center gap-3 px-2 py-2 rounded-lg text-sm cursor-pointer",
-                      "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                      "transition-colors"
-                    )}
-                  >
-                    <Icon className="size-4 text-muted-foreground" />
-                    <span>{label}</span>
-                    <ArrowRight className="size-3 ml-auto text-muted-foreground opacity-0 aria-selected:opacity-100" />
-                  </Command.Item>
-                ))}
-              </Command.Group>
-            ))}
+            <Command.Group className="px-2">
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Navigate</div>
+              {navCommands.map(({ label, icon: Icon, href }) => (
+                <Command.Item
+                  key={href}
+                  value={label}
+                  onSelect={() => navigate(href)}
+                  className={cn(
+                    "flex items-center gap-3 px-2 py-2 rounded-lg text-sm cursor-pointer",
+                    "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                    "transition-colors"
+                  )}
+                >
+                  <Icon className="size-4 text-muted-foreground" />
+                  <span>{label}</span>
+                  <ArrowRight className="size-3 ml-auto text-muted-foreground opacity-0 aria-selected:opacity-100" />
+                </Command.Item>
+              ))}
+            </Command.Group>
+
+            <Command.Group className="px-2">
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Create</div>
+              <Command.Item
+                value="New expense"
+                onSelect={openAddExpense}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2 rounded-lg text-sm cursor-pointer",
+                  "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  "transition-colors"
+                )}
+              >
+                <Plus className="size-4 text-muted-foreground" />
+                <span>New expense</span>
+                <ArrowRight className="size-3 ml-auto text-muted-foreground opacity-0 aria-selected:opacity-100" />
+              </Command.Item>
+              <Command.Item
+                value="New group"
+                onSelect={() => navigate("/groups")}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2 rounded-lg text-sm cursor-pointer",
+                  "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  "transition-colors"
+                )}
+              >
+                <Plus className="size-4 text-muted-foreground" />
+                <span>New group</span>
+                <ArrowRight className="size-3 ml-auto text-muted-foreground opacity-0 aria-selected:opacity-100" />
+              </Command.Item>
+              <Command.Item
+                value="Add friend"
+                onSelect={() => navigate("/friends")}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2 rounded-lg text-sm cursor-pointer",
+                  "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  "transition-colors"
+                )}
+              >
+                <Plus className="size-4 text-muted-foreground" />
+                <span>Add friend</span>
+                <ArrowRight className="size-3 ml-auto text-muted-foreground opacity-0 aria-selected:opacity-100" />
+              </Command.Item>
+            </Command.Group>
 
             {/* Theme toggle */}
             <Command.Group className="px-2">

@@ -64,10 +64,17 @@ enum RecurringInterval {
   YEARLY
 }
 
+enum BudgetPeriod {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 enum NotificationType {
   EXPENSE_ADDED
   EXPENSE_UPDATED
   EXPENSE_DELETED
+  EXPENSE_COMMENTED
   SETTLEMENT_ADDED
   GROUP_JOINED
   GROUP_LEFT
@@ -108,6 +115,8 @@ model User {
   friendships      Friendship[]   @relation("UserFriendships")
   friendOf         Friendship[]   @relation("FriendOf")
   sentInvites      GroupInvite[]  @relation("SentInvites")
+  comments         ExpenseComment[]
+  budgets          Budget[]
 
   @@map("users")
 }
@@ -132,6 +141,7 @@ model Group {
   settlements Settlement[]
   activities  Activity[]
   invites     GroupInvite[]
+  budgets     Budget[]
 
   @@map("groups")
 }
@@ -174,6 +184,7 @@ model Expense {
   paidBy            User           @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
   splits            ExpenseSplit[]
   activities        Activity[]
+  comments          ExpenseComment[]
   recurringParent   Expense?       @relation("RecurringChildren", fields: [recurringParentId], references: [id], onDelete: SetNull)
   recurringChildren Expense[]      @relation("RecurringChildren")
 
@@ -290,4 +301,38 @@ model GroupInvite {
   @@unique([groupId, email])
   @@index([email])
   @@map("group_invites")
+}
+
+model ExpenseComment {
+  id        String   @id @default(uuid())
+  expenseId String   @map("expense_id")
+  userId    String   @map("user_id")
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@map("expense_comments")
+}
+
+model Budget {
+  id        String           @id @default(uuid())
+  groupId   String?          @map("group_id")
+  userId    String           @map("user_id")
+  category  ExpenseCategory?
+  amount    Int              // in cents, monthly limit
+  period    BudgetPeriod     @default(MONTHLY)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId, category])
+  @@index([userId])
+  @@index([groupId])
+  @@map("budgets")
 }

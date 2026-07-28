@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { useUserCurrency } from "@/hooks/use-profile";
+import { ExpenseComments } from "@/components/expenses/expense-comments";
+import { Separator } from "@/components/ui/separator";
 import type { Expense } from "@/types";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -156,7 +158,7 @@ export default function ExpensesPage() {
               userId={user?.id ?? ""}
               index={i}
               onDelete={() => deleteMutation.mutate(expense.id)}
-              canDelete={expense.paidById === user?.id}
+              canDelete={expense.paidById === user?.id || !!expense.groupId}
               onClick={() => setSelectedExpense(expense)}
               userCurrency={userCurrency}
             />
@@ -223,41 +225,50 @@ export default function ExpensesPage() {
                 </div>
               )}
 
-              {/* Action buttons */}
-              <div className="flex gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1.5"
-                  onClick={() => {
-                    duplicateMutation.mutate(selectedExpense);
-                    setSelectedExpense(null);
-                  }}
-                  loading={duplicateMutation.isPending}
-                >
-                  <Copy className="size-3.5" /> Duplicate
-                </Button>
-                {selectedExpense.paidById === user?.id && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-1.5"
-                    onClick={() => { setEditingExpense(selectedExpense); setSelectedExpense(null); }}
-                  >
-                    <Pencil className="size-3.5" /> Edit
-                  </Button>
-                )}
-                {selectedExpense.paidById === user?.id && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => { deleteMutation.mutate(selectedExpense.id); setSelectedExpense(null); }}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                )}
-              </div>
+              <Separator />
+              <ExpenseComments expenseId={selectedExpense.id} />
+              <Separator />
+
+              {/* Action buttons — group members can edit/delete any group expense */}
+              {(() => {
+                const canManage = selectedExpense.paidById === user?.id || !!selectedExpense.groupId;
+                return (
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5"
+                      onClick={() => {
+                        duplicateMutation.mutate(selectedExpense);
+                        setSelectedExpense(null);
+                      }}
+                      loading={duplicateMutation.isPending}
+                    >
+                      <Copy className="size-3.5" /> Duplicate
+                    </Button>
+                    {canManage && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1.5"
+                        onClick={() => { setEditingExpense(selectedExpense); setSelectedExpense(null); }}
+                      >
+                        <Pencil className="size-3.5" /> Edit
+                      </Button>
+                    )}
+                    {canManage && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => { deleteMutation.mutate(selectedExpense.id); setSelectedExpense(null); }}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </DialogContent>

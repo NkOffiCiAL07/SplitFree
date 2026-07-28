@@ -3,12 +3,14 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { EditExpenseDialog } from "@/components/expenses/edit-expense-dialog";
+import { ExpenseComments } from "@/components/expenses/expense-comments";
+import { BudgetCard } from "@/components/groups/budget-card";
 import type { Expense } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +24,7 @@ import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -42,6 +45,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
   const deleteExpense = useDeleteExpense();
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrUrl, setQrUrl] = useState("");
 
   const myMember = group?.members?.find((m) => m.userId === user?.id);
   const isAdmin = myMember?.role === "ADMIN";
@@ -139,6 +145,24 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
             }}
           >
             <Link2 className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="QR code invite"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={async () => {
+              const res = await fetch(`/api/groups/${id}/invite-link`);
+              const json = await res.json();
+              if (json.data?.token) {
+                setQrUrl(`${window.location.origin}/join/${json.data.token}`);
+                setQrOpen(true);
+              } else {
+                toast.error("Failed to generate QR code");
+              }
+            }}
+          >
+            <QrCode className="size-4" />
           </Button>
           {!isCreator && (
             <Button
@@ -358,6 +382,37 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         </DialogContent>
       </Dialog>
 
+      {/* QR Code invite dialog */}
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="sm:max-w-xs">
+          <DialogHeader><DialogTitle>Invite via QR code</DialogTitle></DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            {qrUrl && (
+              <div className="p-4 bg-white rounded-2xl shadow-sm">
+                <QRCodeSVG value={qrUrl} size={200} level="M" />
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground text-center">
+              Scan to join <span className="font-medium">{group.name}</span>
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={async () => {
+                await navigator.clipboard.writeText(qrUrl);
+                toast.success("Link copied!");
+              }}
+            >
+              <Link2 className="size-3.5" /> Copy link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Budget */}
+      <BudgetCard groupId={id} currency={group.currency} />
+
       <Separator />
 
       {/* Expenses */}
@@ -378,6 +433,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 groupCurrency={group.currency}
                 onEdit={() => setEditingExpense(exp as Expense)}
                 onDelete={() => deleteExpense.mutate(exp.id)}
+                onClick={() => setViewingExpense(exp as Expense)}
               />
             ))}
           </div>
@@ -390,6 +446,70 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           />
         )}
       </div>
+
+      {/* Expense detail + comments dialog */}
+      <Dialog open={!!viewingExpense} onOpenChange={(o) => { if (!o) setViewingExpense(null); }}>
+        <DialogContent className="sm:max-w-md max-h-[90svh] overflow-y-auto">
+          {viewingExpense && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span>{EXPENSE_EMOJI[viewingExpense.category] ?? "📦"}</span>
+                  <span className="truncate">{viewingExpense.description}</span>
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 mt-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="font-bold text-lg">{formatCurrency(viewingExpense.amount, group.currency)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Paid by</span>
+                  <span className="font-medium">{viewingExpense.paidBy?.name ?? "Unknown"}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Date</span>
+                  <span>{formatDate(viewingExpense.date)}</span>
+                </div>
+                {viewingExpense.notes && (
+                  <p className="text-sm bg-muted/50 rounded-lg px-3 py-2">{viewingExpense.notes}</p>
+                )}
+                {viewingExpense.splits && viewingExpense.splits.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">Split</p>
+                    {viewingExpense.splits.map((s: any) => (
+                      <div key={s.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                        <Avatar className="size-6 shrink-0">
+                          <AvatarFallback className="text-[9px]">{getInitials(s.user?.name ?? "?")}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm flex-1 truncate">{s.user?.name ?? s.userId}</span>
+                        <span className="text-sm font-semibold">{formatCurrency(s.amount, group.currency)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Separator />
+                <ExpenseComments expenseId={viewingExpense.id} />
+                <Separator />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline" size="sm" className="flex-1 gap-1.5"
+                    onClick={() => { setEditingExpense(viewingExpense); setViewingExpense(null); }}
+                  >
+                    <Pencil className="size-3.5" /> Edit
+                  </Button>
+                  <Button
+                    variant="destructive" size="sm" className="gap-1.5"
+                    onClick={() => { deleteExpense.mutate(viewingExpense.id); setViewingExpense(null); }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -399,9 +519,9 @@ const EXPENSE_EMOJI: Record<string, string> = {
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
 };
 
-function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete }: {
+function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, onClick }: {
   expense: any; userId: string; index: number; groupCurrency?: string;
-  onEdit: () => void; onDelete: () => void;
+  onEdit: () => void; onDelete: () => void; onClick?: () => void;
 }) {
   const myShare = expense.splits?.find((s: any) => s.userId === userId);
   const isPayer = expense.paidById === userId;
@@ -412,7 +532,8 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete }:
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-all group"
+      onClick={onClick}
+      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-all group cursor-pointer"
     >
       <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-base shrink-0">
         {EXPENSE_EMOJI[expense.category] ?? "📦"}
@@ -431,16 +552,14 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete }:
           </p>
         )}
       </div>
-      {isPayer && (
-        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-          <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-foreground" onClick={onEdit}>
-            <Pencil className="size-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-destructive" onClick={onDelete}>
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
-      )}
+      <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+        <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+          <Pencil className="size-3.5" />
+        </Button>
+        <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+          <Trash2 className="size-3.5" />
+        </Button>
+      </div>
     </motion.div>
   );
 }

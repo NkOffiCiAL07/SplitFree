@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { DemoBanner } from "@/components/dashboard/demo-banner";
+import { GlobalAddExpenseDialog } from "@/components/expenses/global-add-expense-dialog";
 
 export default function DashboardLayout({
   children,
@@ -34,6 +35,9 @@ export default function DashboardLayout({
 
       {/* Global command palette */}
       <CommandPalette />
+
+      {/* Global add expense dialog (opened from mobile FAB / command palette) */}
+      <GlobalAddExpenseDialog />
     </div>
   );
 }

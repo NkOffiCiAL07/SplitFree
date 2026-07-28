@@ -41,7 +41,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id, splits: { some: { userId: user!.id } } },
     });
     if (!existing) return err("Expense not found", 404);
-    if (existing.paidById !== user!.id) return err("Only the payer can edit", 403);
+
+    // Group expenses: any member can edit. Personal expenses: only payer.
+    if (existing.paidById !== user!.id && existing.groupId) {
+      const memberCheck = await prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId: existing.groupId, userId: user!.id } },
+      });
+      if (!memberCheck) return err("Not authorized to edit this expense", 403);
+    } else if (existing.paidById !== user!.id && !existing.groupId) {
+      return err("Only the payer can edit this expense", 403);
+    }
 
     const body = await req.json();
     const data = updateExpenseSchema.parse({ ...body, id });
@@ -82,11 +91,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Notify all group members (except editor) about the update
     const notifyIds = await getGroupMemberIds(existing.groupId, user!.id);
     if (notifyIds.length > 0) {
+      const editor = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
+      const editorName = editor?.name ?? user!.email ?? "Someone";
       await prisma.notification.createMany({
         data: notifyIds.map((uid) => ({
           userId: uid,
           type: "EXPENSE_UPDATED" as const,
-          title: `${updated.paidBy.name} updated an expense`,
+          title: `${editorName} updated an expense`,
           body: `"${updated.description}" was edited`,
           data: { expenseId: id, groupId: existing.groupId },
         })),
@@ -121,7 +132,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       include: { paidBy: true },
     });
     if (!expense) return err("Expense not found", 404);
-    if (expense.paidById !== user!.id) return err("Only the payer can delete", 403);
+
+    // Group expenses: any member can delete. Personal expenses: only payer.
+    if (expense.paidById !== user!.id && expense.groupId) {
+      const memberCheck = await prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId: expense.groupId, userId: user!.id } },
+      });
+      if (!memberCheck) return err("Not authorized to delete this expense", 403);
+    } else if (expense.paidById !== user!.id && !expense.groupId) {
+      return err("Only the payer can delete this expense", 403);
+    }
 
     // Fetch group members before deleting (cascade will remove related data)
     const notifyIds = await getGroupMemberIds(expense.groupId, user!.id);
@@ -129,11 +149,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await prisma.expense.delete({ where: { id } });
 
     if (notifyIds.length > 0) {
+      const editor = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
+      const editorName = editor?.name ?? user!.email ?? "Someone";
       await prisma.notification.createMany({
         data: notifyIds.map((uid) => ({
           userId: uid,
           type: "EXPENSE_DELETED" as const,
-          title: `${expense.paidBy.name} deleted an expense`,
+          title: `${editorName} deleted an expense`,
           body: `"${expense.description}" was removed`,
           data: { groupId: expense.groupId },
         })),

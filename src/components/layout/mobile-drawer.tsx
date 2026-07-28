@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
-  Settings, LogOut, Zap, Activity, X,
+  Settings, LogOut, Zap, Activity, X, RefreshCw,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
@@ -20,6 +20,7 @@ const navItems = [
   { href: "/friends",   label: "Friends",   icon: UserPlus },
   { href: "/activity",  label: "Activity",  icon: Activity },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/recurring", label: "Recurring", icon: RefreshCw },
   { href: "/settings",  label: "Settings",  icon: Settings },
 ];
 

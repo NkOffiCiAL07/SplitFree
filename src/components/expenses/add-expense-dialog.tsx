@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,6 +21,18 @@ import { toast } from "sonner";
 import type { GroupMember } from "@/types";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
+
+const KEYWORD_CATEGORY: Array<[RegExp, typeof CATEGORIES[number]]> = [
+  [/\b(food|eat|restaurant|dinner|lunch|breakfast|coffee|pizza|burger|sushi|kebab|cafe|snack|grocery|groceries|meal|biryani|thali)\b/i, "FOOD"],
+  [/\b(uber|ola|taxi|cab|bus|train|metro|auto|petrol|fuel|gas|toll|parking|flight|lyft|ride)\b/i, "TRANSPORT"],
+  [/\b(hotel|rent|airbnb|hostel|motel|accommodation|apartment|lease|pg|room)\b/i, "ACCOMMODATION"],
+  [/\b(movie|cinema|concert|netflix|spotify|game|gaming|party|event|show|ticket|club|bar|pub)\b/i, "ENTERTAINMENT"],
+  [/\b(electricity|water|internet|wifi|phone|bill|mobile|recharge|broadband|utility|cable|gas bill)\b/i, "UTILITIES"],
+  [/\b(amazon|shopping|clothes|shirt|shoes|dress|mall|market|buy|purchase|flipkart|order)\b/i, "SHOPPING"],
+  [/\b(doctor|medicine|pharmacy|hospital|clinic|health|medical|dentist|gym|fitness|yoga)\b/i, "HEALTH"],
+  [/\b(travel|trip|vacation|holiday|tour|flight|resort|beach|trek|safari|cruise)\b/i, "TRAVEL"],
+  [/\b(school|college|tuition|book|course|class|fee|exam|study|education|university)\b/i, "EDUCATION"],
+];
 const CATEGORY_EMOJI: Record<string, string> = {
   FOOD:"🍔",TRANSPORT:"🚗",ACCOMMODATION:"🏨",ENTERTAINMENT:"🎭",
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
@@ -46,10 +58,14 @@ interface Props {
   groupCurrency?: string;
   members?: GroupMember[];
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [], children }: Props) {
-  const [open, setOpen] = useState(false);
+export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [], children, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [splitType, setSplitType] = useState<"EQUAL"|"EXACT"|"PERCENTAGE"|"SHARES">("EQUAL");
   const [participants, setParticipants] = useState<string[]>([]);
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
@@ -72,6 +88,18 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     if (user?.id) setValue("paidById", user.id);
   }, [user?.id, setValue]);
 
+  // Smart auto-categorization based on description keywords
+  const description = watch("description");
+  useEffect(() => {
+    if (!description) return;
+    for (const [pattern, cat] of KEYWORD_CATEGORY) {
+      if (pattern.test(description)) {
+        setValue("category", cat);
+        break;
+      }
+    }
+  }, [description, setValue]);
+
   const isRecurring = watch("isRecurring");
   const amountStr = watch("amount");
   const paidById = watch("paidById");
@@ -82,6 +110,13 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     : user ? [user.id] : [];
 
   const activeParticipants = participants.length > 0 ? participants : allMemberIds;
+
+  const equalSplitPerPerson = (() => {
+    const total = parseFloat(amountStr ?? "0") || 0;
+    const count = activeParticipants.length || 1;
+    if (total <= 0 || count === 0 || splitType !== "EQUAL") return null;
+    return total / count;
+  })();
 
   const toggleParticipant = (uid: string) => {
     setParticipants((prev) =>
@@ -162,15 +197,19 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     { value: "SHARES", label: "Shares", icon: Hash },
   ];
 
+  const trigger = controlledOpen !== undefined ? null : (
+    <DialogTrigger asChild>
+      {children ?? (
+        <Button variant="brand" size="sm" className="gap-1.5">
+          <Plus className="size-4" /> Add expense
+        </Button>
+      )}
+    </DialogTrigger>
+  );
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children ?? (
-          <Button variant="brand" size="sm" className="gap-1.5">
-            <Plus className="size-4" /> Add expense
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add expense</DialogTitle>
@@ -314,6 +353,25 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                         </Avatar>
                         {m.user?.name?.split(" ")[0]}
                       </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Live equal-split preview */}
+            {splitType === "EQUAL" && equalSplitPerPerson !== null && members.length > 0 && (
+              <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-1">
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Split preview</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  {activeParticipants.map((uid) => {
+                    const m = members.find((x) => x.userId === uid);
+                    const name = m?.user?.name?.split(" ")[0] ?? (uid === user?.id ? "You" : uid.slice(0, 6));
+                    return (
+                      <span key={uid} className="text-xs">
+                        <span className="font-medium">{name}</span>
+                        <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(2)} {selectedCurrency}</span>
+                      </span>
                     );
                   })}
                 </div>

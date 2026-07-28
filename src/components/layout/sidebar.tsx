@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
   Bell, Settings, LogOut, ChevronLeft, ChevronRight,
-  Zap, Activity,
+  Zap, Activity, RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
@@ -23,8 +23,9 @@ const navItems = [
   { href: "/groups",    label: "Groups",    icon: Users },
   { href: "/expenses",  label: "Expenses",  icon: Receipt },
   { href: "/friends",   label: "Friends",   icon: UserPlus },
-  { href: "/activity",  label: "Activity",  icon: Activity },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/activity",   label: "Activity",   icon: Activity },
+  { href: "/analytics",  label: "Analytics",  icon: BarChart3 },
+  { href: "/recurring",  label: "Recurring",  icon: RefreshCw },
 ];
 
 const bottomItems = [

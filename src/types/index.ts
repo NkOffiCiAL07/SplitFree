@@ -30,7 +30,10 @@ export type NotificationType =
   | "GROUP_JOINED"
   | "GROUP_LEFT"
   | "FRIEND_ADDED"
-  | "PAYMENT_REMINDER";
+  | "PAYMENT_REMINDER"
+  | "EXPENSE_COMMENTED";
+
+export type BudgetPeriod = "WEEKLY" | "MONTHLY" | "YEARLY";
 
 export type ActivityType =
   | "EXPENSE_CREATED"
@@ -171,6 +174,29 @@ export interface Notification {
   isRead: boolean;
   data: Record<string, unknown> | null;
   createdAt: Date;
+}
+
+/* ─── Comment ─────────────────────────────────────────────── */
+export interface ExpenseComment {
+  id: string;
+  expenseId: string;
+  userId: string;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: UserProfile;
+}
+
+/* ─── Budget ──────────────────────────────────────────────── */
+export interface Budget {
+  id: string;
+  groupId: string | null;
+  userId: string;
+  category: ExpenseCategory | null;
+  amount: number; // in cents
+  period: BudgetPeriod;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /* ─── Activity ────────────────────────────────────────────── */
