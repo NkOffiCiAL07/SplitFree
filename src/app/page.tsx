@@ -1,18 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Zap, Users, BarChart3, Shield, Smartphone,
-  ArrowRight, Check, SplitSquareHorizontal, Play, Star,
+  ArrowRight, Check, SplitSquareHorizontal, Star,
   Globe, RefreshCw, Sparkles, Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { createClient } from "@/lib/supabase/client";
-import { toast } from "sonner";
+import { DemoButton } from "@/components/landing/demo-button";
 
 const features = [
   {
@@ -20,56 +14,48 @@ const features = [
     title: "Groups & Friends",
     description: "Create groups for trips, home, or any occasion. Track debts with anyone — no more awkward money talks.",
     color: "from-violet-500 to-purple-600",
-    bg: "bg-violet-500/8",
   },
   {
     icon: SplitSquareHorizontal,
     title: "Smart Splitting",
     description: "Split equally, by exact amount, percentage, or custom shares. Every real-world scenario covered.",
     color: "from-blue-500 to-indigo-600",
-    bg: "bg-blue-500/8",
   },
   {
     icon: BarChart3,
     title: "Spending Analytics",
     description: "Visualize your spending patterns with beautiful charts. Know exactly where your money goes.",
     color: "from-emerald-500 to-teal-600",
-    bg: "bg-emerald-500/8",
   },
   {
     icon: Zap,
     title: "Debt Simplification",
     description: "Our minimum cash-flow algorithm reduces 10 payments to just 3. Fewer transfers, less hassle.",
     color: "from-amber-500 to-orange-600",
-    bg: "bg-amber-500/8",
   },
   {
     icon: RefreshCw,
     title: "Recurring Expenses",
     description: "Set rent, subscriptions, or EMIs on auto-pilot. Never manually re-enter a monthly expense again.",
     color: "from-rose-500 to-pink-600",
-    bg: "bg-rose-500/8",
   },
   {
     icon: Globe,
     title: "Multi-Currency",
     description: "Traveling abroad? Switch currencies per group. Your home currency stays the default everywhere else.",
     color: "from-cyan-500 to-sky-600",
-    bg: "bg-cyan-500/8",
   },
   {
     icon: Smartphone,
     title: "Works Everywhere",
     description: "Install on any device like a native app. Fast, lightweight, and works great on mobile.",
     color: "from-indigo-500 to-violet-600",
-    bg: "bg-indigo-500/8",
   },
   {
     icon: Shield,
     title: "Secure & Private",
     description: "Your data is encrypted at rest and never sold. No ads, no upsells — free forever, period.",
     color: "from-green-500 to-emerald-600",
-    bg: "bg-green-500/8",
   },
 ];
 
@@ -128,49 +114,6 @@ const stats = [
   { value: "₹0", label: "Cost. Forever." },
 ];
 
-
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
-function DemoButton() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const handleDemo = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/demo-login", { method: "POST" });
-      const json = await res.json();
-      if (json.error) { toast.error("Demo not available right now"); return; }
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email: json.email, password: json.password });
-      if (error) { toast.error("Demo login failed"); return; }
-      router.push("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Button
-      variant="outline"
-      size="xl"
-      className="w-full sm:w-auto px-8 h-12 text-base gap-2"
-      onClick={handleDemo}
-      disabled={loading}
-    >
-      <Play className="size-4" />
-      {loading ? "Loading demo…" : "Try demo — no signup"}
-    </Button>
-  );
-}
-
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -189,7 +132,10 @@ export default function LandingPage() {
               <Link href="/login">Sign in</Link>
             </Button>
             <Button variant="brand" size="sm" asChild>
-              <Link href="/signup"><span className="hidden sm:inline">Get started free</span><span className="sm:hidden">Sign up</span></Link>
+              <Link href="/signup">
+                <span className="hidden sm:inline">Get started free</span>
+                <span className="sm:hidden">Sign up</span>
+              </Link>
             </Button>
           </div>
         </div>
@@ -208,28 +154,26 @@ export default function LandingPage() {
           />
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={container}
-          className="max-w-3xl mx-auto text-center space-y-6"
-        >
-          <motion.h1
-            variants={item}
-            className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance"
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          <h1
+            className="anim-fade-up text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance"
+            style={{ animationDelay: "0ms" }}
           >
             Split expenses,{" "}
             <span className="gradient-brand-text">not friendships.</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            variants={item}
-            className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed"
+          <p
+            className="anim-fade-up text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed"
+            style={{ animationDelay: "80ms" }}
           >
             The free, beautiful alternative to Splitwise. Track shared costs, simplify debts, and settle up — zero ads, zero paywalls, forever.
-          </motion.p>
+          </p>
 
-          <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div
+            className="anim-fade-up flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
+            style={{ animationDelay: "160ms" }}
+          >
             <Button variant="brand" size="xl" className="w-full sm:w-auto px-8 h-12 text-base" asChild>
               <Link href="/signup">
                 Start splitting for free
@@ -237,11 +181,11 @@ export default function LandingPage() {
               </Link>
             </Button>
             <DemoButton />
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={item}
-            className="flex items-center justify-center gap-8 pt-2 text-xs text-muted-foreground"
+          <div
+            className="anim-fade-up flex items-center justify-center gap-8 pt-2 text-xs text-muted-foreground"
+            style={{ animationDelay: "240ms" }}
           >
             {["No credit card", "Free forever", "Mobile friendly"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
@@ -249,15 +193,13 @@ export default function LandingPage() {
                 {t}
               </span>
             ))}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Dashboard preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 48 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-5xl mx-auto mt-16"
+        <div
+          className="anim-fade-up max-w-5xl mx-auto mt-16"
+          style={{ animationDelay: "450ms" }}
         >
           <div className="rounded-2xl border bg-card shadow-[0_32px_80px_-16px_rgba(109,40,217,0.18)] dark:shadow-[0_32px_80px_-16px_rgba(109,40,217,0.3)] overflow-hidden">
             {/* Browser chrome */}
@@ -271,7 +213,6 @@ export default function LandingPage() {
             </div>
             {/* Mock dashboard */}
             <div className="p-5 space-y-4 bg-background/50">
-              {/* Stat cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: "Total Owed to You", value: "₹2,400", color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/20" },
@@ -285,7 +226,6 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              {/* Main content */}
               <div className="rounded-xl border bg-card p-4">
                 <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
                 <div className="space-y-2">
@@ -304,7 +244,6 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                {/* Who owes who — inline row below on mobile, hidden on very small */}
                 <div className="mt-3 pt-3 border-t flex items-center justify-between gap-3">
                   <p className="text-[10px] font-medium text-muted-foreground shrink-0">Balances</p>
                   <div className="flex items-center gap-2 overflow-x-auto">
@@ -323,23 +262,17 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Stats bar */}
       <section className="border-y bg-muted/30 py-12 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map(({ value, label }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-            >
+          {stats.map(({ value, label }) => (
+            <div key={label}>
               <p className="text-3xl font-bold gradient-brand-text">{value}</p>
               <p className="text-sm text-muted-foreground mt-1">{label}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -347,12 +280,7 @@ export default function LandingPage() {
       {/* How it works */}
       <section className="py-24 px-4">
         <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
+          <div className="text-center mb-14">
             <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
               <span className="w-4 h-px bg-violet-500/50" />
               How it works
@@ -360,25 +288,18 @@ export default function LandingPage() {
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold">Up and running in minutes</h2>
             <p className="text-muted-foreground mt-3 max-w-md mx-auto">No setup, no configuration — just create a group and start splitting.</p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <div className="hidden md:block absolute top-10 left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            {steps.map(({ number, icon: Icon, title, description }, i) => (
-              <motion.div
-                key={number}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.12 }}
-                className="text-center relative group"
-              >
+            {steps.map(({ number, icon: Icon, title, description }) => (
+              <div key={number} className="text-center relative group">
                 <div className="w-20 h-20 gradient-brand rounded-2xl flex flex-col items-center justify-center mx-auto mb-5 shadow-lg shadow-violet-500/25 relative z-10 transition-transform group-hover:-translate-y-1 duration-200">
                   <span className="text-[10px] font-bold text-white/70 leading-none">{number}</span>
                   <Icon className="size-6 text-white mt-1" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -387,12 +308,7 @@ export default function LandingPage() {
       {/* Features */}
       <section className="py-24 px-4 bg-muted/30">
         <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
+          <div className="text-center mb-14">
             <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
               <span className="w-4 h-px bg-violet-500/50" />
               Features
@@ -402,16 +318,11 @@ export default function LandingPage() {
             <p className="text-muted-foreground max-w-xl mx-auto">
               All the power of expensive expense-tracking apps — completely free, no strings attached.
             </p>
-          </motion.div>
-
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map(({ icon: Icon, title, description, color, bg }, i) => (
-              <motion.div
+            {features.map(({ icon: Icon, title, description, color }) => (
+              <div
                 key={title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
                 className="group rounded-2xl border bg-card p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
               >
                 <div className={`w-11 h-11 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center mb-4 shadow-sm transition-transform group-hover:scale-110 duration-200`}>
@@ -419,7 +330,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold mb-1.5">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -428,28 +339,18 @@ export default function LandingPage() {
       {/* Testimonials */}
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
+          <div className="text-center mb-14">
             <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
               <span className="w-4 h-px bg-violet-500/50" />
               Loved by users
               <span className="w-4 h-px bg-violet-500/50" />
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold">Real people, real savings</h2>
-          </motion.div>
-
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map(({ text, name, role, avatar, color, stars }, i) => (
-              <motion.div
+            {testimonials.map(({ text, name, role, avatar, color, stars }) => (
+              <div
                 key={name}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="rounded-2xl border bg-card p-6 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200"
               >
                 <div className="flex items-center gap-0.5">
@@ -470,23 +371,16 @@ export default function LandingPage() {
                     <p className="text-[11px] text-muted-foreground">{role}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA section */}
+      {/* CTA */}
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="relative rounded-3xl overflow-hidden"
-          >
-            {/* Gradient background */}
+          <div className="relative rounded-3xl overflow-hidden">
             <div className="absolute inset-0 gradient-brand opacity-90" />
             <div className="absolute inset-0">
               <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -519,7 +413,7 @@ export default function LandingPage() {
                 </Link>
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

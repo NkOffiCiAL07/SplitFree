@@ -193,4 +193,20 @@ body {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+
+  /* Landing page hero animations — replaces framer-motion on the server page */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .anim-fade-up {
+    animation: fade-up 0.45s ease both;
+  }
+  .anim-fade-in {
+    animation: fade-in 0.5s ease both;
+  }
 }
