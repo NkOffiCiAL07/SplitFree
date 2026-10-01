@@ -26,7 +26,7 @@ export function GroupCard({ group, index = 0 }: GroupCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.06 }}
+      transition={{ duration: 0.25, delay: index < 10 ? index * 0.06 : 0 }}
     >
       <Link href={`/groups/${group.id}`}>
         <div className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">

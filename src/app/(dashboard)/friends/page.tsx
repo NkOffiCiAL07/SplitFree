@@ -189,7 +189,7 @@ export default function FriendsPage() {
               key={friendship.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.3 }}
+              transition={{ delay: i < 10 ? i * 0.05 : 0, duration: 0.25 }}
               className="flex items-center gap-3 p-4 rounded-xl border bg-card group hover:shadow-sm transition-all"
             >
               <Avatar className="size-10">

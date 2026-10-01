@@ -5,18 +5,32 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const _fmtCache = new Map<string, Intl.NumberFormat>();
+
+function _fmt(currency: string, locale: string): Intl.NumberFormat {
+  const key = `${locale}-${currency}`;
+  let f = _fmtCache.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    _fmtCache.set(key, f);
+  }
+  return f;
+}
+
 export function formatCurrency(
   amount: number,
   currency = "USD",
   locale = "en-US"
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount / 100); // amounts stored in cents
+  return _fmt(currency, locale).format(amount / 100); // amounts stored in cents
 }
+
+const _symbolCache = new Map<string, string>();
 
 /**
  * Compact currency for tight UI spaces (stat cards on mobile).
@@ -25,11 +39,14 @@ export function formatCurrency(
 export function formatCompactCurrency(cents: number, currency = "USD"): string {
   const abs = Math.abs(cents) / 100;
   const sign = cents < 0 ? "−" : "";
-  // Get the currency symbol from a small formatted string
-  const symbol = new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
-    .format(0)
-    .replace(/[\d,.\s]/g, "")
-    .trim();
+  let symbol = _symbolCache.get(currency);
+  if (!symbol) {
+    symbol = new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
+      .format(0)
+      .replace(/[\d,.\s]/g, "")
+      .trim();
+    _symbolCache.set(currency, symbol);
+  }
 
   if (abs >= 10_00_000) return `${sign}${symbol}${(abs / 10_00_000).toFixed(1)}M`;
   if (abs >= 1_00_000)  return `${sign}${symbol}${(abs / 1_00_000).toFixed(1)}L`;

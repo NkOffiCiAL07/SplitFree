@@ -23,8 +23,18 @@ const GROUP_CATEGORIES = [
 
 const CURRENCIES = ["USD","EUR","GBP","INR","CAD","AUD","JPY"];
 
-export function CreateGroupDialog({ children }: { children?: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function CreateGroupDialog({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const { mutateAsync, isPending } = useCreateGroup();
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CreateGroupInput>({
@@ -38,15 +48,19 @@ export function CreateGroupDialog({ children }: { children?: React.ReactNode }) 
     reset();
   };
 
+  const trigger = controlledOpen !== undefined ? null : (
+    <DialogTrigger asChild>
+      {children ?? (
+        <Button variant="brand" size="sm" className="gap-1.5">
+          <Plus className="size-4" /> New Group
+        </Button>
+      )}
+    </DialogTrigger>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children ?? (
-          <Button variant="brand" size="sm" className="gap-1.5">
-            <Plus className="size-4" /> New Group
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create a group</DialogTitle>

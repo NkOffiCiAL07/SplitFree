@@ -30,6 +30,7 @@ export default function RecurringPage() {
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
   const userCurrency = useUserCurrency();
+  const [addOpen, setAddOpen] = useState(false);
 
   const recurring = useMemo(() => {
     if (!expenses) return [];
@@ -55,7 +56,7 @@ export default function RecurringPage() {
           <h2 className="text-xl font-bold">Recurring</h2>
           <p className="text-sm text-muted-foreground">{recurring.length} active subscriptions</p>
         </div>
-        <AddExpenseDialog />
+        <AddExpenseDialog open={addOpen} onOpenChange={setAddOpen} />
       </div>
 
       {/* Monthly summary banner */}
@@ -83,7 +84,7 @@ export default function RecurringPage() {
           icon={RefreshCw}
           title="No recurring expenses"
           description="Mark an expense as recurring when adding it to track subscriptions and bills."
-          action={{ label: "Add recurring expense", onClick: () => {} }}
+          action={{ label: "Add recurring expense", onClick: () => setAddOpen(true) }}
         />
       ) : (
         <div className="space-y-2">
@@ -95,7 +96,7 @@ export default function RecurringPage() {
                 key={expense.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
+                transition={{ delay: i < 12 ? i * 0.04 : 0, duration: 0.25 }}
                 className="flex items-center gap-3 p-4 rounded-xl border bg-card"
               >
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg shrink-0">

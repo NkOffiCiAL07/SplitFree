@@ -143,7 +143,7 @@ export default function ActivityPage() {
                     key={item.id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
+                    transition={{ delay: i < 10 ? i * 0.03 : 0, duration: 0.25 }}
                     className={cn(
                       "flex items-start gap-3 p-4 rounded-xl border bg-card transition-all",
                       !item.isRead && "border-primary/20 bg-primary/5"

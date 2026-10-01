@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, Monitor, Bell, Download, Trash2, Shield } from "lucide-react";
+import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -13,21 +13,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useProfile } from "@/hooks/use-profile";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const qc = useQueryClient();
+  const { data: profile } = useProfile();
   const [currency, setCurrency] = useState("USD");
   const [savingCurrency, setSavingCurrency] = useState(false);
+  const [notifs, setNotifs] = useState({ expenseAdded: true, settlement: true, reminders: true });
 
   useEffect(() => {
-    fetch("/api/profile")
-      .then((r) => r.json())
-      .then((j) => { if (j.data?.currency) setCurrency(j.data.currency); })
-      .catch(() => {});
-  }, []);
+    if (profile?.currency) setCurrency(profile.currency);
+  }, [profile?.currency]);
 
   const handleCurrencyChange = async (val: string) => {
     setCurrency(val);
@@ -41,6 +41,7 @@ export default function SettingsPage() {
       const json = await res.json();
       if (json.error) throw new Error(json.error.message);
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Default currency updated");
     } catch (e: any) {
       toast.error(e.message ?? "Failed to save currency");
@@ -99,17 +100,20 @@ export default function SettingsPage() {
             <CardDescription>Control what you&apos;re notified about</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-4">
-            {[
-              { label: "Expense added", description: "When someone adds an expense to your group" },
-              { label: "Settlement recorded", description: "When someone marks a payment to you" },
-              { label: "Payment reminders", description: "Weekly reminder of outstanding balances" },
-            ].map(({ label, description }) => (
-              <div key={label} className="flex items-center justify-between gap-4">
+            {([
+              { key: "expenseAdded" as const, label: "Expense added", description: "When someone adds an expense to your group" },
+              { key: "settlement" as const, label: "Settlement recorded", description: "When someone marks a payment to you" },
+              { key: "reminders" as const, label: "Payment reminders", description: "Weekly reminder of outstanding balances" },
+            ]).map(({ key, label, description }) => (
+              <div key={key} className="flex items-center justify-between gap-4">
                 <div>
                   <Label className="text-sm">{label}</Label>
                   <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={notifs[key]}
+                  onCheckedChange={(v) => setNotifs((prev) => ({ ...prev, [key]: v }))}
+                />
               </div>
             ))}
           </CardContent>

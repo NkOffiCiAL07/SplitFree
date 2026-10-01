@@ -109,7 +109,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   if (!group) return null;
 
   const expenses = (group as any).expenses ?? [];
-  const myBalance = ((group as any).memberBalances ?? []).reduce((sum: number, mb: any) => sum + mb.balance, 0);
+  const myBalance = ((group as any).memberBalances ?? []).find((mb: any) => mb.userId === user?.id)?.balance ?? 0;
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
@@ -529,9 +529,9 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={index < 12 ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
+      transition={{ delay: index < 12 ? index * 0.04 : 0, duration: 0.25 }}
       onClick={onClick}
       className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-sm transition-all group cursor-pointer"
     >

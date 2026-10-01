@@ -17,18 +17,19 @@ export function useProfile() {
   });
 }
 
-// Returns currency from dashboard (which prefers group currency over profile default)
-async function fetchDashboardCurrency() {
+async function fetchDashboard() {
   const res = await fetch("/api/dashboard");
   const json = await res.json();
-  return json.data?.currency ?? "USD";
+  if (json.error) throw new Error(json.error.message);
+  return json.data;
 }
 
+// Shares the same ["dashboard"] cache — no extra network call
 export function useUserCurrency(): string {
   const { data } = useQuery({
-    queryKey: ["dashboard-currency"],
-    queryFn: fetchDashboardCurrency,
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboard,
+    select: (d: any) => d?.currency ?? "USD",
   });
-  return data ?? "USD";
+  return (data as string | undefined) ?? "USD";
 }

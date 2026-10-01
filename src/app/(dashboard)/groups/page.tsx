@@ -15,6 +15,7 @@ export default function GroupsPage() {
   const { data: groups, isLoading } = useGroups();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
+  const [createOpen, setCreateOpen] = useState(false);
 
   const filtered = useMemo(() => {
     if (!groups) return [];
@@ -34,7 +35,7 @@ export default function GroupsPage() {
             {filtered.length}{groups && filtered.length !== groups.length ? ` of ${groups.length}` : ""} groups
           </p>
         </div>
-        <CreateGroupDialog />
+        <CreateGroupDialog open={createOpen} onOpenChange={setCreateOpen} />
       </div>
 
       {/* Search + filter */}
@@ -77,7 +78,7 @@ export default function GroupsPage() {
           icon={Users}
           title="No groups yet"
           description="Create a group to split expenses with your roommates, travel buddies, or anyone else."
-          action={{ label: "Create your first group", onClick: () => {} }}
+          action={{ label: "Create your first group", onClick: () => setCreateOpen(true) }}
         />
       ) : filtered.length === 0 ? (
         <EmptyState

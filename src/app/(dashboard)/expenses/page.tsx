@@ -39,6 +39,7 @@ export default function ExpensesPage() {
   const [dateTo, setDateTo] = useState("");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const filtered = useMemo(() => {
     if (!expenses) return [];
@@ -76,7 +77,7 @@ export default function ExpensesPage() {
               <FileText className="size-3.5" /> PDF
             </Button>
           </div>
-          <AddExpenseDialog />
+          <AddExpenseDialog open={addOpen} onOpenChange={setAddOpen} />
         </div>
       </div>
 
@@ -147,7 +148,7 @@ export default function ExpensesPage() {
           icon={Receipt}
           title={expenses?.length === 0 ? "No expenses yet" : "No results"}
           description={expenses?.length === 0 ? "Add your first expense to start tracking shared costs." : "Try a different search, category, or date range."}
-          action={expenses?.length === 0 ? { label: "Add first expense", onClick: () => {} } : undefined}
+          action={expenses?.length === 0 ? { label: "Add first expense", onClick: () => setAddOpen(true) } : undefined}
         />
       ) : (
         <div className="space-y-2">
@@ -298,9 +299,9 @@ function ExpenseRow({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={index < 12 ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
+      transition={{ delay: index < 12 ? index * 0.03 : 0, duration: 0.25 }}
       onClick={onClick}
       className="flex items-center gap-3 p-4 rounded-xl border bg-card hover:shadow-sm transition-all group cursor-pointer"
     >
