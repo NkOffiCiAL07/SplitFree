@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { TryAgainButton } from "./try-again-button";
 
 export const metadata: Metadata = { title: "You're offline" };
 
@@ -26,12 +27,7 @@ export default function OfflinePage() {
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full h-11 rounded-xl gradient-brand text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            Try again
-          </button>
+          <TryAgainButton />
           <Link
             href="/dashboard"
             className="w-full h-11 rounded-xl border border-border flex items-center justify-center text-sm font-medium hover:bg-accent transition-colors"
