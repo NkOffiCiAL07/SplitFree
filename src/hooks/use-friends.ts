@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Friendship, FriendRequest, Expense, Settlement } from "@/types";
-import type { CurrencyNet } from "@/lib/pair-balance";
+import type { CurrencyNet } from "@/lib/ledger";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -115,7 +115,9 @@ export interface FriendDetail {
   balances: CurrencyNet[];
   expenses: (Pick<Expense, "id" | "description" | "amount" | "currency" | "category" | "date" | "paidById"> & {
     group: { id: string; name: string } | null;
-    splits: { userId: string; amount: number }[];
+    /** > 0: they owe you for this expense; < 0: you owe them (cents) */
+    delta: number;
+    multiplePayers: boolean;
   })[];
   settlements: Pick<Settlement, "id" | "fromUserId" | "toUserId" | "amount" | "currency" | "note" | "createdAt">[];
 }

@@ -32,9 +32,9 @@ describe("clientIp", () => {
 });
 
 describe("visibleToUser", () => {
-  it("matches expenses the user paid OR is split on", () => {
+  it("matches expenses the user paid, is one of several payers on, or is split on", () => {
     expect(visibleToUser("u1")).toEqual({
-      OR: [{ splits: { some: { userId: "u1" } } }, { paidById: "u1" }],
+      OR: [{ splits: { some: { userId: "u1" } } }, { paidById: "u1" }, { payers: { some: { userId: "u1" } } }],
     });
   });
 });

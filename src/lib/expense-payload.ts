@@ -32,6 +32,10 @@ export function expenseToCreatePayload(
     isRecurring: overrides.isRecurring ?? expense.isRecurring,
     recurringInterval: expense.recurringInterval ?? null,
     participants: splits.map((s) => s.userId),
+    // several payers: amounts back to major units
+    ...(expense.payers && expense.payers.length > 1
+      ? { payers: expense.payers.map((p) => ({ userId: p.userId, amount: p.amount / 100 })) }
+      : {}),
     ...(splitValues ? { splits: splitValues } : {}),
   };
 }

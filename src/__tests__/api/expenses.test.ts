@@ -92,8 +92,66 @@ describe("GET /api/expenses — visibility", () => {
     p.expense.findMany.mockResolvedValue([]);
     await GET(new NextRequest("http://x/api/expenses?limit=abc"));
     const args = p.expense.findMany.mock.calls[0][0];
-    expect(args.where.OR).toEqual([{ splits: { some: { userId: ME } } }, { paidById: ME }]);
+    expect(args.where.OR).toEqual([{ splits: { some: { userId: ME } } }, { paidById: ME }, { payers: { some: { userId: ME } } }]);
     expect(args.take).toBe(50); // invalid limit falls back to the default
     expect(args.orderBy).toEqual([{ date: "desc" }, { id: "desc" }]); // stable pagination
+  });
+});
+
+describe("POST /api/expenses — multiple payers", () => {
+  const setup = () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }]);
+    p.expense.create.mockResolvedValue({ id: "e1", paidBy: { name: "Me" }, groupId: GROUP });
+    p.notification.createMany.mockResolvedValue({});
+    p.activity.create.mockResolvedValue({});
+  };
+
+  it("stores each payer's amount in cents and uses the biggest payer as the primary", async () => {
+    setup();
+    const res = await post(body({ payers: [{ userId: OTHER, amount: 100 }, { userId: ME, amount: 200 }] }));
+    expect(res.status).toBe(201);
+    const data = p.expense.create.mock.calls[0][0].data;
+    expect(data.paidById).toBe(ME);
+    expect(data.payers.create).toEqual([{ userId: OTHER, amount: 10000 }, { userId: ME, amount: 20000 }]);
+    expect(data.amount).toBe(30000);
+  });
+
+  it("rejects payers that don't add up to the total", async () => {
+    setup();
+    const res = await post(body({ payers: [{ userId: ME, amount: 200 }, { userId: OTHER, amount: 99 }] }));
+    expect(res.status).toBe(400);
+    expect(p.expense.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a lone payer and duplicate payers", async () => {
+    setup();
+    expect((await post(body({ payers: [{ userId: ME, amount: 300 }] }))).status).toBe(400);
+    expect((await post(body({ payers: [{ userId: ME, amount: 150 }, { userId: ME, amount: 150 }] }))).status).toBe(400);
+  });
+
+  it("rejects payers who are not members of the group", async () => {
+    setup();
+    const res = await post(body({ payers: [{ userId: ME, amount: 200 }, { userId: STRANGER, amount: 100 }] }));
+    expect(res.status).toBe(403);
+    expect(p.expense.create).not.toHaveBeenCalled();
+  });
+
+  it("does not create payer rows for an ordinary single-payer expense", async () => {
+    setup();
+    await post(body());
+    expect(p.expense.create.mock.calls[0][0].data).not.toHaveProperty("payers");
+  });
+
+  it("notifies everyone except the payers", async () => {
+    const THIRD = "77777777-7777-4777-8777-777777777777";
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }, { userId: THIRD }]);
+    p.expense.create.mockResolvedValue({ id: "e1", paidBy: { name: "Me" }, groupId: GROUP });
+    p.notification.createMany.mockResolvedValue({});
+    p.activity.create.mockResolvedValue({});
+    await post(body({ payers: [{ userId: ME, amount: 200 }, { userId: OTHER, amount: 100 }], participants: [ME, OTHER, THIRD] }));
+    const notified = p.notification.createMany.mock.calls[0][0].data.map((n: { userId: string }) => n.userId);
+    expect(notified).toEqual([THIRD]); // both payers already know about it
   });
 });

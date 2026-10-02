@@ -1,9 +1,13 @@
+import { expensePayments } from "@/lib/ledger";
+
 export interface StatsExpense {
   amount: number; // cents
   currency: string;
   category: string;
   paidById: string;
   splits: { userId: string; amount: number }[];
+  /** Multi-payer expenses: who paid how much (otherwise paidById paid it all) */
+  payers?: { userId: string; amount: number }[];
 }
 
 export interface GroupStats {
@@ -43,8 +47,10 @@ export function computeGroupStats(expenses: StatsExpense[], userId: string): Gro
   let yourPaid = 0;
   for (const e of main) {
     categories.set(e.category, (categories.get(e.category) ?? 0) + e.amount);
-    member(e.paidById).paid += e.amount;
-    if (e.paidById === userId) yourPaid += e.amount;
+    for (const p of expensePayments(e)) {
+      member(p.userId).paid += p.amount;
+      if (p.userId === userId) yourPaid += p.amount;
+    }
     for (const s of e.splits) {
       member(s.userId).share += s.amount;
       if (s.userId === userId) yourShare += s.amount;

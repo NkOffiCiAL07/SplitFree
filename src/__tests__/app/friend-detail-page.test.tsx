@@ -91,9 +91,11 @@ describe("FriendDetailPage", () => {
         balances: [{ currency: "INR", net: 300 }],
         expenses: [
           { id: "e1", description: "Dinner", amount: 1000, currency: "INR", category: "FOOD", date: "2026-03-01", paidById: "me",
-            group: { id: "g", name: "Goa Trip" }, splits: [{ userId: "me", amount: 500 }, { userId: "f1", amount: 500 }] },
+            group: { id: "g", name: "Goa Trip" }, delta: 500, multiplePayers: false },
           { id: "e2", description: "Cab", amount: 400, currency: "INR", category: "TRANSPORT", date: "2026-03-02", paidById: "f1",
-            group: null, splits: [{ userId: "me", amount: 200 }, { userId: "f1", amount: 200 }] },
+            group: null, delta: -200, multiplePayers: false },
+          { id: "e3", description: "Hotel", amount: 9000, currency: "INR", category: "TRAVEL", date: "2026-03-03", paidById: "me",
+            group: null, delta: 1500, multiplePayers: true },
         ],
         settlements: [{ id: "s1", fromUserId: "f1", toUserId: "me", amount: 200, currency: "INR", note: "UPI", createdAt: "2026-03-03" }],
       }),
@@ -104,6 +106,8 @@ describe("FriendDetailPage", () => {
     expect(screen.getByText("+₹5.00")).toBeInTheDocument(); // Asha owes me her ₹5 share
     expect(screen.getByText(/Asha paid ₹4\.00/)).toBeInTheDocument();
     expect(screen.getByText("−₹2.00")).toBeInTheDocument(); // I owe Asha my ₹2 share
+    expect(screen.getByText(/Paid by several ₹90\.00/)).toBeInTheDocument(); // multi-payer expense
+    expect(screen.getByText("+₹15.00")).toBeInTheDocument();
     expect(screen.getByText(/Asha paid you/)).toBeInTheDocument();
   });
 });

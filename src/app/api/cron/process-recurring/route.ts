@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     // Find all root recurring expenses whose next due date has arrived
     const recurringExpenses = await prisma.expense.findMany({
       where: { isRecurring: true, recurringParentId: null },
-      include: { splits: true },
+      include: { splits: true, payers: true },
     });
 
     for (const expense of recurringExpenses) {
@@ -67,6 +67,9 @@ export async function GET(req: NextRequest) {
                 isRecurring: false,
                 notes: expense.notes,
                 recurringParentId: expense.id,
+                ...(expense.payers.length > 0
+                  ? { payers: { create: expense.payers.map((p) => ({ userId: p.userId, amount: p.amount })) } }
+                  : {}),
                 splits: {
                   create: expense.splits.map((s) => ({
                     userId: s.userId,

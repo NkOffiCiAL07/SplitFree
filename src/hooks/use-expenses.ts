@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
 import { expenseToCreatePayload } from "@/lib/expense-payload";
+import type { Changes } from "@/lib/revisions";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -146,5 +147,21 @@ export function useDuplicateExpense() {
       toast.success("Expense duplicated");
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export interface ExpenseHistoryData {
+  currency: string;
+  /** userId → name for everyone mentioned in the revisions */
+  people: Record<string, string>;
+  revisions: { id: string; editorId: string; changes: Changes; createdAt: string }[];
+}
+
+/** Edit history of one expense; pass `enabled: false` to defer loading until it's shown. */
+export function useExpenseHistory(id: string, enabled = true) {
+  return useQuery<ExpenseHistoryData>({
+    queryKey: ["expenses", id, "history"],
+    queryFn: () => fetchJSON(`/api/expenses/${id}/history`),
+    enabled: !!id && enabled,
   });
 }

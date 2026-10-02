@@ -12,6 +12,8 @@ import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
 import { BudgetCard } from "@/components/groups/budget-card";
+import { netForUser, payersLabel } from "@/lib/expense-display";
+import { ExpenseHistory } from "@/components/expenses/expense-history";
 import type { Expense } from "@/types";
 import { GroupDebtsCard } from "@/components/groups/group-debts-card";
 import { GroupStatsCard } from "@/components/groups/group-stats-card";
@@ -683,7 +685,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Paid by</span>
-                  <span className="font-medium">{viewingExpense.paidBy?.name ?? "Unknown"}</span>
+                  <span className="font-medium">{payersLabel(viewingExpense)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Date</span>
@@ -707,6 +709,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
                 <Separator />
+                <ExpenseHistory expenseId={viewingExpense.id} />
                 <ExpenseComments expenseId={viewingExpense.id} />
                 <Separator />
                 <div className="flex gap-2">
@@ -741,9 +744,8 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
   expense: Expense; userId: string; index: number; groupCurrency?: string;
   onEdit: () => void; onDelete: () => void; onClick?: () => void;
 }) {
-  const myShare = expense.splits?.find((s) => s.userId === userId);
-  const isPayer = expense.paidById === userId;
-  const currency = groupCurrency ?? expense.currency;
+  const net = netForUser(expense, userId);
+  const currency = expense.currency ?? groupCurrency; // the expense's own currency, not the group's
 
   return (
     <m.div
@@ -759,14 +761,14 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{expense.description}</p>
         <p className="text-xs text-muted-foreground">
-          {expense.paidBy?.name} · {formatDate(expense.date)}
+          {payersLabel(expense)} · {formatDate(expense.date)}
         </p>
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>
-        {myShare && (
-          <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {isPayer ? `+${formatCurrency(expense.amount - myShare.amount, currency)}` : `-${formatCurrency(myShare.amount, currency)}`}
+        {net !== null && net !== 0 && (
+          <p className={cn("text-xs", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+            {net > 0 ? `+${formatCurrency(net, currency)}` : `-${formatCurrency(-net, currency)}`}
           </p>
         )}
       </div>

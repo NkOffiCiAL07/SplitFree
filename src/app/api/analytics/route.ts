@@ -1,4 +1,6 @@
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
+import { loadUserLedger } from "@/lib/ledger-db";
+import { pairNets } from "@/lib/ledger";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 import { format, startOfMonth, subMonths } from "date-fns";
@@ -13,7 +15,7 @@ export async function GET() {
     const userId = user!.id;
     const profile = await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } });
     const currency = profile?.currency ?? DEFAULT_CURRENCY;
-    const [expenses, allExpensesForBalance, allSettlements, groups] = await Promise.all([
+    const [expenses, ledger, groups] = await Promise.all([
       prisma.expense.findMany({
         where: {
           splits: { some: { userId } },
@@ -23,15 +25,7 @@ export async function GET() {
         include: { splits: { where: { userId } } },
         orderBy: { date: "asc" },
       }),
-      // All-time data for accurate outstanding balance
-      prisma.expense.findMany({
-        where: { ...visibleToUser(userId), currency },
-        select: { paidById: true, splits: { select: { userId: true, amount: true } } },
-      }),
-      prisma.settlement.findMany({
-        where: { OR: [{ fromUserId: userId }, { toUserId: userId }], currency },
-        select: { fromUserId: true, toUserId: true, amount: true },
-      }),
+      loadUserLedger(userId),
       prisma.group.findMany({
         where: { members: { some: { userId } } },
         select: { id: true, name: true },
@@ -61,26 +55,14 @@ export async function GET() {
       categoryTotals[exp.category] = (categoryTotals[exp.category] ?? 0) + myShare;
     });
 
-    // Outstanding balance from expense splits + settlements
-    const netMap = new Map<string, number>();
-    for (const expense of allExpensesForBalance) {
-      for (const split of expense.splits) {
-        if (split.userId === userId && expense.paidById !== userId) {
-          netMap.set(expense.paidById, (netMap.get(expense.paidById) ?? 0) - split.amount);
-        } else if (expense.paidById === userId && split.userId !== userId) {
-          netMap.set(split.userId, (netMap.get(split.userId) ?? 0) + split.amount);
-        }
-      }
+    // Outstanding balance (primary currency only) from the shared ledger
+    let totalOwed = 0;
+    let totalOwing = 0;
+    for (const byCurrency of pairNets(ledger.edges, userId).values()) {
+      const net = byCurrency.get(currency) ?? 0;
+      if (net > 0) totalOwed += net;
+      else if (net < 0) totalOwing += -net;
     }
-    for (const s of allSettlements) {
-      if (s.fromUserId === userId) {
-        netMap.set(s.toUserId, (netMap.get(s.toUserId) ?? 0) + s.amount);
-      } else {
-        netMap.set(s.fromUserId, (netMap.get(s.fromUserId) ?? 0) - s.amount);
-      }
-    }
-    const totalOwed = Array.from(netMap.values()).filter((n) => n > 0).reduce((s, n) => s + n, 0);
-    const totalOwing = Array.from(netMap.values()).filter((n) => n < 0).reduce((s, n) => s + Math.abs(n), 0);
 
     const res = ok({
       monthly: Array.from(monthlyMap.entries()).map(([month, data]) => ({ month, ...data })),

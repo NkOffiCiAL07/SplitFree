@@ -5,6 +5,7 @@ import { requireAuth, ensureUserProfile, ok, err, handleError, isGroupMember, ge
 import { z } from "zod";
 import { toCents, formatCurrency } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
+import { loadGroupLedger } from "@/lib/ledger-db";
 
 const userSelect = { select: { id: true, name: true, avatarUrl: true } } as const;
 
@@ -44,38 +45,16 @@ export async function GET(req: NextRequest) {
     });
 
     if (simplified && groupId) {
-      const expenses = await prisma.expense.findMany({
-        where: { groupId },
-        select: { paidById: true, currency: true, splits: { select: { userId: true, amount: true, isPaid: true } } },
-      });
-
-      // Netting needs EVERY settlement in the group (not just mine, not just the latest page),
-      // otherwise payments between other members are ignored.
-      const allGroupSettlements = await prisma.settlement.findMany({
-        where: { groupId },
-        select: { fromUserId: true, toUserId: true, amount: true, currency: true },
-      });
-
-      // Each currency is netted on its own — rupees never cancel dollars.
-      const debtsByCurrency = new Map<string, { fromUserId: string; toUserId: string; amount: number }[]>();
-      const push = (currency: string, debt: { fromUserId: string; toUserId: string; amount: number }) => {
-        const list = debtsByCurrency.get(currency) ?? [];
-        list.push(debt);
-        debtsByCurrency.set(currency, list);
-      };
-      for (const exp of expenses) {
-        for (const sp of exp.splits) {
-          if (!sp.isPaid && sp.userId !== exp.paidById) {
-            push(exp.currency, { fromUserId: sp.userId, toUserId: exp.paidById, amount: sp.amount });
-          }
-        }
+      // Every expense AND every settlement in the group (not just mine, not just a page), netted per currency.
+      // Multi-payer expenses and third-party payments are handled by the shared ledger.
+      const { edges } = await loadGroupLedger(groupId);
+      const byCurrency = new Map<string, { fromUserId: string; toUserId: string; amount: number }[]>();
+      for (const e of edges) {
+        const list = byCurrency.get(e.currency) ?? [];
+        list.push({ fromUserId: e.fromUserId, toUserId: e.toUserId, amount: e.amount });
+        byCurrency.set(e.currency, list);
       }
-      // A settlement is a counter-debt, so overpayments and cross-direction payments net correctly.
-      for (const st of allGroupSettlements) {
-        push(st.currency, { fromUserId: st.toUserId, toUserId: st.fromUserId, amount: st.amount });
-      }
-
-      const simplifiedDebts = [...debtsByCurrency.entries()].flatMap(([currency, debts]) =>
+      const simplifiedDebts = [...byCurrency.entries()].flatMap(([currency, debts]) =>
         simplifyDebts(debts).map((d) => ({ ...d, currency }))
       );
       return ok({ settlements, simplified: simplifiedDebts });

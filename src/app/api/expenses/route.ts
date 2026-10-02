@@ -4,6 +4,7 @@ import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibl
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
+import { validatePayers } from "@/lib/ledger";
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
       include: {
         paidBy: true,
         splits: { include: { user: true } },
+        payers: { include: { user: true } },
         group: true,
       },
       orderBy: [{ date: "desc" }, { id: "desc" }],
@@ -56,8 +58,20 @@ export async function POST(req: NextRequest) {
       if (!member) return err("Not a member of this group", 403);
     }
 
+    // Multiple payers: amounts (major units) → cents, must add up to the total
+    const totalCents = toCents(data.amount);
+    const payersCents = data.payers?.map((p) => ({ userId: p.userId, amount: toCents(p.amount) })) ?? [];
+    if (payersCents.length > 0) {
+      const problem = validatePayers(payersCents, totalCents);
+      if (problem) return err(problem, 400);
+    }
+    // With several payers the "primary" payer (kept in paidById for compatibility) is whoever paid most
+    const primaryPayer = payersCents.length > 0
+      ? [...payersCents].sort((a, b) => b.amount - a.amount)[0].userId
+      : data.paidById;
+
     // Everyone involved must belong to the group (or be someone the caller already knows)
-    const involved = [...new Set([data.paidById, ...data.participants])];
+    const involved = [...new Set([primaryPayer, ...payersCents.map((p) => p.userId), ...data.participants])];
     let allowed: Set<string>;
     if (data.groupId) {
       const members = await prisma.groupMember.findMany({
@@ -72,7 +86,6 @@ export async function POST(req: NextRequest) {
       return err(data.groupId ? "All participants must be members of the group" : "Unknown participant", 403);
     }
 
-    const totalCents = toCents(data.amount);
     const splitAmounts = calculateSplits(
       totalCents,
       data.participants,
@@ -87,12 +100,13 @@ export async function POST(req: NextRequest) {
         currency: data.currency,
         category: data.category,
         splitType: data.splitType,
-        paidById: data.paidById,
+        paidById: primaryPayer,
         groupId: data.groupId ?? null,
         date: data.date,
         notes: data.notes ?? null,
         isRecurring: data.isRecurring,
         recurringInterval: data.recurringInterval ?? null,
+        ...(payersCents.length > 0 ? { payers: { create: payersCents } } : {}),
         splits: {
           create: data.participants.map((uid) => ({
             userId: uid,
@@ -105,19 +119,21 @@ export async function POST(req: NextRequest) {
       include: {
         paidBy: true,
         splits: { include: { user: true } },
+        payers: { include: { user: true } },
         group: true,
       },
     });
 
     // Notify every group member except the payer
-    let notifyIds: string[] = data.participants.filter((id) => id !== data.paidById);
+    const payerIds = new Set([primaryPayer, ...payersCents.map((p) => p.userId)]);
+    let notifyIds: string[] = data.participants.filter((id) => !payerIds.has(id));
 
     if (data.groupId) {
       const groupMembers = await prisma.groupMember.findMany({
         where: { groupId: data.groupId },
         select: { userId: true },
       });
-      const memberIds = groupMembers.map((m) => m.userId).filter((id) => id !== data.paidById);
+      const memberIds = groupMembers.map((m) => m.userId).filter((id) => !payerIds.has(id));
       // Union of split participants + other group members
       notifyIds = [...new Set([...notifyIds, ...memberIds])];
     }

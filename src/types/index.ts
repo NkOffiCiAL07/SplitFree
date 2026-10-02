@@ -137,7 +137,17 @@ export interface Expense {
   updatedAt: Date;
   paidBy?: UserProfile;
   splits?: ExpenseSplit[];
+  /** Present only when several people paid; otherwise `paidById` paid it all */
+  payers?: ExpensePayer[];
   group?: Group;
+}
+
+export interface ExpensePayer {
+  id?: string;
+  expenseId?: string;
+  userId: string;
+  amount: number; // cents
+  user?: UserProfile;
 }
 
 export interface ExpenseSplit {

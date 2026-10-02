@@ -54,9 +54,9 @@ export function handleError(e: unknown) {
   return err(e instanceof Error ? e.message : "Internal server error", 500);
 }
 
-/** Expenses a user may see/modify: they are in the split OR they paid. */
+/** Expenses a user may see/modify: they are in the split OR they paid (alone or as one of several payers). */
 export function visibleToUser(userId: string) {
-  return { OR: [{ splits: { some: { userId } } }, { paidById: userId }] };
+  return { OR: [{ splits: { some: { userId } } }, { paidById: userId }, { payers: { some: { userId } } }] };
 }
 
 export async function isGroupMember(groupId: string, userId: string) {

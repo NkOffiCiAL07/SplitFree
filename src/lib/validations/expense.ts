@@ -18,6 +18,8 @@ export const createExpenseSchema = z.object({
   recurringInterval: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]).optional().nullable(),
   participants: z.array(z.string().uuid()).min(1, "At least one participant required"),
   splits: z.record(z.string(), z.number()).optional(),
+  /** Multiple payers (amounts in major units, must add up to `amount`). Omit for a single payer. */
+  payers: z.array(z.object({ userId: z.string().uuid(), amount: z.number().positive() })).max(30).optional().nullable(),
 });
 
 // NOTE: zod keeps `.default()` values on `.partial()` fields, which would silently reset

@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         paidBy: true,
+        payers: { include: { user: true } },
         splits: { include: { user: true } },
         group: true,
       },
@@ -34,7 +35,9 @@ export async function GET(req: NextRequest) {
           exp.category,
           exp.currency,
           fromCents(exp.amount).toFixed(2),
-          exp.paidBy.name,
+          exp.payers.length > 1
+            ? exp.payers.map((p) => `${p.user.name} (${fromCents(p.amount).toFixed(2)})`).join(" + ")
+            : exp.paidBy.name,
           fromCents(myShare?.amount ?? 0).toFixed(2),
           exp.group?.name ?? "No group",
           exp.splitType,

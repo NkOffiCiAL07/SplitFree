@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useState, useMemo } from "react";
 import { m } from "framer-motion";
+import { netForUser, payersLabel } from "@/lib/expense-display";
+import { ExpenseHistory } from "@/components/expenses/expense-history";
 import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
 import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
@@ -184,12 +186,22 @@ export default function ExpensesPage() {
             <div className="space-y-4 mt-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Total amount</span>
-                <span className="font-bold text-lg">{formatCurrency(selectedExpense.amount, selectedExpense.group?.currency ?? userCurrency)}</span>
+                <span className="font-bold text-lg">{formatCurrency(selectedExpense.amount, selectedExpense.currency ?? userCurrency)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Paid by</span>
-                <span className="font-medium">{selectedExpense.paidBy?.name ?? "Unknown"}</span>
+                <span className="font-medium">{payersLabel(selectedExpense)}</span>
               </div>
+              {(selectedExpense.payers?.length ?? 0) > 1 && (
+                <div className="space-y-1 rounded-lg bg-muted/40 p-2 text-xs">
+                  {selectedExpense.payers!.map((pp) => (
+                    <div key={pp.userId} className="flex justify-between">
+                      <span>{pp.user?.name ?? "Someone"}</span>
+                      <span className="font-medium">{formatCurrency(pp.amount, selectedExpense.currency)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Date</span>
                 <span>{formatDate(selectedExpense.date)}</span>
@@ -231,6 +243,7 @@ export default function ExpensesPage() {
               )}
 
               <Separator />
+              <ExpenseHistory expenseId={selectedExpense.id} />
               <ExpenseComments expenseId={selectedExpense.id} />
               <Separator />
 
@@ -297,9 +310,8 @@ function ExpenseRow({
   expense: Expense; userId: string; index: number;
   onClick: () => void; userCurrency: string;
 }) {
-  const myShare = expense.splits?.find((s) => s.userId === userId);
-  const isPayer = expense.paidById === userId;
-  const displayCurrency = expense.group?.currency ?? userCurrency;
+  const net = netForUser(expense, userId);
+  const displayCurrency = expense.currency ?? userCurrency; // always the expense's own currency
 
   return (
     <m.div
@@ -320,15 +332,15 @@ function ExpenseRow({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          {expense.paidBy?.name ?? "Unknown"} · {formatDate(expense.date)}
+          {payersLabel(expense)} · {formatDate(expense.date)}
           {expense.group && <span> · {expense.group.name}</span>}
         </p>
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, displayCurrency)}</p>
-        {myShare && (
-          <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {isPayer ? "you paid" : `you owe ${formatCurrency(myShare.amount, displayCurrency)}`}
+        {net !== null && net !== 0 && (
+          <p className={cn("text-xs", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+            {net > 0 ? `you lent ${formatCurrency(net, displayCurrency)}` : `you owe ${formatCurrency(-net, displayCurrency)}`}
           </p>
         )}
       </div>

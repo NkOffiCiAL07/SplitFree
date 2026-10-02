@@ -102,15 +102,13 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
           <p className="text-xs text-muted-foreground">No shared expenses yet.</p>
         ) : expenses.map((e) => {
           const iPaid = e.paidById !== friend.id;
-          const theirShare = e.splits.find((s) => s.userId === (iPaid ? friend.id : undefined))?.amount;
-          const myShare = e.splits.find((s) => s.userId !== friend.id)?.amount;
-          const delta = iPaid ? theirShare ?? 0 : -(myShare ?? 0); // + they owe me, − I owe them
+          const delta = e.delta; // + they owe me, − I owe them
           return (
             <div key={e.id} className="flex items-center gap-3 rounded-xl border p-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{e.description}</p>
                 <p className="text-[11px] text-muted-foreground truncate">
-                  {formatDate(e.date)} · {iPaid ? "You paid" : `${firstName} paid`} {formatCurrency(e.amount, e.currency)}
+                  {formatDate(e.date)} · {e.multiplePayers ? "Paid by several" : iPaid ? "You paid" : `${firstName} paid`} {formatCurrency(e.amount, e.currency)}
                   {e.group ? ` · ${e.group.name}` : ""}
                 </p>
               </div>

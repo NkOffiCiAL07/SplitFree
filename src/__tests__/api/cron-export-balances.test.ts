@@ -47,7 +47,7 @@ describe("cron /api/cron/process-recurring", () => {
     p.expense.findMany.mockResolvedValue([{
       id: "root", recurringInterval: "DAILY", date: start, lastRecurredAt: null, groupId: null,
       description: "Milk", amount: 5000, currency: "INR", category: "FOOD", splitType: "EQUAL",
-      paidById: ME, notes: null, splits: [{ userId: ME, amount: 5000, percentage: null, shares: null }],
+      paidById: ME, notes: null, payers: [], splits: [{ userId: ME, amount: 5000, percentage: null, shares: null }],
     }]);
     p.expense.findFirst.mockResolvedValue(null);
     p.expense.create.mockImplementation(async () => ({ id: `c${p.expense.create.mock.calls.length}` }));
@@ -62,7 +62,7 @@ describe("GET /api/export — CSV safety", () => {
   it("neutralises spreadsheet formulas and includes a currency column", async () => {
     p.expense.findMany.mockResolvedValue([{
       date: new Date("2026-02-01"), description: '=HYPERLINK("http://evil")', category: "FOOD", currency: "INR",
-      amount: 12345, paidBy: { name: "+Bob" }, splits: [{ userId: ME, amount: 12345 }], group: null, splitType: "EQUAL",
+      amount: 12345, paidBy: { name: "+Bob" }, payers: [], splits: [{ userId: ME, amount: 12345 }], group: null, splitType: "EQUAL",
     }]);
     const res = await EXPORT(new NextRequest("http://x/api/export"));
     const csv = await res.text();
@@ -80,14 +80,16 @@ describe("GET /api/export — CSV safety", () => {
 });
 
 describe("balances are tracked per currency", () => {
+  const split = (userId: string, amount: number) => ({ userId, amount });
+  const settle = (fromUserId: string, toUserId: string, amount: number, currency: string) => ({ fromUserId, toUserId, amount, currency, groupId: null });
+
   it("/api/balances keeps INR and USD apart for the same person", async () => {
-    p.expenseSplit.findMany
-      .mockResolvedValueOnce([ // I paid, OTHER owes me
-        { amount: 50000, userId: OTHER, expense: { groupId: null, currency: "INR" }, user: { id: OTHER, name: "Pal", avatarUrl: null } },
-        { amount: 1000, userId: OTHER, expense: { groupId: null, currency: "USD" }, user: { id: OTHER, name: "Pal", avatarUrl: null } },
-      ])
-      .mockResolvedValueOnce([]);
+    p.expense.findMany.mockResolvedValue([ // I paid, OTHER owes me
+      { id: "1", paidById: ME, currency: "INR", amount: 100000, groupId: null, payers: [], splits: [split(ME, 50000), split(OTHER, 50000)] },
+      { id: "2", paidById: ME, currency: "USD", amount: 2000, groupId: null, payers: [], splits: [split(ME, 1000), split(OTHER, 1000)] },
+    ]);
     p.settlement.findMany.mockResolvedValue([]);
+    p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null }]);
     const { data } = await (await BALANCES()).json();
     const pal = data.byPerson[OTHER];
     expect(pal.all).toEqual([{ currency: "INR", net: 50000 }, { currency: "USD", net: 1000 }]);
@@ -95,22 +97,47 @@ describe("balances are tracked per currency", () => {
   });
 
   it("/api/balances nets a settlement only against its own currency", async () => {
-    p.expenseSplit.findMany
-      .mockResolvedValueOnce([{ amount: 1000, userId: OTHER, expense: { groupId: null, currency: "USD" }, user: { id: OTHER, name: "Pal", avatarUrl: null } }])
-      .mockResolvedValueOnce([]);
-    p.settlement.findMany.mockResolvedValue([
-      { fromUserId: OTHER, toUserId: ME, amount: 1000, groupId: null, currency: "INR", fromUser: { name: "Pal", avatarUrl: null }, toUser: { name: "Me", avatarUrl: null } },
+    p.expense.findMany.mockResolvedValue([
+      { id: "1", paidById: ME, currency: "USD", amount: 2000, groupId: null, payers: [], splits: [split(ME, 1000), split(OTHER, 1000)] },
     ]);
+    p.settlement.findMany.mockResolvedValue([settle(OTHER, ME, 1000, "INR")]);
+    p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null }]);
     const { data } = await (await BALANCES()).json();
     const all = data.byPerson[OTHER].all;
     expect(all).toContainEqual({ currency: "USD", net: 1000 }); // INR payment must not cancel a USD debt
     expect(all).toContainEqual({ currency: "INR", net: -1000 });
   });
 
+  it("/api/balances handles multiple payers and drops settled-up people", async () => {
+    const THIRD = "66666666-6666-4666-8666-666666666666";
+    p.expense.findMany.mockResolvedValue([
+      // ME paid 600, OTHER paid 300; split 3 ways equally → THIRD owes ME 300, OTHER is square with ME
+      { id: "1", paidById: ME, currency: "INR", amount: 900, groupId: null,
+        payers: [{ userId: ME, amount: 600 }, { userId: OTHER, amount: 300 }],
+        splits: [split(ME, 300), split(OTHER, 300), split(THIRD, 300)] },
+    ]);
+    p.settlement.findMany.mockResolvedValue([]);
+    p.user.findMany.mockResolvedValue([{ id: THIRD, name: "Third", avatarUrl: null }]);
+    const { data } = await (await BALANCES()).json();
+    expect(data.byPerson[THIRD].all).toEqual([{ currency: "INR", net: 300 }]);
+    expect(data.byPerson[OTHER]).toBeUndefined();
+  });
+
+  it("/api/balances reports per-group balances", async () => {
+    const G = "44444444-4444-4444-8444-444444444444";
+    p.expense.findMany.mockResolvedValue([
+      { id: "1", paidById: ME, currency: "INR", amount: 1000, groupId: G, payers: [], splits: [split(ME, 500), split(OTHER, 500)] },
+    ]);
+    p.settlement.findMany.mockResolvedValue([]);
+    p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null }]);
+    const { data } = await (await BALANCES()).json();
+    expect(data.byGroup[G]).toMatchObject({ net: 500, currency: "INR" });
+  });
+
   it("/api/balance simplifies each currency separately and labels every payment", async () => {
     p.expense.findMany.mockResolvedValue([
-      { paidById: ME, currency: "INR", splits: [{ userId: ME, amount: 500 }, { userId: OTHER, amount: 500 }] },
-      { paidById: OTHER, currency: "USD", splits: [{ userId: ME, amount: 300 }, { userId: OTHER, amount: 300 }] },
+      { paidById: ME, currency: "INR", amount: 1000, groupId: null, payers: [], splits: [{ userId: ME, amount: 500 }, { userId: OTHER, amount: 500 }] },
+      { paidById: OTHER, currency: "USD", amount: 600, groupId: null, payers: [], splits: [{ userId: ME, amount: 300 }, { userId: OTHER, amount: 300 }] },
     ]);
     p.settlement.findMany.mockResolvedValue([]);
     p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null }]);

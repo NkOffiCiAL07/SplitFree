@@ -23,6 +23,8 @@ import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import type { GroupMember } from "@/types";
 import { parseQuickExpense, matchPeople } from "@/lib/quick-add";
+import { PayersEditor } from "@/components/expenses/payers-editor";
+import { parsePayers, payersProblem, type PayerAmounts } from "@/lib/payers";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
 
@@ -74,6 +76,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
 
   const [splitType, setSplitType] = useState<"EQUAL"|"EXACT"|"PERCENTAGE"|"SHARES">("EQUAL");
   const [participants, setParticipants] = useState<string[]>([]);
+  const [multiPayers, setMultiPayers] = useState(false);
+  const [payerAmounts, setPayerAmounts] = useState<PayerAmounts>({});
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
 
   // Global mode state (no group/members pre-set)
@@ -214,13 +218,19 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
       toast.error("Please select a group or change split context");
       return;
     }
+    if (multiPayers) {
+      const problem = payersProblem(parseFloat(values.amount), payerAmounts);
+      if (problem) { toast.error(problem); return; }
+    }
+    const payers = multiPayers ? parsePayers(payerAmounts) : undefined;
     await mutateAsync({
       description: values.description,
       amount: parseFloat(values.amount),
       currency: values.currency,
       category: values.category,
       splitType,
-      paidById: values.paidById,
+      paidById: payers ? payers[0].userId : values.paidById,
+      ...(payers ? { payers } : {}),
       groupId: resolvedGroupId ?? null,
       date: new Date(values.date),
       notes: values.notes,
@@ -233,6 +243,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
     reset();
     setSplitValues({});
     setParticipants([]);
+    setMultiPayers(false);
+    setPayerAmounts({});
     setLocalGroupId("");
     setSelectedFriendIds([]);
   };
@@ -243,6 +255,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
       reset({ date: new Date().toISOString().split("T")[0], category: "OTHER", isRecurring: false, paidById: user?.id ?? "", currency: groupCurrency });
       setSplitValues({});
       setParticipants([]);
+      setMultiPayers(false);
+      setPayerAmounts({});
       setSplitType("EQUAL");
       setLocalGroupId("");
       setSelectedFriendIds([]);
@@ -418,37 +432,26 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
             />
           </div>
 
-          {/* Paid by */}
+          {/* Paid by — one person, or several with an amount each */}
           {resolvedMembers.length > 1 && (
-            <div className="space-y-1.5">
-              <Label>Paid by</Label>
-              <Controller
-                name="paidById"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex flex-wrap gap-2">
-                    {resolvedMembers.map((m) => (
-                      <button
-                        key={m.userId}
-                        type="button"
-                        onClick={() => field.onChange(m.userId)}
-                        className={cn(
-                          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs transition-all",
-                          field.value === m.userId
-                            ? "border-primary bg-primary/10 text-primary font-medium"
-                            : "border-border text-muted-foreground hover:bg-accent"
-                        )}
-                      >
-                        <Avatar className="size-4">
-                          <AvatarFallback className="text-[8px]">{getInitials(m.user?.name ?? "?")}</AvatarFallback>
-                        </Avatar>
-                        {m.userId === user?.id ? "You" : m.user?.name?.split(" ")[0]}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              />
-            </div>
+            <Controller
+              name="paidById"
+              control={control}
+              render={({ field }) => (
+                <PayersEditor
+                  members={resolvedMembers.map((m) => ({ userId: m.userId, name: m.user?.name ?? "Member" }))}
+                  currentUserId={user?.id}
+                  total={parseFloat(amountStr) || 0}
+                  currency={selectedCurrency ?? groupCurrency}
+                  paidById={field.value}
+                  onPaidByChange={field.onChange}
+                  multiple={multiPayers}
+                  onMultipleChange={setMultiPayers}
+                  amounts={payerAmounts}
+                  onAmountsChange={setPayerAmounts}
+                />
+              )}
+            />
           )}
 
           {/* Date */}

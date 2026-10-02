@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,6 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
+import { PayersEditor } from "@/components/expenses/payers-editor";
+import { parsePayers, payersProblem, type PayerAmounts } from "@/lib/payers";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -40,6 +43,20 @@ interface Props {
 
 export function EditExpenseDialog({ expense, open, onClose }: Props) {
   const updateExpense = useUpdateExpense();
+  const { user } = useAuth();
+
+  // Everyone who can be a payer on this expense: split participants, current payers, the primary payer
+  const people = useMemo(() => {
+    const names = new Map<string, string>();
+    expense.splits?.forEach((sp) => names.set(sp.userId, sp.user?.name ?? "Member"));
+    expense.payers?.forEach((pp) => names.set(pp.userId, pp.user?.name ?? names.get(pp.userId) ?? "Member"));
+    if (!names.has(expense.paidById)) names.set(expense.paidById, expense.paidBy?.name ?? "Member");
+    return [...names].map(([userId, name]) => ({ userId, name }));
+  }, [expense]);
+  const wasMultiple = (expense.payers?.length ?? 0) > 1;
+  const [paidBy, setPaidBy] = useState(expense.paidById);
+  const [multiple, setMultiple] = useState(wasMultiple);
+  const [payerAmounts, setPayerAmounts] = useState<PayerAmounts>({});
 
   const { register, handleSubmit, control, watch, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -58,8 +75,13 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
         isRecurring: expense.isRecurring,
         recurringInterval: (expense.recurringInterval as FormValues["recurringInterval"]) ?? undefined,
       });
+      setPaidBy(expense.paidById);
+      setMultiple(wasMultiple);
+      setPayerAmounts(
+        wasMultiple ? Object.fromEntries((expense.payers ?? []).map((pp) => [pp.userId, (pp.amount / 100).toFixed(2)])) : {}
+      );
     }
-  }, [open, expense, reset]);
+  }, [open, expense, reset, wasMultiple]);
 
   const onInvalid = (errs: FieldErrors<FormValues>) => {
     const first = Object.values(errs)[0] as { message?: string } | undefined;
@@ -67,7 +89,19 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
   };
 
   const onSubmit = async (values: FormValues) => {
+    // Payer changes: only send what changed; switching back to one payer must clear the payer rows
+    let payerFields: Record<string, unknown> = {};
+    if (multiple) {
+      const problem = payersProblem(parseFloat(values.amount), payerAmounts);
+      if (problem) { toast.error(problem); return; }
+      payerFields = { payers: parsePayers(payerAmounts) };
+    } else if (wasMultiple) {
+      payerFields = { payers: null, paidById: paidBy };
+    } else if (paidBy !== expense.paidById) {
+      payerFields = { paidById: paidBy };
+    }
     await updateExpense.mutateAsync({
+      ...payerFields,
       id: expense.id,
       description: values.description,
       amount: parseFloat(values.amount),
@@ -119,6 +153,21 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
               />
             </div>
           </div>
+
+          {people.length > 1 && (
+            <PayersEditor
+              members={people}
+              currentUserId={user?.id}
+              total={parseFloat(watch("amount")) || 0}
+              currency={expense.currency}
+              paidById={paidBy}
+              onPaidByChange={setPaidBy}
+              multiple={multiple}
+              onMultipleChange={setMultiple}
+              amounts={payerAmounts}
+              onAmountsChange={setPayerAmounts}
+            />
+          )}
 
           <div className="space-y-1.5">
             <Label>Date</Label>

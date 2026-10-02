@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds } from "@/lib/api-helpers";
 import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
+import { validatePayers } from "@/lib/ledger";
+import { snapshotExpense, diffSnapshots } from "@/lib/revisions";
 
 async function getGroupMemberIds(groupId: string | null, excludeId: string): Promise<string[]> {
   if (!groupId) return [];
@@ -39,17 +42,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const existing = await prisma.expense.findFirst({
       where: { id, ...visibleToUser(user!.id) },
-      include: { splits: true },
+      include: { splits: true, payers: true },
     });
     if (!existing) return err("Expense not found", 404);
 
-    // Group expenses: any member can edit. Personal expenses: only payer.
-    if (existing.paidById !== user!.id && existing.groupId) {
+    // Group expenses: any member can edit. Personal expenses: only a payer.
+    const isPayer = existing.paidById === user!.id || existing.payers.some((p) => p.userId === user!.id);
+    if (!isPayer && existing.groupId) {
       const memberCheck = await prisma.groupMember.findUnique({
         where: { groupId_userId: { groupId: existing.groupId, userId: user!.id } },
       });
       if (!memberCheck) return err("Not authorized to edit this expense", 403);
-    } else if (existing.paidById !== user!.id && !existing.groupId) {
+    } else if (!isPayer && !existing.groupId) {
       return err("Only the payer can edit this expense", 403);
     }
 
@@ -60,12 +64,30 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const amountChanged = totalCents !== existing.amount;
     const splitType = data.splitType ?? existing.splitType;
     const participants = data.participants ?? existing.splits.map((x) => x.userId);
-    const paidById = data.paidById ?? existing.paidById;
+
+    // Payers: undefined = unchanged, null/[] = back to a single payer, 2+ = multiple payers
+    const payersTouched = data.payers !== undefined;
+    let payersCents: { userId: string; amount: number }[];
+    if (payersTouched) {
+      payersCents = (data.payers ?? []).map((p) => ({ userId: p.userId, amount: toCents(p.amount) }));
+    } else {
+      payersCents = existing.payers.map((p) => ({ userId: p.userId, amount: p.amount }));
+      if (payersCents.length > 0 && amountChanged) {
+        return err("Provide the payers again when changing the total of a multi-payer expense", 400);
+      }
+    }
+    if (payersCents.length > 0) {
+      const problem = validatePayers(payersCents, totalCents);
+      if (problem) return err(problem, 400);
+    }
+    const paidById = payersCents.length > 0
+      ? [...payersCents].sort((a, b) => b.amount - a.amount)[0].userId
+      : data.paidById ?? existing.paidById;
 
     // Splits must be rebuilt whenever anything that feeds them changes
     const rebuildSplits = amountChanged || !!data.participants || !!data.splitType || !!data.splits;
 
-    if (rebuildSplits || data.paidById) {
+    if (rebuildSplits || data.paidById || payersTouched) {
       let allowed: Set<string>;
       if (existing.groupId) {
         const members = await prisma.groupMember.findMany({ where: { groupId: existing.groupId }, select: { userId: true } });
@@ -75,8 +97,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
       // People already on the expense stay valid even if they have since left the group
       existing.splits.forEach((x) => allowed.add(x.userId));
+      existing.payers.forEach((x) => allowed.add(x.userId));
       allowed.add(existing.paidById);
-      if ([paidById, ...participants].some((uid) => !allowed.has(uid))) {
+      if ([paidById, ...payersCents.map((p) => p.userId), ...participants].some((uid) => !allowed.has(uid))) {
         return err("All participants must be members of the group", 403);
       }
     }
@@ -108,6 +131,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         splitType,
         isRecurring: data.isRecurring,
         recurringInterval: data.recurringInterval, // undefined = unchanged, null = clear
+        ...(payersTouched
+          ? { payers: { deleteMany: {}, ...(payersCents.length > 0 ? { create: payersCents } : {}) } }
+          : {}),
         ...(rebuildSplits
           ? {
               splits: {
@@ -122,8 +148,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             }
           : {}),
       },
-      include: { paidBy: true, splits: { include: { user: true } }, group: true },
+      include: { paidBy: true, splits: { include: { user: true } }, payers: { include: { user: true } }, group: true },
     });
+
+    // Edit history: store what changed (before → after) so it can be shown on the expense
+    const changes = diffSnapshots(snapshotExpense(existing), snapshotExpense(updated));
+    if (Object.keys(changes).length > 0) {
+      await prisma.expenseRevision.create({ data: { expenseId: id, userId: user!.id, changes: changes as unknown as Prisma.InputJsonObject } });
+    }
 
     // Notify all group members (except editor) about the update
     const notifyIds = await getGroupMemberIds(existing.groupId, user!.id);

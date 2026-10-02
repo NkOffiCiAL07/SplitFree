@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
+import { loadGroupLedger } from "@/lib/ledger-db";
+import { userNet } from "@/lib/ledger";
 import { addMemberSchema } from "@/lib/validations/group";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -144,34 +146,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return err("Admin required to remove others", 403);
     }
 
-    // Block leave/remove if the target user has an unsettled balance in this group
-    const [expenses, settlements] = await Promise.all([
-      prisma.expense.findMany({
-        where: {
-          groupId,
-          OR: [{ paidById: userId }, { splits: { some: { userId } } }],
-        },
-        include: { splits: true },
-      }),
-      prisma.settlement.findMany({
-        where: { groupId, OR: [{ fromUserId: userId }, { toUserId: userId }] },
-      }),
-    ]);
-
-    let net = 0;
-    for (const expense of expenses) {
-      for (const split of expense.splits) {
-        if (expense.paidById === userId && split.userId !== userId) {
-          net += split.amount; // others owe this user
-        } else if (expense.paidById !== userId && split.userId === userId) {
-          net -= split.amount; // this user owes the payer
-        }
-      }
-    }
-    for (const s of settlements) {
-      if (s.fromUserId === userId) net += s.amount;
-      else net -= s.amount;
-    }
+    // Block leave/remove if the target user has an unsettled balance in this group.
+    // Uses the shared ledger, so multi-payer expenses and every currency are accounted for.
+    const { edges } = await loadGroupLedger(groupId);
+    const nets = userNet(edges, userId);
+    // positive = owed money, negative = owes money; a mix of both is reported as "owes" first
+    const owes = [...nets.values()].some((v) => v < 0);
+    const net = owes ? -1 : [...nets.values()].some((v) => v > 0) ? 1 : 0;
 
     if (net !== 0) {
       const isSelf = userId === user!.id;
