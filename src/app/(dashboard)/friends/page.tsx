@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/app-config";
-import type { Friendship, GroupMember } from "@/types";
+import type { GroupMember, FriendRequest } from "@/types";
 
 function BalanceLines({ nets }: { nets?: { currency: string; net: number }[] }) {
   if (!nets?.length) return null;
@@ -148,7 +148,7 @@ export default function FriendsPage() {
             Received requests
             <Badge variant="secondary" className="text-[10px] px-1.5">{pending!.length}</Badge>
           </h3>
-          {pending!.map((req: any, i: number) => (
+          {pending!.map((req: FriendRequest, i: number) => (
             <m.div
               key={req.id}
               initial={{ opacity: 0, y: 8 }}
@@ -198,7 +198,7 @@ export default function FriendsPage() {
             Sent requests
             <Badge variant="secondary" className="text-[10px] px-1.5">{sent!.length}</Badge>
           </h3>
-          {sent!.map((req: any, i: number) => (
+          {sent!.map((req: FriendRequest, i: number) => (
             <m.div
               key={req.id}
               initial={{ opacity: 0, y: 8 }}

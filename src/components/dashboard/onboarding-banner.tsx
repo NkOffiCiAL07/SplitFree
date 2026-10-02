@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { X, Users, UserPlus, Receipt, ArrowRight, Sparkles } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
@@ -37,18 +37,22 @@ const STEPS = [
 const STORAGE_KEY = "splitfree_onboarding_dismissed";
 
 export function OnboardingBanner() {
-  const [visible, setVisible] = useState(false);
+  // localStorage is only readable on the client; the server snapshot says "already dismissed"
+  const stored = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try { return localStorage.getItem(STORAGE_KEY); } catch { return "1"; }
+    },
+    () => "1"
+  );
+  const [hidden, setHidden] = useState(false);
+  const visible = !stored && !hidden;
   const [step, setStep] = useState(0);
   const router = useRouter();
 
-  useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) setVisible(true);
-  }, []);
-
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
-    setVisible(false);
+    try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
+    setHidden(true);
   };
 
   const current = STEPS[step];

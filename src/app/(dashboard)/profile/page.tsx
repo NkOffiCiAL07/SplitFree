@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { m } from "framer-motion";
 import { Camera, Mail, User, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,12 +18,16 @@ import { toast } from "sonner";
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [name, setName] = useState(user?.user_metadata?.name ?? "");
+  const metaName: string = user?.user_metadata?.name ?? "";
+  const [name, setName] = useState(metaName);
+  const [syncedName, setSyncedName] = useState(metaName);
 
-  // user is null on first render (auth is async) — sync when it loads
-  useEffect(() => {
-    if (user?.user_metadata?.name) setName(user.user_metadata.name);
-  }, [user?.user_metadata?.name]);
+  // user is null on first render (auth is async) — adopt the name once it arrives,
+  // by adjusting state during render instead of in an effect
+  if (metaName && metaName !== syncedName) {
+    setSyncedName(metaName);
+    setName(metaName);
+  }
 
   const updateProfile = useMutation({
     mutationFn: async (payload: { name: string }) => {

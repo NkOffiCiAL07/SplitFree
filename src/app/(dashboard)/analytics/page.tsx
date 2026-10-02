@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
   // The API only totals expenses in one currency; use the one it reports
   const currency: string = data?.currency ?? userCurrency;
 
-  const monthlyData = data?.monthly?.map((m: any) => ({
+  const monthlyData = data?.monthly?.map((m: { month: string; total: number }) => ({
     name: format(new Date(m.month + "-01"), "MMM"),
     total: m.total / 100,
   })) ?? [];
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="pt-0">
               {isLoading ? <Skeleton className="h-52 w-full rounded-lg" /> : (
-                monthlyData.every((d: any) => d.total === 0) ? (
+                monthlyData.every((d: { total: number }) => d.total === 0) ? (
                   <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
                 ) : (
                   <MonthlyBarChart data={monthlyData} currency={currency} />

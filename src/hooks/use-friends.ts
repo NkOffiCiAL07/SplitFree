@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Friendship } from "@/types";
+import type { Friendship, FriendRequest } from "@/types";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -27,14 +27,14 @@ export function useFriendContacts() {
 }
 
 export function usePendingFriendRequests() {
-  return useQuery<any[]>({
+  return useQuery<FriendRequest[]>({
     queryKey: ["friends", "pending"],
     queryFn: () => fetchJSON("/api/friends?pending=true"),
   });
 }
 
 export function useSentFriendRequests() {
-  return useQuery<any[]>({
+  return useQuery<FriendRequest[]>({
     queryKey: ["friends", "sent"],
     queryFn: () => fetchJSON("/api/friends?sent=true"),
   });

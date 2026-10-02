@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
         body: [
           a.expense?.description,
           a.group?.name,
-          (a.metadata as any)?.groupName,
+          (a.metadata as { groupName?: string } | null)?.groupName,
         ]
           .filter(Boolean)
           .join(" · "),

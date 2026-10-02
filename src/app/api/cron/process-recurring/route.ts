@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, created: created.length, skipped: skipped.length });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Unknown error" }, { status: 500 });
   }
 }

@@ -12,12 +12,15 @@ import { formatCurrency } from "@/lib/utils";
 interface MonthlyPoint { month: string; owed: number; owing: number }
 interface Props { data?: MonthlyPoint[]; isLoading?: boolean; currency?: string }
 
-function CustomTooltip({ active, payload, label, currency }: any) {
+interface TooltipPayload { name: string; value: number; color: string }
+interface TooltipProps { active?: boolean; payload?: TooltipPayload[]; label?: string; currency?: string }
+
+function CustomTooltip({ active, payload, label, currency }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border bg-popover px-3 py-2 shadow-xl text-xs">
       <p className="font-semibold mb-1.5">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 mb-0.5">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
           <span className="text-muted-foreground capitalize">{p.name === "owed" ? "Owed to you" : "You owe"}:</span>

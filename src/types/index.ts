@@ -81,6 +81,30 @@ export interface Group {
   _count?: { expenses: number; members: number };
 }
 
+/** A member's net balance with the current user inside one group (cents; + they owe you) */
+export interface MemberBalance {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  balance: number;
+}
+
+/** Group as returned by /api/groups/[id] */
+export interface GroupDetail extends Group {
+  expenses?: Expense[];
+  memberBalances?: MemberBalance[];
+}
+
+/** One payment suggested by the debt-simplification algorithm */
+export interface SimplifiedDebt {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  currency?: string;
+  fromUser?: { id: string; name: string; avatarUrl: string | null };
+  toUser?: { id: string; name: string; avatarUrl: string | null };
+}
+
 export interface GroupMember {
   id: string;
   groupId: string;
@@ -251,4 +275,44 @@ export interface GroupFormValues {
   category: GroupCategory;
   currency: Currency;
   memberEmails?: string[];
+}
+
+/** Notification / activity row as serialised by the API (dates arrive as ISO strings) */
+export interface ApiNotification {
+  id: string;
+  type: NotificationType | ActivityType;
+  title?: string;
+  body?: string;
+  isRead: boolean;
+  data?: ActivityMetadata | null;
+  metadata?: ActivityMetadata | null;
+  createdAt: string;
+  user?: { name: string; avatarUrl: string | null };
+  source?: "activity" | "notification";
+}
+
+/** Shape of Activity.metadata / Notification.data JSON (all fields optional, set per event type) */
+export interface ActivityMetadata {
+  description?: string;
+  amount?: number;
+  groupName?: string;
+  memberName?: string;
+  memberId?: string;
+  action?: string;
+  role?: string;
+  toUserId?: string;
+  removedUserId?: string;
+  pending?: boolean;
+  userId?: string;
+  [key: string]: unknown;
+}
+
+/** Incoming/outgoing friend request as returned by /api/friends?pending|sent */
+export interface FriendRequest {
+  id: string;
+  userId: string;
+  friendId: string;
+  createdAt: string | Date;
+  user?: UserProfile;
+  friend?: UserProfile;
 }

@@ -37,7 +37,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [group, setGroup] = useState<any>(null);
+  const [group, setGroup] = useState<{ id: string; name: string; description?: string | null; category?: string; currency?: string; _count?: { members: number; expenses: number } } | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "joining" | "joined" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const particles = useParticles(45);
@@ -220,7 +220,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
                   transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.12 }}
                   className="text-5xl mb-3"
                 >
-                  {CATEGORY_EMOJI[group.category] ?? "📦"}
+                  {CATEGORY_EMOJI[group.category ?? "OTHER"] ?? "📦"}
                 </m.div>
                 <m.h1
                   initial={{ opacity: 0, y: 10 }}

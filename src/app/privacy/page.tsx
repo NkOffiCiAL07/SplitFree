@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Overview</h2>
           <p className="text-muted-foreground leading-relaxed">
-            {APP_NAME} ("we", "our", or "us") is committed to protecting your privacy. This policy
+            {APP_NAME} (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy. This policy
             explains what information we collect, how we use it, and your rights regarding your data.
             By using {APP_NAME}, you agree to the practices described here.
           </p>
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Children's Privacy</h2>
+          <h2 className="text-xl font-semibold">Children&apos;s Privacy</h2>
           <p className="text-muted-foreground leading-relaxed">
             {APP_NAME} is not directed at children under 13. We do not knowingly collect personal
             information from children under 13. If you believe a child has provided us information,
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">Changes to This Policy</h2>
           <p className="text-muted-foreground leading-relaxed">
             We may update this privacy policy from time to time. We will notify you of significant
-            changes by updating the "Last updated" date above. Continued use of the app after changes
+            changes by updating the &quot;Last updated&quot; date above. Continued use of the app after changes
             constitutes acceptance of the updated policy.
           </p>
         </section>

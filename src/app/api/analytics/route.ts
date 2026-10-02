@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 import { format, startOfMonth, subMonths } from "date-fns";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;

@@ -17,6 +17,15 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
 
+interface BudgetRow {
+  id: string;
+  amount: number;
+  period: string;
+  category: string | null;
+  spent?: number;
+  [key: string]: unknown;
+}
+
 export function BudgetCard({ groupId, currency }: { groupId: string; currency: string }) {
   const { data } = useGroupBudget(groupId);
   const setBudget = useSetBudget(groupId);
@@ -26,7 +35,7 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
   const [category, setCategory] = useState<string>("__all__");
   const [period, setPeriod] = useState("MONTHLY");
 
-  const budgets: any[] = data?.budgets ?? [];
+  const budgets: BudgetRow[] = data?.budgets ?? [];
   const totalSpent: number = data?.totalSpentThisMonth ?? 0;
 
   const handleSave = async (e: React.FormEvent) => {
@@ -109,7 +118,7 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
         </p>
       ) : (
         <div className="space-y-2">
-          {budgets.map((b: any) => {
+          {budgets.map((b) => {
             const limitDollars = b.amount;
             const spentDollars = b.category ? 0 : totalSpent;
             const pct = limitDollars > 0 ? Math.min((spentDollars / limitDollars) * 100, 100) : 0;

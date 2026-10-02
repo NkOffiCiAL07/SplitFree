@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime, formatCurrency, getInitials } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import type { ActivityType } from "@/types";
+import type { ActivityType, ActivityMetadata } from "@/types";
 
 const ICONS: Record<string, React.ElementType> = {
   EXPENSE_CREATED: Receipt, EXPENSE_UPDATED: Receipt, EXPENSE_DELETED: Receipt,
@@ -28,7 +28,7 @@ const COLORS: Record<string, string> = {
 interface ActivityItem {
   id: string;
   type: ActivityType;
-  metadata: any;
+  metadata: ActivityMetadata | null;
   user: { name: string; avatarUrl: string | null };
   createdAt: string | Date;
 }
@@ -36,15 +36,15 @@ interface ActivityItem {
 interface Props { activities?: ActivityItem[]; currency?: string; isLoading?: boolean }
 
 function activityLabel(a: ActivityItem): { text: string; amount?: number } {
-  const m = a.metadata as any ?? {};
+  const meta: ActivityMetadata = a.metadata ?? {};
   switch (a.type) {
-    case "EXPENSE_CREATED": return { text: `${a.user.name} added ${m.description ?? "an expense"}`, amount: m.amount };
-    case "EXPENSE_UPDATED": return { text: `${a.user.name} updated ${m.description ?? "an expense"}` };
-    case "EXPENSE_DELETED": return { text: `${a.user.name} deleted ${m.description ?? "an expense"}` };
-    case "SETTLEMENT_CREATED": return { text: `${a.user.name} recorded a payment`, amount: m.amount };
-    case "GROUP_CREATED": return { text: `${a.user.name} created group ${m.groupName ?? ""}` };
-    case "MEMBER_ADDED": return { text: `${a.user.name} joined ${m.groupName ?? "a group"}` };
-    case "MEMBER_REMOVED": return { text: `${a.user.name} left ${m.groupName ?? "a group"}` };
+    case "EXPENSE_CREATED": return { text: `${a.user.name} added ${meta.description ?? "an expense"}`, amount: meta.amount };
+    case "EXPENSE_UPDATED": return { text: `${a.user.name} updated ${meta.description ?? "an expense"}` };
+    case "EXPENSE_DELETED": return { text: `${a.user.name} deleted ${meta.description ?? "an expense"}` };
+    case "SETTLEMENT_CREATED": return { text: `${a.user.name} recorded a payment`, amount: meta.amount };
+    case "GROUP_CREATED": return { text: `${a.user.name} created group ${meta.groupName ?? ""}` };
+    case "MEMBER_ADDED": return { text: `${a.user.name} joined ${meta.groupName ?? "a group"}` };
+    case "MEMBER_REMOVED": return { text: `${a.user.name} left ${meta.groupName ?? "a group"}` };
     default: return { text: "Activity recorded" };
   }
 }

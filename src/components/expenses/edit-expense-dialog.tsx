@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUpdateExpense } from "@/hooks/use-expenses";
@@ -56,13 +56,13 @@ export function EditExpenseDialog({ expense, open, onClose }: Props) {
         date: format(new Date(expense.date), "yyyy-MM-dd"),
         notes: expense.notes ?? "",
         isRecurring: expense.isRecurring,
-        recurringInterval: (expense.recurringInterval as any) ?? undefined,
+        recurringInterval: (expense.recurringInterval as FormValues["recurringInterval"]) ?? undefined,
       });
     }
   }, [open, expense, reset]);
 
-  const onInvalid = (errs: Record<string, any>) => {
-    const first = Object.values(errs)[0] as any;
+  const onInvalid = (errs: FieldErrors<FormValues>) => {
+    const first = Object.values(errs)[0] as { message?: string } | undefined;
     toast.error(first?.message ?? "Please fill in all required fields");
   };
 

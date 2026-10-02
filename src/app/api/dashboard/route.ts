@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, handleError } from "@/lib/api-helpers";
-import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
+import { requireAuth, ensureUserProfile, handleError } from "@/lib/api-helpers";
+import { subMonths, startOfMonth, format } from "date-fns";
 import { NextResponse } from "next/server";
 
 export async function GET() {

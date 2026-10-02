@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         select: { id: true, data: true },
       });
       const notifIds = pendingNotifs
-        .filter((n) => (n.data as any)?.userId === requesterId && (n.data as any)?.pending === true)
+        .filter((n) => (n.data as { userId?: string; pending?: boolean } | null)?.userId === requesterId && (n.data as { pending?: boolean } | null)?.pending === true)
         .map((n) => n.id);
       if (notifIds.length > 0) {
         await prisma.notification.updateMany({

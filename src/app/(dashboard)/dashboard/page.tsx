@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useUIStore } from "@/stores/ui-store";
-import { formatCompactCurrency, cn } from "@/lib/utils";
+import { formatCompactCurrency } from "@/lib/utils";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 

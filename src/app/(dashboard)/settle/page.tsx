@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock } from "lucide-react";
 import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
 import { useFriendContacts } from "@/hooks/use-friends";
@@ -10,9 +10,10 @@ import { useUserCurrency } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { SimplifiedDebt, Settlement } from "@/types";
 import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
 
 /** Sum debts per currency and join them ("$10.00 + ₹500.00") — never add across currencies. */
@@ -41,10 +42,10 @@ export default function SettlePage() {
 
   const userCurrency = useUserCurrency();
   const settlements = Array.isArray(data) ? data : [];
-  const simplified: any[] = (balanceData as any)?.simplified ?? [];
+  const simplified: SimplifiedDebt[] = (balanceData as { simplified?: SimplifiedDebt[] } | undefined)?.simplified ?? [];
 
-  const myDebts = simplified.filter((d: any) => d.fromUserId === user?.id);
-  const othersDebts = simplified.filter((d: any) => d.toUserId === user?.id);
+  const myDebts = simplified.filter((d) => d.fromUserId === user?.id);
+  const othersDebts = simplified.filter((d) => d.toUserId === user?.id);
 
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +65,6 @@ export default function SettlePage() {
     setDialogOpen(true);
   };
 
-  const selectedFriendData = friends?.find((f) => f.friendId === selectedFriend);
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
@@ -171,7 +171,7 @@ export default function SettlePage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {simplified.map((debt: any, i: number) => {
+            {simplified.map((debt, i: number) => {
               const isMyDebt = debt.fromUserId === user?.id;
               return (
                 <m.div
@@ -232,7 +232,7 @@ export default function SettlePage() {
           <p className="text-sm text-muted-foreground text-center py-8">No payments recorded yet</p>
         ) : (
           <div className="space-y-2">
-            {settlements.map((s: any, i: number) => {
+            {settlements.map((s: Settlement, i: number) => {
               const isOutgoing = s.fromUserId === user?.id;
               return (
                 <m.div

@@ -3,7 +3,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { m } from "framer-motion";
 import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
@@ -36,9 +36,12 @@ export default function SettingsPage() {
     }
   });
 
-  useEffect(() => {
-    if (profile?.currency) setCurrency(profile.currency);
-  }, [profile?.currency]);
+  // Adopt the saved currency once the profile loads (state adjusted during render, not in an effect)
+  const [syncedCurrency, setSyncedCurrency] = useState<string | undefined>(undefined);
+  if (profile?.currency && profile.currency !== syncedCurrency) {
+    setSyncedCurrency(profile.currency);
+    setCurrency(profile.currency);
+  }
 
   const handleCurrencyChange = async (val: string) => {
     setCurrency(val);
@@ -54,8 +57,8 @@ export default function SettingsPage() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Default currency updated");
-    } catch (e: any) {
-      toast.error(e.message ?? "Failed to save currency");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save currency");
     } finally {
       setSavingCurrency(false);
     }

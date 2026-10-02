@@ -29,7 +29,7 @@ export function useUserCurrency(): string {
   const { data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboard,
-    select: (d: any) => d?.currency ?? "USD",
+    select: (d: { currency?: string } | undefined) => d?.currency ?? "USD",
   });
   return (data as string | undefined) ?? "USD";
 }

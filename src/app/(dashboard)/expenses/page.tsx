@@ -164,8 +164,6 @@ export default function ExpensesPage() {
               expense={expense}
               userId={user?.id ?? ""}
               index={i}
-              onDelete={() => deleteMutation.mutate(expense.id)}
-              canDelete={expense.paidById === user?.id || !!expense.groupId}
               onClick={() => setSelectedExpense(expense)}
               userCurrency={userCurrency}
             />
@@ -294,10 +292,10 @@ export default function ExpensesPage() {
 }
 
 function ExpenseRow({
-  expense, userId, index, onDelete, canDelete, onClick, userCurrency,
+  expense, userId, index, onClick, userCurrency,
 }: {
   expense: Expense; userId: string; index: number;
-  onDelete: () => void; canDelete: boolean; onClick: () => void; userCurrency: string;
+  onClick: () => void; userCurrency: string;
 }) {
   const myShare = expense.splits?.find((s) => s.userId === userId);
   const isPayer = expense.paidById === userId;

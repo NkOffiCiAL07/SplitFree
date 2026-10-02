@@ -22,8 +22,11 @@ vi.mock("framer-motion", () => {
     tags.map((tag) => [
       tag,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ({ children, animate, initial, exit, transition, variants, whileHover, whileTap, layout, ...rest }: any) =>
-        React.createElement(tag, rest, children),
+      ({ children, ...rest }: any) => {
+        // strip framer-motion-only props so they don't reach the DOM
+        for (const k of ["animate", "initial", "exit", "transition", "variants", "whileHover", "whileTap", "layout", "layoutId"]) delete rest[k];
+        return React.createElement(tag, rest, children);
+      },
     ])
   );
   return {

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
 import { createGroupSchema } from "@/lib/validations/group";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;

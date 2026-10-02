@@ -12,6 +12,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { ApiNotification } from "@/types";
 
 async function fetchNotifications() {
   const res = await fetch("/api/notifications");
@@ -31,7 +32,7 @@ async function markAllReadAPI() {
 export function NotificationBell() {
   const queryClient = useQueryClient();
 
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<ApiNotification[]>({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
     staleTime: 30_000,
@@ -43,9 +44,9 @@ export function NotificationBell() {
     onMutate: async () => {
       // Cancel any in-flight refetch so it doesn't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["notifications"] });
-      const previous = queryClient.getQueryData<any[]>(["notifications"]);
+      const previous = queryClient.getQueryData<ApiNotification[]>(["notifications"]);
       // Immediately mark all as read in the local cache
-      queryClient.setQueryData(["notifications"], (old: any[]) =>
+      queryClient.setQueryData(["notifications"], (old: ApiNotification[] | undefined) =>
         (old ?? []).map((n) => ({ ...n, isRead: true }))
       );
       return { previous };
@@ -67,8 +68,8 @@ export function NotificationBell() {
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ["notifications"] });
-      const previous = queryClient.getQueryData<any[]>(["notifications"]);
-      queryClient.setQueryData(["notifications"], (old: any[]) =>
+      const previous = queryClient.getQueryData<ApiNotification[]>(["notifications"]);
+      queryClient.setQueryData(["notifications"], (old: ApiNotification[] | undefined) =>
         (old ?? []).map((n) => n.id === id ? { ...n, isRead: true } : n)
       );
       return { previous };
@@ -92,9 +93,9 @@ export function NotificationBell() {
     },
     onMutate: async ({ notifId }) => {
       await queryClient.cancelQueries({ queryKey: ["notifications"] });
-      const previous = queryClient.getQueryData<any[]>(["notifications"]);
+      const previous = queryClient.getQueryData<ApiNotification[]>(["notifications"]);
       // Optimistically clear pending flag so buttons disappear immediately
-      queryClient.setQueryData(["notifications"], (old: any[]) =>
+      queryClient.setQueryData(["notifications"], (old: ApiNotification[] | undefined) =>
         (old ?? []).map((n) =>
           n.id === notifId
             ? { ...n, isRead: true, data: { ...n.data, pending: false } }
@@ -116,7 +117,7 @@ export function NotificationBell() {
     },
   });
 
-  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+  const unreadCount = notifications.filter((n: ApiNotification) => !n.isRead).length;
 
   return (
     <DropdownMenu>
@@ -161,7 +162,7 @@ export function NotificationBell() {
             </div>
           ) : (
             <div className="py-1">
-              {notifications.map((n: any) => {
+              {notifications.map((n: ApiNotification) => {
                 const isPendingFriendRequest = n.type === "FRIEND_ADDED" && n.data?.pending === true;
                 const requesterId = n.data?.userId as string | undefined;
 

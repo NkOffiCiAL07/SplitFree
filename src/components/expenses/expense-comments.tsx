@@ -1,5 +1,6 @@
 "use client";
 
+import type { ExpenseComment } from "@/types";
 import { useState, useRef, useEffect } from "react";
 import { Send, Trash2, MessageCircle } from "lucide-react";
 import { useComments, useAddComment, useDeleteComment } from "@/hooks/use-comments";
@@ -50,7 +51,7 @@ export function ExpenseComments({ expenseId }: { expenseId: string }) {
         ) : !comments || comments.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-3">No comments yet. Be first!</p>
         ) : (
-          comments.map((c: any) => {
+          comments.map((c: ExpenseComment) => {
             const isOwn = c.userId === user?.id;
             return (
               <div

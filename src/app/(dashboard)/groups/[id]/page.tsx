@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
@@ -155,8 +155,8 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!group) return null;
 
-  const expenses = (group as any).expenses ?? [];
-  const myBalance = ((group as any).memberBalances ?? []).find((mb: any) => mb.userId === user?.id)?.balance ?? 0;
+  const expenses = group.expenses ?? [];
+  const myBalance = (group.memberBalances ?? []).find((mb) => mb.userId === user?.id)?.balance ?? 0;
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
@@ -479,13 +479,13 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Per-member balances */}
       {(() => {
-        const memberBalances = (group as any).memberBalances ?? [];
+        const memberBalances = group.memberBalances ?? [];
         if (memberBalances.length === 0) return null;
         return (
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">Who owes who</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {memberBalances.map((mb: any) => (
+              {memberBalances.map((mb) => (
                 <m.div
                   key={mb.userId}
                   initial={{ opacity: 0, y: 6 }}
@@ -626,7 +626,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         ) : (
           <div className="space-y-2">
-            {expenses.map((exp: any, i: number) => (
+            {expenses.map((exp, i: number) => (
               <ExpenseRow
                 key={exp.id}
                 expense={exp}
@@ -679,7 +679,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 {viewingExpense.splits && viewingExpense.splits.length > 0 && (
                   <div className="space-y-1.5">
                     <p className="text-xs text-muted-foreground">Split</p>
-                    {viewingExpense.splits.map((s: any) => (
+                    {(viewingExpense.splits ?? []).map((s) => (
                       <div key={s.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
                         <Avatar className="size-6 shrink-0">
                           <AvatarFallback className="text-[9px]">{getInitials(s.user?.name ?? "?")}</AvatarFallback>
@@ -722,10 +722,10 @@ const EXPENSE_EMOJI: Record<string, string> = {
 };
 
 function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, onClick }: {
-  expense: any; userId: string; index: number; groupCurrency?: string;
+  expense: Expense; userId: string; index: number; groupCurrency?: string;
   onEdit: () => void; onDelete: () => void; onClick?: () => void;
 }) {
-  const myShare = expense.splits?.find((s: any) => s.userId === userId);
+  const myShare = expense.splits?.find((s) => s.userId === userId);
   const isPayer = expense.paidById === userId;
   const currency = groupCurrency ?? expense.currency;
 

@@ -31,7 +31,9 @@ export function CommandPalette() {
 
   // ⌘K / Ctrl+K shortcut — stable listener via ref to avoid re-binding on every state change
   const openRef = useRef(commandPaletteOpen);
-  openRef.current = commandPaletteOpen;
+  useEffect(() => {
+    openRef.current = commandPaletteOpen;
+  }, [commandPaletteOpen]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {

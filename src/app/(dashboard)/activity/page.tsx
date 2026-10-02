@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { formatRelativeTime, cn } from "@/lib/utils";
+import type { ApiNotification } from "@/types";
 import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
 
 async function fetchActivity() {
@@ -56,9 +57,9 @@ const GROUP_ORDER = ["Today", "Yesterday", "This week", "Earlier"];
 
 export default function ActivityPage() {
   const qc = useQueryClient();
-  const { data: items, isLoading } = useQuery({ queryKey: ["activity"], queryFn: fetchActivity, staleTime: 15_000 });
+  const { data: items, isLoading } = useQuery<ApiNotification[]>({ queryKey: ["activity"], queryFn: fetchActivity, staleTime: 15_000 });
 
-  const unread = items?.filter((n: any) => !n.isRead) ?? [];
+  const unread = items?.filter((n) => !n.isRead) ?? [];
 
   const friendAction = useMutation({
     mutationFn: async ({ requesterId, action, notifId }: { requesterId: string; action: "accept" | "decline"; notifId: string }) => {
@@ -94,7 +95,7 @@ export default function ActivityPage() {
   };
 
   // Group by date bucket
-  const grouped = items?.reduce((acc: Record<string, any[]>, item: any) => {
+  const grouped = items?.reduce((acc: Record<string, ApiNotification[]>, item) => {
     const group = getDateGroup(item.createdAt);
     if (!acc[group]) acc[group] = [];
     acc[group].push(item);
@@ -134,7 +135,7 @@ export default function ActivityPage() {
           {groupKeys.map((groupLabel) => (
             <div key={groupLabel} className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">{groupLabel}</p>
-              {grouped[groupLabel].map((item: any, i: number) => {
+              {grouped[groupLabel].map((item, i: number) => {
                 const Icon = TYPE_ICON[item.type] ?? Receipt;
                 const color = TYPE_COLOR[item.type] ?? "bg-gray-100 text-gray-600";
                 const isOwn = item.source === "activity";
@@ -168,11 +169,11 @@ export default function ActivityPage() {
                       {item.type === "FRIEND_ADDED" && item.data?.pending && item.data?.userId && (
                         <div className="flex gap-2 mt-2">
                           <Button size="sm" variant="brand" className="h-7 text-xs px-3 gap-1" loading={friendAction.isPending}
-                            onClick={() => friendAction.mutate({ requesterId: item.data.userId, action: "accept", notifId: item.id.replace("notif_", "") })}>
+                            onClick={() => friendAction.mutate({ requesterId: item.data?.userId ?? "", action: "accept", notifId: item.id.replace("notif_", "") })}>
                             <Check className="size-3" /> Accept
                           </Button>
                           <Button size="sm" variant="outline" className="h-7 text-xs px-3 gap-1" loading={friendAction.isPending}
-                            onClick={() => friendAction.mutate({ requesterId: item.data.userId, action: "decline", notifId: item.id.replace("notif_", "") })}>
+                            onClick={() => friendAction.mutate({ requesterId: item.data?.userId ?? "", action: "decline", notifId: item.id.replace("notif_", "") })}>
                             <X className="size-3" /> Decline
                           </Button>
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useState, useEffect, useMemo } from "react";
+import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, SplitSquareHorizontal, Equal, Hash, Percent, Users, UserPlus, User } from "lucide-react";
@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn, getInitials, toCents } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import type { GroupMember } from "@/types";
 
@@ -121,7 +121,6 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
 
   const isRecurring = watch("isRecurring");
   const amountStr = watch("amount");
-  const paidById = watch("paidById");
   const selectedCurrency = watch("currency");
 
   // Resolve the effective members list
@@ -183,8 +182,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     return null;
   })();
 
-  const onInvalid = (errs: Record<string, any>) => {
-    const first = Object.values(errs)[0] as any;
+  const onInvalid = (errs: FieldErrors<FormValues>) => {
+    const first = Object.values(errs)[0] as { message?: string } | undefined;
     toast.error(first?.message ?? "Please fill in all required fields");
   };
 

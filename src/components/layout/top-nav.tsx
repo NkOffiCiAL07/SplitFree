@@ -23,7 +23,7 @@ const pageTitles: Record<string, string> = {
 };
 
 export function TopNav() {
-  const { toggleSidebar, toggleMobileMenu, setCommandPaletteOpen } = useUIStore();
+  const { toggleMobileMenu, setCommandPaletteOpen } = useUIStore();
   const pathname = usePathname();
 
   const title = Object.entries(pageTitles).find(([path]) =>

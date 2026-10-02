@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Group } from "@/types";
+import type { Group, GroupDetail } from "@/types";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -19,7 +19,7 @@ export function useGroups() {
 }
 
 export function useGroup(id: string) {
-  return useQuery<Group>({
+  return useQuery<GroupDetail>({
     queryKey: ["groups", id],
     queryFn: () => fetchJSON(`/api/groups/${id}`),
     enabled: !!id,
@@ -82,7 +82,7 @@ export function useAddMember() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       }),
-    onSuccess: (data: any, { groupId }) => {
+    onSuccess: (data: { invited?: boolean; email?: string } | undefined, { groupId }) => {
       qc.invalidateQueries({ queryKey: ["groups", groupId] });
       if (data?.invited) {
         toast.success(`Invite sent to ${data.email}`);
