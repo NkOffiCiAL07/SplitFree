@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 import { format, startOfMonth, subMonths } from "date-fns";
 
 export async function GET(_req: NextRequest) {
@@ -11,22 +11,25 @@ export async function GET(_req: NextRequest) {
     const sixMonthsAgo = subMonths(startOfMonth(new Date()), 5);
 
     const userId = user!.id;
+    const profile = await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } });
+    const currency = profile?.currency ?? "USD";
     const [expenses, allExpensesForBalance, allSettlements, groups] = await Promise.all([
       prisma.expense.findMany({
         where: {
           splits: { some: { userId } },
           date: { gte: sixMonthsAgo },
+          currency, // amounts in other currencies are never summed with these
         },
         include: { splits: { where: { userId } } },
         orderBy: { date: "asc" },
       }),
       // All-time data for accurate outstanding balance
       prisma.expense.findMany({
-        where: { splits: { some: { userId } } },
+        where: { ...visibleToUser(userId), currency },
         select: { paidById: true, splits: { select: { userId: true, amount: true } } },
       }),
       prisma.settlement.findMany({
-        where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
+        where: { OR: [{ fromUserId: userId }, { toUserId: userId }], currency },
         select: { fromUserId: true, toUserId: true, amount: true },
       }),
       prisma.group.findMany({
@@ -86,6 +89,7 @@ export async function GET(_req: NextRequest) {
       totalOwed,
       totalOwing,
       groupCount: groups.length,
+      currency,
     });
     res.headers.set("Cache-Control", "private, max-age=60, stale-while-revalidate=120");
     return res;

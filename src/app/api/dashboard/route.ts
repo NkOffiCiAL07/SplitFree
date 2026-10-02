@@ -20,6 +20,7 @@ export async function GET() {
           expense: {
             select: {
               date: true,
+              currency: true,
               paidById: true,
               paidBy: { select: { name: true, avatarUrl: true } },
             },
@@ -31,7 +32,7 @@ export async function GET() {
         select: {
           amount: true,
           userId: true,
-          expense: { select: { date: true } },
+          expense: { select: { date: true, currency: true } },
           user: { select: { name: true, avatarUrl: true } },
         },
       }),
@@ -55,76 +56,75 @@ export async function GET() {
       prisma.settlement.findMany({
         where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
         select: {
-          fromUserId: true, toUserId: true, amount: true,
+          fromUserId: true, toUserId: true, amount: true, currency: true,
           fromUser: { select: { name: true, avatarUrl: true } },
           toUser: { select: { name: true, avatarUrl: true } },
         },
       }),
     ]);
 
-    // Monthly chart — bucket in memory but accumulate in cents, divide once per bucket
+    // Headline currency: group currency takes priority over the profile default
+    const currency = primaryGroup?.currency ?? profile?.currency ?? "USD";
+
+    // Monthly chart — primary currency only (amounts in different currencies are never summed),
+    // bucketed in memory but accumulated in cents, divided once per bucket
     const months: { month: string; owed: number; owing: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const start = startOfMonth(subMonths(new Date(), i));
       const monthKey = format(start, "yyyy-MM");
 
       const owedCents  = myPaidSplits
-        .filter((s) => format(s.expense.date, "yyyy-MM") === monthKey)
+        .filter((s) => s.expense.currency === currency && format(s.expense.date, "yyyy-MM") === monthKey)
         .reduce((sum, s) => sum + s.amount, 0);
 
       const owingCents = mySplits
-        .filter((s) => format(s.expense.date, "yyyy-MM") === monthKey)
+        .filter((s) => s.expense.currency === currency && format(s.expense.date, "yyyy-MM") === monthKey)
         .reduce((sum, s) => sum + s.amount, 0);
 
       months.push({ month: format(start, "MMM"), owed: owedCents / 100, owing: owingCents / 100 });
     }
 
-    // Per-person balances (net = positive means they owe you, negative means you owe them)
-    const balanceMap = new Map<string, { name: string; avatarUrl: string | null; net: number }>();
-    for (const split of myPaidSplits) {
-      const cur = balanceMap.get(split.userId) ?? { name: split.user.name, avatarUrl: split.user.avatarUrl, net: 0 };
-      cur.net += split.amount;
-      balanceMap.set(split.userId, cur);
-    }
-    for (const split of mySplits) {
-      const uid = split.expense.paidById;
-      const cur = balanceMap.get(uid) ?? { name: split.expense.paidBy.name, avatarUrl: split.expense.paidBy.avatarUrl, net: 0 };
-      cur.net -= split.amount;
-      balanceMap.set(uid, cur);
-    }
-    // Incorporate settlements into per-person balances
+    // Per-person, per-currency balances (net > 0 means they owe you, < 0 means you owe them)
+    const balanceMap = new Map<string, { id: string; name: string; avatarUrl: string | null; currency: string; net: number }>();
+    const bump = (id: string, name: string, avatarUrl: string | null, cur: string, amount: number) => {
+      const key = `${id}|${cur}`;
+      const entry = balanceMap.get(key) ?? { id, name, avatarUrl, currency: cur, net: 0 };
+      entry.net += amount;
+      balanceMap.set(key, entry);
+    };
+    for (const split of myPaidSplits) bump(split.userId, split.user.name, split.user.avatarUrl, split.expense.currency, split.amount);
+    for (const split of mySplits) bump(split.expense.paidById, split.expense.paidBy.name, split.expense.paidBy.avatarUrl, split.expense.currency, -split.amount);
     for (const s of mySettlements) {
-      if (s.fromUserId === userId) {
-        // I paid them → reduces what I owe them (their entry goes less negative / more positive)
-        const cur = balanceMap.get(s.toUserId) ?? { name: s.toUser.name, avatarUrl: s.toUser.avatarUrl, net: 0 };
-        cur.net += s.amount;
-        balanceMap.set(s.toUserId, cur);
-      } else {
-        // They paid me → reduces what they owe me (their entry goes less positive / more negative)
-        const cur = balanceMap.get(s.fromUserId) ?? { name: s.fromUser.name, avatarUrl: s.fromUser.avatarUrl, net: 0 };
-        cur.net -= s.amount;
-        balanceMap.set(s.fromUserId, cur);
-      }
+      // I paid them → my debt shrinks; they paid me → what they owe me shrinks
+      if (s.fromUserId === userId) bump(s.toUserId, s.toUser.name, s.toUser.avatarUrl, s.currency, s.amount);
+      else bump(s.fromUserId, s.fromUser.name, s.fromUser.avatarUrl, s.currency, -s.amount);
     }
 
-    // Derive totals from settlement-adjusted per-person balances
-    const totalOwed  = Array.from(balanceMap.values()).filter((b) => b.net > 0).reduce((s, b) => s + b.net, 0);
-    const totalOwing = Array.from(balanceMap.values()).filter((b) => b.net < 0).reduce((s, b) => s + Math.abs(b.net), 0);
+    // Totals per currency, derived from settlement-adjusted per-person balances
+    const totalsByCurrency = new Map<string, { owed: number; owing: number }>();
+    for (const b of balanceMap.values()) {
+      const t = totalsByCurrency.get(b.currency) ?? { owed: 0, owing: 0 };
+      if (b.net > 0) t.owed += b.net;
+      else if (b.net < 0) t.owing += -b.net;
+      totalsByCurrency.set(b.currency, t);
+    }
+    const main = totalsByCurrency.get(currency) ?? { owed: 0, owing: 0 };
+    const otherCurrencies = [...totalsByCurrency.entries()]
+      .filter(([cur, t]) => cur !== currency && (t.owed > 0 || t.owing > 0))
+      .map(([cur, t]) => ({ currency: cur, owed: t.owed, owing: t.owing }));
 
-    const personBalances = Array.from(balanceMap.entries())
-      .map(([id, b]) => ({ id, ...b }))
+    const personBalances = [...balanceMap.values()]
       .filter((b) => b.net !== 0)
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
       .slice(0, 5);
 
     const body = JSON.stringify({
       data: {
-        stats: { totalOwed, totalOwing, groupCount: groups, netBalance: totalOwed - totalOwing },
+        stats: { totalOwed: main.owed, totalOwing: main.owing, groupCount: groups, netBalance: main.owed - main.owing, otherCurrencies },
         monthly: months,
         personBalances,
         recentActivity,
-        // Group currency takes priority over profile default
-        currency: primaryGroup?.currency ?? profile?.currency ?? "USD",
+        currency,
       },
     });
 

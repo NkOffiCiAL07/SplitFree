@@ -23,6 +23,27 @@ import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/li
 import { APP_NAME } from "@/lib/app-config";
 import type { Friendship, GroupMember } from "@/types";
 
+function BalanceLines({ nets }: { nets?: { currency: string; net: number }[] }) {
+  if (!nets?.length) return null;
+  return (
+    <>
+      {nets.map(({ currency, net }) => (
+        <p
+          key={currency}
+          className={cn(
+            "text-xs font-semibold mt-0.5",
+            net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+          )}
+        >
+          {net > 0
+            ? `lent ${formatCompactCurrency(net, currency)}`
+            : `owes ${formatCompactCurrency(Math.abs(net), currency)}`}
+        </p>
+      ))}
+    </>
+  );
+}
+
 export default function FriendsPage() {
   const { user } = useAuth();
   const { data: friendships, isLoading } = useFriends();
@@ -245,20 +266,7 @@ export default function FriendsPage() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
-                {(() => {
-                  const b = balances?.byPerson[friendship.friendId];
-                  if (!b || b.net === 0) return null;
-                  return (
-                    <p className={cn(
-                      "text-xs font-semibold mt-0.5",
-                      b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                    )}>
-                      {b.net > 0
-                        ? `lent ${formatCompactCurrency(b.net, b.currency)}`
-                        : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
-                    </p>
-                  );
-                })()}
+                <BalanceLines nets={balances?.byPerson[friendship.friendId]?.all} />
               </div>
               <p className="text-xs text-muted-foreground hidden sm:block shrink-0">
                 {formatRelativeTime(friendship.createdAt)}
@@ -307,20 +315,7 @@ export default function FriendsPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{contact.name ?? "Member"}</p>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
-                {(() => {
-                  const b = balances?.byPerson[contact.id];
-                  if (!b || b.net === 0) return null;
-                  return (
-                    <p className={cn(
-                      "text-xs font-semibold mt-0.5",
-                      b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                    )}>
-                      {b.net > 0
-                        ? `lent ${formatCompactCurrency(b.net, b.currency)}`
-                        : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
-                    </p>
-                  );
-                })()}
+                <BalanceLines nets={balances?.byPerson[contact.id]?.all} />
               </div>
               <Button
                 size="sm"

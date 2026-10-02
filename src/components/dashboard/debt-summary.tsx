@@ -14,6 +14,7 @@ interface PersonBalance {
   name: string;
   avatarUrl: string | null;
   net: number; // positive = they owe you, negative = you owe them
+  currency?: string;
 }
 
 interface Props { balances?: PersonBalance[]; netBalance?: number; currency?: string; isLoading?: boolean }
@@ -57,7 +58,7 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", i
           ) : (
             balances.map((b, i) => (
               <m.div
-                key={b.id}
+                key={`${b.id}-${b.currency}`}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.32 + i * 0.07, duration: 0.3 }}
@@ -74,7 +75,7 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", i
                 <span className={cn("text-sm font-semibold",
                   b.net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 )}>
-                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net), currency)}
+                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net), b.currency ?? currency)}
                 </span>
               </m.div>
             ))

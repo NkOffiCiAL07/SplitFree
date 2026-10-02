@@ -15,6 +15,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
 
+/** Sum debts per currency and join them ("$10.00 + ₹500.00") — never add across currencies. */
+function totalsLabel(debts: { amount: number; currency?: string }[], fallback: string) {
+  const byCurrency = new Map<string, number>();
+  for (const d of debts) {
+    const cur = d.currency ?? fallback;
+    byCurrency.set(cur, (byCurrency.get(cur) ?? 0) + d.amount);
+  }
+  if (byCurrency.size === 0) return formatCurrency(0, fallback);
+  return [...byCurrency.entries()].map(([cur, amt]) => formatCurrency(amt, cur)).join(" + ");
+}
+
 export default function SettlePage() {
   const { data, isLoading } = useSettlements();
   const { data: balanceData, isLoading: balanceLoading } = useBalance();
@@ -25,6 +36,8 @@ export default function SettlePage() {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Currency of the debt being settled — payments must be recorded in the debt's own currency
+  const [settleCurrency, setSettleCurrency] = useState<string | null>(null);
 
   const userCurrency = useUserCurrency();
   const settlements = Array.isArray(data) ? data : [];
@@ -36,15 +49,17 @@ export default function SettlePage() {
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFriend || !amount) return;
-    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), currency: userCurrency, note });
+    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), currency: settleCurrency ?? userCurrency, note });
     setDialogOpen(false);
     setAmount("");
     setNote("");
     setSelectedFriend("");
+    setSettleCurrency(null);
   };
 
-  const openSettleFor = (toUserId: string, amt: number) => {
+  const openSettleFor = (toUserId: string, amt: number, currency: string) => {
     setSelectedFriend(toUserId);
+    setSettleCurrency(currency);
     setAmount((amt / 100).toFixed(2));
     setDialogOpen(true);
   };
@@ -122,14 +137,14 @@ export default function SettlePage() {
           <div className="rounded-xl border bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 p-4">
             <p className="text-xs text-muted-foreground mb-1">You owe</p>
             <p className="text-xl font-bold text-red-600 dark:text-red-400">
-              {formatCurrency(myDebts.reduce((s: number, d: any) => s + d.amount, 0), userCurrency)}
+              {totalsLabel(myDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{myDebts.length} payment{myDebts.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="rounded-xl border bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30 p-4">
             <p className="text-xs text-muted-foreground mb-1">Owed to you</p>
             <p className="text-xl font-bold text-green-600 dark:text-green-400">
-              {formatCurrency(othersDebts.reduce((s: number, d: any) => s + d.amount, 0), userCurrency)}
+              {totalsLabel(othersDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{othersDebts.length} payment{othersDebts.length !== 1 ? "s" : ""}</p>
           </div>
@@ -160,7 +175,7 @@ export default function SettlePage() {
               const isMyDebt = debt.fromUserId === user?.id;
               return (
                 <m.div
-                  key={i}
+                  key={`${debt.fromUserId}-${debt.toUserId}-${debt.currency}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06 }}
@@ -184,14 +199,14 @@ export default function SettlePage() {
                     </span>
                   </div>
                   <span className={cn("text-sm font-bold shrink-0", isMyDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
-                    {formatCurrency(debt.amount, userCurrency)}
+                    {formatCurrency(debt.amount, debt.currency ?? userCurrency)}
                   </span>
                   {isMyDebt && (
                     <Button
                       variant="brand"
                       size="sm"
                       className="text-xs h-7 px-3 shrink-0"
-                      onClick={() => openSettleFor(debt.toUserId, debt.amount)}
+                      onClick={() => openSettleFor(debt.toUserId, debt.amount, debt.currency ?? userCurrency)}
                     >
                       Pay
                     </Button>

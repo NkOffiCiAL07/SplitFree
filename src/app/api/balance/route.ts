@@ -11,44 +11,35 @@ export async function GET() {
     const [allExpenses, allSettlements] = await Promise.all([
       prisma.expense.findMany({
         where: visibleToUser(userId),
-        select: { paidById: true, splits: { select: { userId: true, amount: true } } },
+        select: { paidById: true, currency: true, splits: { select: { userId: true, amount: true } } },
       }),
       prisma.settlement.findMany({
         where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
-        select: { fromUserId: true, toUserId: true, amount: true },
+        select: { fromUserId: true, toUserId: true, amount: true, currency: true },
       }),
     ]);
 
-    // Build net balances: positive = they owe me, negative = I owe them
-    const netMap = new Map<string, number>();
+    // Net balance per (person, currency): positive = they owe me, negative = I owe them.
+    // Currencies are never mixed, so each one is netted and simplified on its own.
+    const nets = new Map<string, Map<string, number>>(); // currency -> personId -> net
+    const bump = (currency: string, personId: string, amount: number) => {
+      const byPerson = nets.get(currency) ?? new Map<string, number>();
+      byPerson.set(personId, (byPerson.get(personId) ?? 0) + amount);
+      nets.set(currency, byPerson);
+    };
     for (const expense of allExpenses) {
       for (const split of expense.splits) {
-        if (split.userId === userId && expense.paidById !== userId) {
-          netMap.set(expense.paidById, (netMap.get(expense.paidById) ?? 0) - split.amount);
-        } else if (expense.paidById === userId && split.userId !== userId) {
-          netMap.set(split.userId, (netMap.get(split.userId) ?? 0) + split.amount);
-        }
+        if (split.userId === userId && expense.paidById !== userId) bump(expense.currency, expense.paidById, -split.amount);
+        else if (expense.paidById === userId && split.userId !== userId) bump(expense.currency, split.userId, split.amount);
       }
     }
     for (const s of allSettlements) {
-      if (s.fromUserId === userId) {
-        netMap.set(s.toUserId, (netMap.get(s.toUserId) ?? 0) + s.amount);
-      } else {
-        netMap.set(s.fromUserId, (netMap.get(s.fromUserId) ?? 0) - s.amount);
-      }
+      if (s.fromUserId === userId) bump(s.currency, s.toUserId, s.amount);
+      else bump(s.currency, s.fromUserId, -s.amount);
     }
 
-    // Collect raw debts for simplification (only non-zero)
-    const rawDebts = Array.from(netMap.entries())
-      .filter(([, amt]) => amt !== 0)
-      .map(([otherId, amt]) =>
-        amt < 0
-          ? { fromUserId: userId, toUserId: otherId, amount: -amt }
-          : { fromUserId: otherId, toUserId: userId, amount: amt }
-      );
-
     // Look up names for all involved users
-    const peerIds = Array.from(netMap.keys());
+    const peerIds = [...new Set([...nets.values()].flatMap((m) => [...m.keys()]))];
     const peers = peerIds.length
       ? await prisma.user.findMany({
           where: { id: { in: peerIds } },
@@ -56,14 +47,25 @@ export async function GET() {
         })
       : [];
     const peerMap = new Map(peers.map((p) => [p.id, p]));
+    const unknown = (id: string) => ({ id, name: "Unknown", avatarUrl: null });
 
-    const simplified = simplifyDebts(rawDebts).map((d) => ({
-      ...d,
-      fromUser: peerMap.get(d.fromUserId) ?? { id: d.fromUserId, name: "Unknown", avatarUrl: null },
-      toUser: peerMap.get(d.toUserId) ?? { id: d.toUserId, name: "Unknown", avatarUrl: null },
-    }));
+    const simplified = [...nets.entries()].flatMap(([currency, byPerson]) => {
+      const rawDebts = [...byPerson.entries()]
+        .filter(([, amt]) => amt !== 0)
+        .map(([otherId, amt]) =>
+          amt < 0
+            ? { fromUserId: userId, toUserId: otherId, amount: -amt }
+            : { fromUserId: otherId, toUserId: userId, amount: amt }
+        );
+      return simplifyDebts(rawDebts).map((d) => ({
+        ...d,
+        currency,
+        fromUser: peerMap.get(d.fromUserId) ?? unknown(d.fromUserId),
+        toUser: peerMap.get(d.toUserId) ?? unknown(d.toUserId),
+      }));
+    });
 
-    const res = ok({ simplified, netMap: Object.fromEntries(netMap) });
+    const res = ok({ simplified });
     res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
     return res;
   } catch (e) {

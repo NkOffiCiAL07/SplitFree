@@ -40,7 +40,9 @@ async function fetchAnalytics() {
 
 export default function AnalyticsPage() {
   const { data, isLoading } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics, staleTime: 60_000 });
-  const currency = useUserCurrency();
+  const userCurrency = useUserCurrency();
+  // The API only totals expenses in one currency; use the one it reports
+  const currency: string = data?.currency ?? userCurrency;
 
   const monthlyData = data?.monthly?.map((m: any) => ({
     name: format(new Date(m.month + "-01"), "MMM"),

@@ -2,16 +2,22 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+export interface CurrencyNet { currency: string; net: number }
+
 interface PersonBalance {
   name: string;
   avatarUrl: string | null;
+  /** Headline balance: the currency with the largest absolute amount */
   net: number;
   currency: string;
+  /** Every non-zero balance, one entry per currency */
+  all: CurrencyNet[];
 }
 
 interface GroupBalance {
   net: number;
   currency: string;
+  all: CurrencyNet[];
 }
 
 interface BalancesData {

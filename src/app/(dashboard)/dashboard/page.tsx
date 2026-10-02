@@ -108,6 +108,21 @@ export default function DashboardPage() {
         }
       </div>
 
+      {/* Balances in other currencies are kept separate, never converted or summed */}
+      {!isLoading && data?.stats?.otherCurrencies?.length > 0 && (
+        <p className="text-xs text-muted-foreground -mt-2">
+          Also in other currencies:{" "}
+          {data.stats.otherCurrencies
+            .map((c: { currency: string; owed: number; owing: number }) =>
+              [
+                c.owed > 0 ? `owed ${formatCompactCurrency(c.owed, c.currency)}` : null,
+                c.owing > 0 ? `owe ${formatCompactCurrency(c.owing, c.currency)}` : null,
+              ].filter(Boolean).join(", ")
+            )
+            .join(" · ")}
+        </p>
+      )}
+
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
