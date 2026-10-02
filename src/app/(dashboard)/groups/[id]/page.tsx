@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useFriends } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
@@ -27,6 +27,7 @@ import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
+import { APP_NAME } from "@/lib/app-config";
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -80,6 +81,37 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     await addMemberMutation.mutateAsync({ groupId: id, email: addEmail });
     setAddEmail("");
     setAddDialogOpen(false);
+  };
+
+  const downloadQRCode = () => {
+    const svgEl = document.getElementById("qr-invite-svg") as SVGElement | null;
+    if (!svgEl) return;
+    const serialized = new XMLSerializer().serializeToString(svgEl);
+    const canvas = document.createElement("canvas");
+    const size = 320;
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = `${group?.name ?? "group"}-invite-qr.png`;
+      a.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(serialized);
+  };
+
+  const shareQRCode = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: `Join ${group?.name} on ${APP_NAME}`, url: qrUrl }); } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(qrUrl);
+      toast.success("Link copied!");
+    }
   };
 
   const handleQuickSettle = async (e: React.FormEvent) => {
@@ -510,28 +542,66 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* QR Code invite dialog */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="sm:max-w-xs">
-          <DialogHeader><DialogTitle>Invite via QR code</DialogTitle></DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-2">
+        <DialogContent className="sm:max-w-sm p-0 overflow-hidden" showClose={false}>
+          {/* Gradient hero */}
+          <div className="gradient-brand px-6 pt-6 pb-8 flex flex-col items-center gap-5">
+            {/* Top bar */}
+            <div className="w-full flex items-start justify-between">
+              <div>
+                <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest">{APP_NAME}</p>
+                <p className="text-white font-bold text-xl leading-tight mt-0.5">{group.name}</p>
+                <p className="text-white/70 text-xs mt-0.5">Scan the code to join</p>
+              </div>
+              <button
+                onClick={() => setQrOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center text-white shrink-0"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            {/* QR white card */}
             {qrUrl && (
-              <div className="p-4 bg-white rounded-2xl shadow-sm">
-                <QRCodeSVG value={qrUrl} size={200} level="M" />
+              <div className="bg-white rounded-3xl p-5 shadow-2xl shadow-black/30">
+                <QRCodeSVG
+                  id="qr-invite-svg"
+                  value={qrUrl}
+                  size={210}
+                  level="H"
+                  fgColor="#7c3aed"
+                  bgColor="#ffffff"
+                  imageSettings={{
+                    src: "/icons/icon-192x192.png",
+                    height: 50,
+                    width: 50,
+                    excavate: true,
+                  }}
+                />
               </div>
             )}
-            <p className="text-xs text-muted-foreground text-center">
-              Scan to join <span className="font-medium">{group.name}</span>
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1.5"
-              onClick={async () => {
-                await navigator.clipboard.writeText(qrUrl);
-                toast.success("Link copied!");
-              }}
+          </div>
+          {/* Action row */}
+          <div className="grid grid-cols-3 gap-2 p-4">
+            <button
+              onClick={downloadQRCode}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-input hover:bg-muted transition-colors text-xs font-medium text-muted-foreground hover:text-foreground"
             >
-              <Link2 className="size-3.5" /> Copy link
-            </Button>
+              <Download className="size-4" />
+              Save
+            </button>
+            <button
+              onClick={shareQRCode}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-input hover:bg-muted transition-colors text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <Share2 className="size-4" />
+              Share
+            </button>
+            <button
+              onClick={async () => { await navigator.clipboard.writeText(qrUrl); toast.success("Link copied!"); }}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-input hover:bg-muted transition-colors text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <Link2 className="size-4" />
+              Copy link
+            </button>
           </div>
         </DialogContent>
       </Dialog>
