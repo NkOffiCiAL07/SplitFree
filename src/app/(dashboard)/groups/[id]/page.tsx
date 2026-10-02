@@ -3,8 +3,9 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
+import { useFriends } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
@@ -40,6 +41,8 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const settleUp = useSettleUp();
   const [addEmail, setAddEmail] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [friendSearch, setFriendSearch] = useState("");
+  const { data: friends } = useFriends();
   const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
   const [settleNote, setSettleNote] = useState("");
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
@@ -302,7 +305,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </DialogContent>
               </Dialog>
             )}
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+            <Dialog open={addDialogOpen} onOpenChange={(o) => { setAddDialogOpen(o); if (!o) { setAddEmail(""); setFriendSearch(""); } }}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                   <UserPlus className="size-3.5" /> Add member
@@ -310,18 +313,83 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
               </DialogTrigger>
               <DialogContent className="sm:max-w-sm">
                 <DialogHeader><DialogTitle>Add member</DialogTitle></DialogHeader>
-                <form onSubmit={handleAddMember} className="space-y-3 mt-2">
-                  <Input
-                    type="email"
-                    placeholder="friend@example.com"
-                    value={addEmail}
-                    onChange={(e) => setAddEmail(e.target.value)}
-                    autoFocus
-                  />
-                  <Button type="submit" className="w-full" variant="brand" loading={addMemberMutation.isPending}>
-                    Add member
-                  </Button>
-                </form>
+                <div className="space-y-4 mt-2">
+                  {/* Friends picker */}
+                  {(() => {
+                    const memberIds = new Set((group.members ?? []).map((m) => m.userId));
+                    const eligible = (friends ?? []).filter((f) => !memberIds.has(f.friendId));
+                    const filtered = eligible.filter((f) => {
+                      const q = friendSearch.toLowerCase();
+                      return !q || (f.friend?.name ?? "").toLowerCase().includes(q) || (f.friend?.email ?? "").toLowerCase().includes(q);
+                    });
+                    return (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">From your friends</p>
+                        {eligible.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2">All your friends are already in this group.</p>
+                        ) : (
+                          <>
+                            <div className="relative">
+                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                              <Input
+                                placeholder="Search friends…"
+                                value={friendSearch}
+                                onChange={(e) => setFriendSearch(e.target.value)}
+                                className="pl-8 h-8 text-xs"
+                              />
+                            </div>
+                            <div className="max-h-44 overflow-y-auto space-y-1 rounded-lg border border-input p-1">
+                              {filtered.length === 0 ? (
+                                <p className="text-xs text-muted-foreground py-2 text-center">No matches</p>
+                              ) : filtered.map((f) => (
+                                <button
+                                  key={f.friendId}
+                                  type="button"
+                                  disabled={addMemberMutation.isPending}
+                                  onClick={async () => {
+                                    await addMemberMutation.mutateAsync({ groupId: id, email: f.friend?.email ?? "" });
+                                    setAddDialogOpen(false);
+                                    setFriendSearch("");
+                                  }}
+                                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-primary/8 transition-colors text-left disabled:opacity-50"
+                                >
+                                  <Avatar className="size-7 shrink-0">
+                                    <AvatarImage src={f.friend?.avatarUrl ?? undefined} />
+                                    <AvatarFallback className="text-[10px]">{getInitials(f.friend?.name ?? f.friend?.email ?? "?")}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{f.friend?.name ?? f.friend?.email}</p>
+                                    {f.friend?.name && <p className="text-[10px] text-muted-foreground truncate">{f.friend.email}</p>}
+                                  </div>
+                                  <UserPlus className="size-3.5 text-muted-foreground shrink-0" />
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {/* Email fallback */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Or add by email</p>
+                    <form onSubmit={handleAddMember} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                        <Input
+                          type="email"
+                          placeholder="friend@example.com"
+                          value={addEmail}
+                          onChange={(e) => setAddEmail(e.target.value)}
+                          className="pl-8 h-9 text-sm"
+                        />
+                      </div>
+                      <Button type="submit" variant="brand" size="sm" loading={addMemberMutation.isPending} disabled={!addEmail}>
+                        Add
+                      </Button>
+                    </form>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
