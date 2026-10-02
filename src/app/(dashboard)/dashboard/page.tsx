@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Users, Wallet, Plus, ArrowLeftRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { BalanceChart } from "@/components/dashboard/balance-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DebtSummary } from "@/components/dashboard/debt-summary";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
@@ -14,6 +13,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useUIStore } from "@/stores/ui-store";
 import { formatCompactCurrency, cn } from "@/lib/utils";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Recharts is ~350KB — load it after first paint instead of blocking the dashboard
+const BalanceChart = dynamic(
+  () => import("@/components/dashboard/balance-chart").then((m) => m.BalanceChart),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full rounded-xl" /> }
+);
 
 async function fetchDashboard() {
   const res = await fetch("/api/dashboard");

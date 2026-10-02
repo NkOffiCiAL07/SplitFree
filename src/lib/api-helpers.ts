@@ -22,6 +22,9 @@ export async function requireAuth() {
 }
 
 export async function ensureUserProfile(userId: string, email: string, name?: string) {
+  // Cheap indexed read on the hot path; only write for first-time users.
+  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  if (existing) return existing;
   return prisma.user.upsert({
     where: { id: userId },
     update: {},

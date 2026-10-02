@@ -9,6 +9,11 @@ export async function proxy(request: NextRequest) {
   if (!supabaseConfigured) {
     return NextResponse.next({ request });
   }
+  // API route handlers authenticate themselves via getAuthUser(); skipping the
+  // proxy's getUser() here avoids a duplicate Supabase round trip per API call.
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next({ request });
+  }
   return await updateSession(request);
 }
 
