@@ -80,6 +80,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full bg-background font-sans antialiased">
+        {/* Inline SW registration so crawlers (PWABuilder, Lighthouse) detect it */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
