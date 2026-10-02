@@ -309,6 +309,20 @@ export default function FriendsPage() {
                 <p className="text-sm font-medium truncate">{contact.name ?? "Member"}</p>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
               </div>
+              {(() => {
+                const b = balances?.byPerson[contact.id];
+                if (!b || b.net === 0) return null;
+                return (
+                  <span className={cn(
+                    "text-xs font-semibold shrink-0 hidden sm:block",
+                    b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                  )}>
+                    {b.net > 0
+                      ? `lent ${formatCompactCurrency(b.net, b.currency)}`
+                      : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
+                  </span>
+                );
+              })()}
               <Button
                 size="sm"
                 variant="brand"
