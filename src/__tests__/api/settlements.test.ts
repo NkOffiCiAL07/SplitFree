@@ -13,7 +13,7 @@ import { POST as REMIND } from "@/app/api/settlements/remind/route";
 
 const p = prismaMock as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-const req = (url: string, init?: RequestInit) => new NextRequest(`http://x${url}`, init);
+const req = (url: string, init?: ConstructorParameters<typeof NextRequest>[1]) => new NextRequest(`http://x${url}`, init);
 const json = (b: unknown) => ({ method: "POST", body: JSON.stringify(b) });
 
 beforeEach(() => {
