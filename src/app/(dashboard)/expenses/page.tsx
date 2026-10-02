@@ -9,7 +9,7 @@ import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileT
 import { useInfiniteExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useDebounceValue } from "usehooks-ts";
 import { useAuth } from "@/hooks/use-auth";
-import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
+import { LazyAddExpenseDialog as AddExpenseDialog } from "@/components/expenses/lazy-add-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";

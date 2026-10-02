@@ -1,9 +1,19 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const getUser = vi.hoisted(() => vi.fn());
+// `getUser` stands in for "is someone signed in?" (tests set it up like before); the middleware must read it
+// through getClaims (local token verification) and must NEVER call the network-based auth.getUser.
+const { getUser, serverGetUser } = vi.hoisted(() => ({ getUser: vi.fn(), serverGetUser: vi.fn() }));
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({ auth: { getUser } }),
+  createServerClient: () => ({
+    auth: {
+      getClaims: async () => {
+        const r = await getUser();
+        return { data: r?.data?.user ? { claims: { sub: r.data.user.id } } : null, error: null };
+      },
+      getUser: serverGetUser,
+    },
+  }),
 }));
 
 // Requests must come from the same `next/server` instance the module under test loads after
@@ -19,6 +29,12 @@ describe("updateSession (page protection)", () => {
     getUser.mockReset();
     ({ NextRequest: NextRequestCtor } = await import("next/server"));
     ({ updateSession } = await import("@/lib/supabase/middleware"));
+  });
+
+  it("verifies the session locally and never calls the auth server on a page navigation", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    await updateSession(req("/dashboard"));
+    expect(serverGetUser).not.toHaveBeenCalled();
   });
 
   describe("signed out", () => {

@@ -12,11 +12,11 @@ import { format } from "date-fns";
 // Recharts (~350KB) loads after the page shell renders
 const chartFallback = () => <Skeleton className="h-52 w-full rounded-lg" />;
 const MonthlyBarChart = dynamic(
-  () => import("@/components/analytics/analytics-charts").then((m) => m.MonthlyBarChart),
+  () => import("@/components/charts").then((m) => m.MonthlyBarChart),
   { ssr: false, loading: chartFallback }
 );
 const CategoryPieChart = dynamic(
-  () => import("@/components/analytics/analytics-charts").then((m) => m.CategoryPieChart),
+  () => import("@/components/charts").then((m) => m.CategoryPieChart),
   { ssr: false, loading: chartFallback }
 );
 

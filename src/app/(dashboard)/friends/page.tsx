@@ -13,7 +13,7 @@ import {
 import { useGroups } from "@/hooks/use-groups";
 import { useBalances } from "@/hooks/use-balances";
 import { useAuth } from "@/hooks/use-auth";
-import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
+import { LazyAddExpenseDialog as AddExpenseDialog } from "@/components/expenses/lazy-add-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";

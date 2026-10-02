@@ -1,8 +1,8 @@
-const CACHE_NAME = "splitfree-v6";
+const CACHE_NAME = "splitfree-v7";
 const OFFLINE_URL = "/offline";
+// Only public, session-independent files. (Pre-caching "/dashboard" while signed out stored a redirect to
+// the login page, which then can't be used to answer a navigation.)
 const STATIC_ASSETS = [
-  "/",
-  "/dashboard",
   "/offline",
   "/manifest.json",
   "/apple-touch-icon.png",
@@ -31,7 +31,7 @@ self.addEventListener("activate", (event) => {
 // Fetch strategy:
 //  - /api/*          → network-first, fallback cached, fallback null (no offline page for API)
 //  - /_next/static/* → cache-first (immutable hashed assets)
-//  - pages           → stale-while-revalidate, fallback /offline
+//  - pages           → network-first, fallback to cache, then /offline
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -85,23 +85,25 @@ self.addEventListener("fetch", (event) => {
   if (request.headers.has("RSC") || request.headers.has("Next-Router-Prefetch")) return;
   if (request.mode !== "navigate") return;
 
-  // Pages: stale-while-revalidate, serve /offline as fallback when network + cache both fail
+  // Pages: network-first. Always show the live page (correct sign-in state, newest deploy); only when the
+  // network fails fall back to the last cached copy, then to the offline page. Redirected responses are
+  // never cached, so a login redirect can't be replayed in place of a real page.
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.match(request).then((cached) => {
-        const networkFetch = fetch(request)
-          .then((response) => {
-            if (response.ok && !response.redirected) cache.put(request, response.clone());
-            return response;
-          })
-          .catch(async () => {
-            // Network failed and nothing cached — show offline page
-            const offlinePage = await caches.match(OFFLINE_URL);
-            return offlinePage ?? new Response("Offline", { status: 503 });
-          });
-        return cached || networkFetch;
-      })
-    )
+    (async () => {
+      try {
+        const response = await fetch(request);
+        if (response.ok && !response.redirected) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      } catch {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        const offlinePage = await caches.match(OFFLINE_URL);
+        return offlinePage ?? new Response("Offline", { status: 503 });
+      }
+    })()
   );
 });
 

@@ -4,12 +4,12 @@ import { prismaMock, resetPrisma, authState, ME, OTHER } from "./helpers";
 vi.mock("@/lib/prisma", async () => ({ prisma: (await import("./helpers")).prismaMock }));
 vi.mock("@/lib/supabase/server", async () => {
   const { authState } = await import("./helpers");
-  return { createClient: async () => ({ auth: { getUser: async () => ({ data: { user: authState.user }, error: null }) } }) };
+  return { createClient: async () => ({ auth: { getClaims: async () => ({ data: authState.user ? { claims: { sub: authState.user.id, email: authState.user.email } } : null, error: null }) } }) };
 });
 const getRates = vi.fn();
 vi.mock("@/lib/rates", async () => {
   const actual = await vi.importActual<typeof import("@/lib/rates")>("@/lib/rates");
-  return { ...actual, getRates: (b: string) => getRates(b) };
+  return { ...actual, getRates: (...args: unknown[]) => (getRates as (...a: unknown[]) => unknown)(...args) };
 });
 
 import { GET } from "@/app/api/dashboard/route";
@@ -59,7 +59,7 @@ describe("GET /api/dashboard", () => {
     seed({ expenses: [owed({ amount: 100000, currency: "INR" }), owed({ amount: 1000, currency: "USD" })] });
     getRates.mockResolvedValue({ base: "INR", date: "2026-10-01", rates: { USD: 0.0125 } }); // $10 = ₹800
     const { data } = await (await GET()).json();
-    expect(getRates).toHaveBeenCalledWith("INR");
+    expect(getRates).toHaveBeenCalledWith("INR", { timeoutMs: 800 }); // bounded wait: a slow rate service can't hold the dashboard up
     expect(data.stats.combined).toMatchObject({ owed: 180000, owing: 0, net: 180000, complete: true, date: "2026-10-01" });
   });
 

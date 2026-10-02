@@ -11,7 +11,7 @@ vi.mock("@/hooks/use-expenses", () => ({
 vi.mock("usehooks-ts", () => ({ useDebounceValue: (v: unknown) => [v] })); // no waiting in tests
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => ({ user: { id: "me" } }) }));
 vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => "INR" }));
-vi.mock("@/components/expenses/add-expense-dialog", () => ({ AddExpenseDialog: () => <div /> }));
+vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: () => <div /> }));
 vi.mock("@/components/expenses/expense-comments", () => ({ ExpenseComments: () => <div /> }));
 vi.mock("@/components/expenses/expense-history", () => ({ ExpenseHistory: () => <div /> }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));

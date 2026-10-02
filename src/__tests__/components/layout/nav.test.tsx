@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+const prefetch = vi.fn();
 const setAddExpenseOpen = vi.fn();
 const setCommandPaletteOpen = vi.fn();
 vi.mock("@/stores/ui-store", () => ({
@@ -9,6 +10,9 @@ vi.mock("@/stores/ui-store", () => ({
     sidebarOpen: true, toggleSidebar: vi.fn(), toggleMobileMenu: vi.fn(),
     setAddExpenseOpen, setCommandPaletteOpen,
   }),
+}));
+vi.mock("@/hooks/use-prefetch", () => ({
+  usePrefetchOnIntent: () => (href: string) => ({ onMouseEnter: () => prefetch("hover", href), onFocus: () => prefetch("focus", href), onTouchStart: () => prefetch("touch", href) }),
 }));
 vi.mock("@/hooks/use-auth", () => ({
   useAuth: () => ({ user: { email: "me@example.com", user_metadata: { name: "Me" } }, signOut: vi.fn() }),
@@ -33,6 +37,17 @@ describe("Sidebar", () => {
     for (const name of ["Dashboard", "Groups", "Expenses", "Friends", "Activity", "Analytics", "Recurring"]) {
       expect(screen.getByRole("link", { name: new RegExp(name, "i") })).toBeInTheDocument();
     }
+  });
+});
+
+describe("Sidebar — prefetching on intent", () => {
+  it("hovering, focusing or touching a link starts loading that page's data", async () => {
+    render(<Sidebar />);
+    const link = screen.getByRole("link", { name: /groups/i });
+    await userEvent.hover(link);
+    expect(prefetch).toHaveBeenCalledWith("hover", "/groups");
+    link.focus();
+    expect(prefetch).toHaveBeenCalledWith("focus", "/groups");
   });
 });
 

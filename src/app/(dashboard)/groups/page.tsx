@@ -6,7 +6,7 @@ import { m } from "framer-motion";
 import { useGroups } from "@/hooks/use-groups";
 import { useBalances } from "@/hooks/use-balances";
 import { GroupCard } from "@/components/groups/group-card";
-import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
+import { LazyCreateGroupDialog as CreateGroupDialog } from "@/components/groups/lazy-group-dialogs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";

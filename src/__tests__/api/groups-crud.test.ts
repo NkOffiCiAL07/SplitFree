@@ -7,7 +7,7 @@ vi.mock("@/lib/prisma", async () => ({ prisma: (await import("./helpers")).prism
 vi.mock("@/lib/supabase/server", async () => {
   const { authState } = await import("./helpers");
   return {
-    createClient: async () => ({ auth: { getUser: async () => ({ data: { user: authState.user }, error: null }) } }),
+    createClient: async () => ({ auth: { getClaims: async () => ({ data: authState.user ? { claims: { sub: authState.user.id, email: authState.user.email } } : null, error: null }) } }),
     createAdminClient: async () => ({ auth: { admin: { inviteUserByEmail: vi.fn().mockResolvedValue({}) } } }),
   };
 });

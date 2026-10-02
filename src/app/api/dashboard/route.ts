@@ -82,7 +82,7 @@ export async function GET() {
     // Approximate combined total across currencies (live rates, best effort: omitted if unavailable)
     let combined: { owed: number; owing: number; net: number; date: string; complete: boolean } | null = null;
     if (otherCurrencies.length > 0) {
-      const rates = await getRates(currency);
+      const rates = await getRates(currency, { timeoutMs: 800 }); // never hold the dashboard up for a slow rate service
       if (rates) {
         let owed = main.owed;
         let owing = main.owing;

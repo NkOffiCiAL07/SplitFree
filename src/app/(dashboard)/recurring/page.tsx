@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { useUserCurrency } from "@/hooks/use-profile";
-import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
+import { LazyAddExpenseDialog as AddExpenseDialog } from "@/components/expenses/lazy-add-expense-dialog";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   FOOD:"🍔",TRANSPORT:"🚗",ACCOMMODATION:"🏨",ENTERTAINMENT:"🎭",

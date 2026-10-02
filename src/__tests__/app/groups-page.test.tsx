@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 const useGroups = vi.fn();
 vi.mock("@/hooks/use-groups", () => ({ useGroups: (archived: boolean) => useGroups(archived) }));
 vi.mock("@/hooks/use-balances", () => ({ useBalances: () => ({ data: undefined }) }));
-vi.mock("@/components/groups/create-group-dialog", () => ({ CreateGroupDialog: () => <div data-testid="create" /> }));
+vi.mock("@/components/groups/lazy-group-dialogs", () => ({ LazyCreateGroupDialog: () => <div data-testid="create" /> }));
 vi.mock("@/components/groups/group-card", () => ({ GroupCard: ({ group }: { group: { name: string } }) => <div>{group.name}</div> }));
 
 import GroupsPage from "@/app/(dashboard)/groups/page";

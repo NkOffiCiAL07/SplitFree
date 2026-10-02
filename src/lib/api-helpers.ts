@@ -4,11 +4,21 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { ZodError } from "zod";
 
-export async function getAuthUser() {
+/** The signed-in user as far as the API needs to know (all callers read only id and email). */
+export interface AuthUser { id: string; email: string | undefined }
+
+/**
+ * Verifies the session's access token locally against Supabase's cached public signing keys (ES256)
+ * instead of asking the auth server on every request — that network round trip used to be added to
+ * every API call. An expired token is refreshed transparently; a session revoked elsewhere stays
+ * valid until its token expires (at most an hour), the standard trade-off for local verification.
+ */
+export async function getAuthUser(): Promise<AuthUser | null> {
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return null;
-  return user;
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (error || !claims?.sub) return null;
+  return { id: claims.sub, email: claims.email };
 }
 
 export async function requireAuth() {
@@ -22,10 +32,31 @@ export async function requireAuth() {
   return { user, error: null };
 }
 
+// A user row, once it exists, never goes away while the app runs, so remember that per server instance
+// and skip the database round trip on every later request (it ran on each dashboard load and each write).
+const KNOWN_USER_TTL_MS = 10 * 60_000;
+const knownUsers = new Map<string, number>();
+
+/** Test hook: forget which users are known to exist. */
+export function resetKnownUsers() {
+  knownUsers.clear();
+}
+
 export async function ensureUserProfile(userId: string, email: string, name?: string) {
+  const expires = knownUsers.get(userId);
+  if (expires && expires > Date.now()) return null; // already known to exist
   // Cheap indexed read on the hot path; only write for first-time users.
   const existing = await prisma.user.findUnique({ where: { id: userId } });
-  if (existing) return existing;
+  if (existing) {
+    knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
+    return existing;
+  }
+  const created = await createUserProfile(userId, email, name);
+  knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
+  return created;
+}
+
+async function createUserProfile(userId: string, email: string, name?: string) {
   return prisma.user.upsert({
     where: { id: userId },
     update: {},

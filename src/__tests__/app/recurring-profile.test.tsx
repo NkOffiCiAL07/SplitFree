@@ -18,7 +18,7 @@ vi.mock("@/hooks/use-expenses", () => ({
   useInfiniteExpenses: (q: unknown) => { h.useInfiniteExpenses(q); return h.rec; },
   useDeleteExpense: () => ({ mutate: h.deleteExpense }),
 }));
-vi.mock("@/components/expenses/add-expense-dialog", () => ({ AddExpenseDialog: ({ open }: { open?: boolean }) => (open ? <div data-testid="add-dialog" /> : null) }));
+vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: ({ open }: { open?: boolean }) => (open ? <div data-testid="add-dialog" /> : null) }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { updateUser: h.updateUser } }) }));
 import RecurringPage from "@/app/(dashboard)/recurring/page";
 import ProfilePage from "@/app/(dashboard)/profile/page";

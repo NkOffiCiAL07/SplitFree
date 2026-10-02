@@ -10,11 +10,43 @@ export interface Rates {
 const API = "https://api.frankfurter.dev/v1/latest";
 const SIX_HOURS = 6 * 60 * 60;
 
+// ECB rates change once a day, so keep them in memory per server instance: a warm instance answers
+// instantly, and concurrent requests share one in-flight fetch instead of each calling the API.
+const cache = new Map<string, { at: number; value: Rates }>();
+const inflight = new Map<string, Promise<Rates | null>>();
+
+/** Test hook: forget cached rates. */
+export function resetRatesCache() {
+  cache.clear();
+  inflight.clear();
+}
+
 /**
  * Live exchange rates (ECB reference rates via frankfurter.dev — free, no key).
- * Returns null on any failure so callers can simply skip conversion; cached for 6 hours.
+ * Returns null on any failure so callers can simply skip conversion. Cached in memory for 6 hours.
+ *
+ * With `timeoutMs`, a slow rate service can't hold the caller up: it returns null after that long,
+ * while the fetch carries on in the background so the next request finds the rates cached.
  */
-export async function getRates(base: string): Promise<Rates | null> {
+export async function getRates(base: string, opts: { timeoutMs?: number } = {}): Promise<Rates | null> {
+  const hit = cache.get(base);
+  if (hit && Date.now() - hit.at < SIX_HOURS * 1000) return hit.value;
+
+  let pending = inflight.get(base);
+  if (!pending) {
+    pending = fetchRates(base)
+      .then((value) => {
+        if (value) cache.set(base, { at: Date.now(), value });
+        return value;
+      })
+      .finally(() => inflight.delete(base));
+    inflight.set(base, pending);
+  }
+  if (!opts.timeoutMs) return pending;
+  return Promise.race([pending, new Promise<null>((resolve) => setTimeout(() => resolve(null), opts.timeoutMs))]);
+}
+
+async function fetchRates(base: string): Promise<Rates | null> {
   try {
     const symbols = CURRENCY_CODES.filter((c) => c !== base).join(",");
     const res = await fetch(`${API}?base=${encodeURIComponent(base)}&symbols=${symbols}`, {

@@ -1,0 +1,78 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { prismaMock, resetPrisma } from "./helpers";
+
+vi.mock("@/lib/prisma", async () => ({ prisma: (await import("./helpers")).prismaMock }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+
+import { ensureUserProfile, resetKnownUsers } from "@/lib/api-helpers";
+
+const p = prismaMock as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+beforeEach(() => { resetPrisma(); resetKnownUsers(); vi.useRealTimers(); });
+
+describe("ensureUserProfile", () => {
+  it("returns the existing profile without writing", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "u1", name: "Asha" });
+    expect(await ensureUserProfile("u1", "a@x.com")).toEqual({ id: "u1", name: "Asha" });
+    expect(p.user.upsert).not.toHaveBeenCalled();
+  });
+
+  it("creates a first-time user with INR and a name derived from the email", async () => {
+    p.user.findUnique.mockResolvedValue(null);
+    p.user.upsert.mockResolvedValue({ id: "u2" });
+    await ensureUserProfile("u2", "priya.k@x.com");
+    expect(p.user.upsert.mock.calls[0][0].create).toEqual({ id: "u2", email: "priya.k@x.com", name: "priya.k", currency: "INR" });
+    expect(p.user.upsert.mock.calls[0][0].update).toEqual({}); // never overwrites an existing row
+  });
+
+  it("uses an explicit name when given", async () => {
+    p.user.findUnique.mockResolvedValue(null);
+    p.user.upsert.mockResolvedValue({});
+    await ensureUserProfile("u3", "a@x.com", "Asha Rao");
+    expect(p.user.upsert.mock.calls[0][0].create.name).toBe("Asha Rao");
+  });
+
+  it("remembers a user that exists, so later requests skip the database round trip", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "u1" });
+    await ensureUserProfile("u1", "a@x.com");
+    await ensureUserProfile("u1", "a@x.com");
+    await ensureUserProfile("u1", "a@x.com");
+    expect(p.user.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it("remembers a freshly created user too", async () => {
+    p.user.findUnique.mockResolvedValue(null);
+    p.user.upsert.mockResolvedValue({ id: "u2" });
+    await ensureUserProfile("u2", "a@x.com");
+    await ensureUserProfile("u2", "a@x.com");
+    expect(p.user.upsert).toHaveBeenCalledTimes(1);
+    expect(p.user.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it("tracks each user separately", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "x" });
+    await ensureUserProfile("a", "a@x.com");
+    await ensureUserProfile("b", "b@x.com");
+    expect(p.user.findUnique).toHaveBeenCalledTimes(2);
+  });
+
+  it("re-checks after ten minutes", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    p.user.findUnique.mockResolvedValue({ id: "u1" });
+    await ensureUserProfile("u1", "a@x.com");
+    vi.setSystemTime(Date.now() + 9 * 60_000);
+    await ensureUserProfile("u1", "a@x.com");
+    expect(p.user.findUnique).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(Date.now() + 2 * 60_000);
+    await ensureUserProfile("u1", "a@x.com");
+    expect(p.user.findUnique).toHaveBeenCalledTimes(2);
+  });
+
+  it("doesn't cache when creating fails", async () => {
+    p.user.findUnique.mockResolvedValue(null);
+    p.user.upsert.mockRejectedValueOnce(new Error("db")).mockResolvedValueOnce({ id: "u4" });
+    await expect(ensureUserProfile("u4", "a@x.com")).rejects.toThrow("db");
+    await ensureUserProfile("u4", "a@x.com");
+    expect(p.user.upsert).toHaveBeenCalledTimes(2);
+  });
+});

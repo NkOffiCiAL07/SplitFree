@@ -22,8 +22,8 @@ vi.mock("@/hooks/use-friends", () => ({
   useRespondToFriendRequest: () => ({ mutate: h.respond, isPending: false }),
   useCancelFriendRequest: () => ({ mutate: h.cancel }),
 }));
-vi.mock("@/components/expenses/add-expense-dialog", () => ({
-  AddExpenseDialog: ({ open, members }: { open?: boolean; members?: { userId: string }[] }) => (open ? <div data-testid="add-expense" data-members={members?.map((m) => m.userId).join(",")} /> : null),
+vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({
+  LazyAddExpenseDialog: ({ open, members }: { open?: boolean; members?: { userId: string }[] }) => (open ? <div data-testid="add-expense" data-members={members?.map((m) => m.userId).join(",")} /> : null),
 }));
 
 import FriendsPage from "@/app/(dashboard)/friends/page";

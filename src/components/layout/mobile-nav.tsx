@@ -6,6 +6,7 @@ import { LayoutDashboard, Users, UserPlus, BarChart3, Plus } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { m } from "framer-motion";
 import { useUIStore } from "@/stores/ui-store";
+import { usePrefetchOnIntent } from "@/hooks/use-prefetch";
 
 const navItems = [
   { href: "/dashboard", label: "Home",    icon: LayoutDashboard },
@@ -18,6 +19,7 @@ const navItems = [
 export function MobileNav() {
   const pathname = usePathname();
   const { setAddExpenseOpen } = useUIStore();
+  const intent = usePrefetchOnIntent();
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/90 backdrop-blur-xl safe-area-bottom">
@@ -44,6 +46,7 @@ export function MobileNav() {
             <Link
               key={href}
               href={href!}
+              {...intent(href!)}
               className={cn(
                 "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors relative min-w-0",
                 active ? "text-primary" : "text-muted-foreground"

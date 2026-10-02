@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Real localStorage (Node 26's built-in one is unusable) for the onboarding banner
@@ -14,10 +14,14 @@ vi.hoisted(() => {
   });
 });
 
-const { setTheme, theme, user, push, uiState, pathname } = vi.hoisted(() => ({
+const { setTheme, theme, user, push, uiState, pathname, prefetch } = vi.hoisted(() => ({
+  prefetch: vi.fn(),
   setTheme: vi.fn(), theme: { value: "system" }, user: { value: null as null | { email: string } }, push: vi.fn(),
   uiState: { setAddExpenseOpen: vi.fn(), addExpenseOpen: false },
   pathname: { value: "/dashboard" },
+}));
+vi.mock("@/hooks/use-prefetch", () => ({
+  usePrefetchOnIntent: () => (href: string) => ({ onMouseEnter: () => prefetch(href), onFocus: () => prefetch(href), onTouchStart: () => prefetch(href) }),
 }));
 vi.mock("next-themes", () => ({ useTheme: () => ({ setTheme, theme: theme.value }) }));
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => ({ user: user.value }) }));
@@ -49,6 +53,12 @@ describe("MobileNav", () => {
     }
     await userEvent.click(screen.getByRole("button", { name: /add expense/i }));
     expect(uiState.setAddExpenseOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("touching a tab starts loading its data before the tap completes", async () => {
+    render(<MobileNav />);
+    fireEvent.touchStart(screen.getByRole("link", { name: /friends/i }));
+    expect(prefetch).toHaveBeenCalledWith("/friends");
   });
 
   it("highlights the current section, including sub-pages", () => {

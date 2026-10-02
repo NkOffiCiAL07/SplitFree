@@ -194,12 +194,19 @@ export function expenseQueryString(query: ExpenseQuery, cursor?: string | null):
  * Every expense (not just the latest 50), newest first, filtered on the server so search and
  * filters cover the whole history. Call `fetchNextPage` for more.
  */
-export function useInfiniteExpenses(query: ExpenseQuery = {}) {
-  const result = useInfiniteQuery<{ items: Expense[]; nextCursor: string | null }>({
-    queryKey: ["expenses", "infinite", query],
+export function infiniteExpensesOptions(query: ExpenseQuery = {}) {
+  return {
+    queryKey: ["expenses", "infinite", query] as const,
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => fetchJSON(`/api/expenses?${expenseQueryString(query, pageParam as string | null)}`),
-    getNextPageParam: (last) => last.nextCursor ?? undefined,
-  });
+    queryFn: ({ pageParam }: { pageParam: string | null }): Promise<ExpensePage> =>
+      fetchJSON(`/api/expenses?${expenseQueryString(query, pageParam)}`),
+    getNextPageParam: (last: ExpensePage) => last.nextCursor ?? undefined,
+  };
+}
+
+export interface ExpensePage { items: Expense[]; nextCursor: string | null }
+
+export function useInfiniteExpenses(query: ExpenseQuery = {}) {
+  const result = useInfiniteQuery(infiniteExpensesOptions(query));
   return { ...result, expenses: result.data?.pages.flatMap((pg) => pg.items) ?? [] };
 }

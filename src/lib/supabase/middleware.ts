@@ -25,9 +25,10 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Local token verification (no auth-server round trip on every page navigation); this call also
+  // refreshes an expired session and writes the new cookies onto the response.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims?.sub ? { id: claimsData.claims.sub } : null;
 
   const url = request.nextUrl.clone();
   const isAuthRoute = url.pathname.startsWith("/login") ||

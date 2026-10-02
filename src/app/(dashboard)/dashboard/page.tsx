@@ -18,7 +18,7 @@ import dynamic from "next/dynamic";
 
 // Recharts is ~350KB — load it after first paint instead of blocking the dashboard
 const BalanceChart = dynamic(
-  () => import("@/components/dashboard/balance-chart").then((m) => m.BalanceChart),
+  () => import("@/components/charts").then((m) => m.BalanceChart),
   { ssr: false, loading: () => <Skeleton className="h-[280px] w-full rounded-xl" /> }
 );
 

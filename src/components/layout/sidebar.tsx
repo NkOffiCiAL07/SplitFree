@@ -12,6 +12,7 @@ import { APP_NAME } from "@/lib/app-config";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/hooks/use-auth";
+import { usePrefetchOnIntent } from "@/hooks/use-prefetch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getInitials } from "@/lib/utils";
@@ -180,11 +181,13 @@ function NavItem({
   active: boolean;
   collapsed: boolean;
 }) {
+  const intent = usePrefetchOnIntent();
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Link
           href={href}
+          {...intent(href)}
           className={cn(
             "flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-150",
             collapsed && "justify-center",

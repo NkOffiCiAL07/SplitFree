@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: false, // only the small ⌘K hint uses it — don't make it compete with the main font for bandwidth
 });
 
 export const metadata: Metadata = {

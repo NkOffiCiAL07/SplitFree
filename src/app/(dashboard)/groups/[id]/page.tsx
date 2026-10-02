@@ -28,10 +28,11 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
-import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
-import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
+import { LazyAddExpenseDialog as AddExpenseDialog } from "@/components/expenses/lazy-add-expense-dialog";
+import { LazyEditGroupDialog as EditGroupDialog } from "@/components/groups/lazy-group-dialogs";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
+// The QR code library is only needed when the invite dialog opens
+const QRCodeSVG = dynamic(() => import("qrcode.react").then((m) => m.QRCodeSVG), { ssr: false });
 import { APP_NAME } from "@/lib/app-config";
 
 // Only fetched when the user actually edits an expense

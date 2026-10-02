@@ -35,7 +35,7 @@ vi.mock("@/hooks/use-expenses", () => ({
   useDeleteExpense: () => ({ mutate: h.hooks.deleteExpense }),
   useInfiniteExpenses: (q: unknown) => { h.useInfiniteExpenses(q); return h.expenses; },
 }));
-vi.mock("@/components/expenses/add-expense-dialog", () => ({ AddExpenseDialog: ({ children }: { children: React.ReactNode }) => <div data-testid="add-expense-dialog">{children}</div> }));
+vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: ({ children }: { children: React.ReactNode }) => <div data-testid="add-expense-dialog">{children}</div> }));
 vi.mock("@/components/groups/edit-group-dialog", () => ({ EditGroupDialog: () => <div data-testid="edit-group" /> }));
 vi.mock("@/components/groups/budget-card", () => ({ BudgetCard: () => <div data-testid="budget-card" /> }));
 vi.mock("@/components/groups/group-debts-card", () => ({ GroupDebtsCard: () => <div data-testid="debts-card" /> }));
