@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Users, Search, X } from "lucide-react";
+import { Users, Search, X, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { useGroups } from "@/hooks/use-groups";
 import { useBalances } from "@/hooks/use-balances";
 import { GroupCard } from "@/components/groups/group-card";
@@ -94,6 +95,22 @@ export default function GroupsPage() {
           {filtered.map((group, i) => (
             <GroupCard key={group.id} group={group} index={i} balance={balances?.byGroup[group.id]} />
           ))}
+          {/* Create new group card — always visible at the bottom of the list */}
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: Math.min(filtered.length * 0.06, 0.4) }}
+            onClick={() => setCreateOpen(true)}
+            className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 group text-left"
+          >
+            <div className="w-12 h-12 rounded-xl border-2 border-dashed border-muted-foreground/30 group-hover:border-primary/40 group-hover:bg-primary/10 flex items-center justify-center shrink-0 transition-colors">
+              <Plus className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Create new group</p>
+              <p className="text-xs text-muted-foreground/70">Trip, home, work, or anything else</p>
+            </div>
+          </motion.button>
         </div>
       )}
     </div>
