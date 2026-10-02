@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Users, Receipt, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ export function GroupCard({ group, index = 0, balance }: GroupCardProps) {
   const config = CATEGORY_CONFIG[group.category] ?? CATEGORY_CONFIG.OTHER;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index < 10 ? index * 0.06 : 0 }}
@@ -88,6 +88,6 @@ export function GroupCard({ group, index = 0, balance }: GroupCardProps) {
           <ChevronRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
         </div>
       </Link>
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
 import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
@@ -298,7 +298,7 @@ function ExpenseRow({
   const displayCurrency = expense.group?.currency ?? userCurrency;
 
   return (
-    <motion.div
+    <m.div
       initial={index < 12 ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index < 12 ? index * 0.03 : 0, duration: 0.25 }}
@@ -329,6 +329,6 @@ function ExpenseRow({
         )}
       </div>
       <ChevronRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-    </motion.div>
+    </m.div>
   );
 }

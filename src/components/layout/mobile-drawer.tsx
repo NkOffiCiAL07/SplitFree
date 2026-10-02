@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
   Settings, LogOut, Zap, Activity, X, RefreshCw,
@@ -45,7 +45,7 @@ export function MobileDrawer() {
       {mobileMenuOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -56,7 +56,7 @@ export function MobileDrawer() {
           />
 
           {/* Drawer */}
-          <motion.aside
+          <m.aside
             key="drawer"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -130,7 +130,7 @@ export function MobileDrawer() {
                 </Link>
               )}
             </div>
-          </motion.aside>
+          </m.aside>
         </>
       )}
     </AnimatePresence>

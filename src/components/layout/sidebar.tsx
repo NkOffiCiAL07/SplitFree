@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
   Bell, Settings, LogOut, ChevronLeft, ChevronRight,
@@ -47,7 +47,7 @@ export function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <motion.aside
+      <m.aside
         initial={false}
         animate={{ width: sidebarOpen ? 240 : 64 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -61,7 +61,7 @@ export function Sidebar() {
             </div>
             <AnimatePresence>
               {sidebarOpen && (
-                <motion.span
+                <m.span
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
@@ -69,7 +69,7 @@ export function Sidebar() {
                   className="font-bold text-base truncate"
                 >
                   {APP_NAME}
-                </motion.span>
+                </m.span>
               )}
             </AnimatePresence>
           </Link>
@@ -163,7 +163,7 @@ export function Sidebar() {
             <ChevronRight className="size-3" />
           )}
         </button>
-      </motion.aside>
+      </m.aside>
     </TooltipProvider>
   );
 }
@@ -197,7 +197,7 @@ function NavItem({
           <Icon className="size-4 shrink-0" />
           {!collapsed && <span>{label}</span>}
           {active && !collapsed && (
-            <motion.div
+            <m.div
               layoutId="sidebar-active"
               className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
             />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { TrendingUp, TrendingDown, Users, Wallet, Plus, ArrowLeftRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -76,7 +76,7 @@ export default function DashboardPage() {
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
       {/* Greeting + Quick actions */}
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+      <m.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         className="flex items-start justify-between gap-3"
       >
         <div>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
             </Link>
           </Button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Onboarding */}
       <OnboardingBanner />

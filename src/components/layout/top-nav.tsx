@@ -7,7 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "./notification-bell";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { APP_NAME } from "@/lib/app-config";
 
 const pageTitles: Record<string, string> = {
@@ -46,7 +46,7 @@ export function TopNav() {
       </button>
 
       {/* Page title */}
-      <motion.h1
+      <m.h1
         key={title}
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,7 +54,7 @@ export function TopNav() {
         className="text-sm font-semibold flex-1"
       >
         {title}
-      </motion.h1>
+      </m.h1>
 
       {/* Search */}
       <button

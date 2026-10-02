@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { X, Users, UserPlus, Receipt, ArrowRight, Sparkles } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export function OnboardingBanner() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12, height: 0 }}
@@ -84,7 +84,7 @@ export function OnboardingBanner() {
           </div>
 
           <AnimatePresence mode="wait">
-            <motion.div
+            <m.div
               key={step}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -99,7 +99,7 @@ export function OnboardingBanner() {
                 <p className="font-semibold text-sm">{current.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{current.description}</p>
               </div>
-            </motion.div>
+            </m.div>
           </AnimatePresence>
 
           <div className="mt-4 flex items-center gap-3">
@@ -136,7 +136,7 @@ export function OnboardingBanner() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

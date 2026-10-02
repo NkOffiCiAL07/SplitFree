@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Camera, Mail, User, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -59,7 +59,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Avatar section */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <Card>
           <CardContent className="pt-6 pb-6">
             <div className="flex items-center gap-5">
@@ -82,10 +82,10 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Edit profile */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Personal information</CardTitle>
@@ -113,10 +113,10 @@ export default function ProfilePage() {
             <Button variant="brand" onClick={handleSave} loading={updateProfile.isPending}>Save changes</Button>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Account actions */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Account</CardTitle>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
             </Button>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -125,14 +125,14 @@ export function NotificationBell() {
           <Bell className="size-4" />
           <AnimatePresence>
             {unreadCount > 0 && (
-              <motion.span
+              <m.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full gradient-brand text-[9px] font-bold text-white"
               >
                 {unreadCount}
-              </motion.span>
+              </m.span>
             )}
           </AnimatePresence>
         </Button>

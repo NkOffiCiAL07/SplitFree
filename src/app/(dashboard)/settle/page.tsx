@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock } from "lucide-react";
 import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
 import { useFriends } from "@/hooks/use-friends";
@@ -159,7 +159,7 @@ export default function SettlePage() {
             {simplified.map((debt: any, i: number) => {
               const isMyDebt = debt.fromUserId === user?.id;
               return (
-                <motion.div
+                <m.div
                   key={i}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -196,7 +196,7 @@ export default function SettlePage() {
                       Pay
                     </Button>
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </div>
@@ -220,7 +220,7 @@ export default function SettlePage() {
             {settlements.map((s: any, i: number) => {
               const isOutgoing = s.fromUserId === user?.id;
               return (
-                <motion.div
+                <m.div
                   key={s.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -244,7 +244,7 @@ export default function SettlePage() {
                     {isOutgoing ? "−" : "+"}{formatCurrency(s.amount, userCurrency)}
                   </span>
                   <span className="text-[10px] text-muted-foreground shrink-0">{formatDate(s.createdAt)}</span>
-                </motion.div>
+                </m.div>
               );
             })}
           </div>

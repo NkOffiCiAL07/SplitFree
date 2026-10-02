@@ -1,16 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
-  CartesianGrid, PieChart, Pie, Cell,
-} from "recharts";
+import { m } from "framer-motion";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils";
 import { useUserCurrency } from "@/hooks/use-profile";
 import { format } from "date-fns";
+
+// Recharts (~350KB) loads after the page shell renders
+const chartFallback = () => <Skeleton className="h-52 w-full rounded-lg" />;
+const MonthlyBarChart = dynamic(
+  () => import("@/components/analytics/analytics-charts").then((m) => m.MonthlyBarChart),
+  { ssr: false, loading: chartFallback }
+);
+const CategoryPieChart = dynamic(
+  () => import("@/components/analytics/analytics-charts").then((m) => m.CategoryPieChart),
+  { ssr: false, loading: chartFallback }
+);
 
 const CATEGORY_COLORS: Record<string, string> = {
   FOOD:"#8b5cf6", TRANSPORT:"#3b82f6", ACCOMMODATION:"#10b981",
@@ -72,7 +80,7 @@ export default function AnalyticsPage() {
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
           : stats.map(({ label, value, positive, negative }, i) => (
-            <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+            <m.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{label}</p>
@@ -81,14 +89,14 @@ export default function AnalyticsPage() {
                   </p>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           ))
         }
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Monthly bar chart */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Monthly Spending</CardTitle>
@@ -98,30 +106,15 @@ export default function AnalyticsPage() {
                 monthlyData.every((d: any) => d.total === 0) ? (
                   <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                      <YAxis
-                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                        axisLine={false} tickLine={false}
-                        tickFormatter={(v) => formatCurrency(v * 100, currency)}
-                      />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}
-                        formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Total"]}
-                      />
-                      <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <MonthlyBarChart data={monthlyData} currency={currency} />
                 )
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
 
         {/* Category pie chart */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+        <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Spending by Category</CardTitle>
@@ -130,28 +123,16 @@ export default function AnalyticsPage() {
               {isLoading ? <Skeleton className="h-52 w-full rounded-lg" /> : categoryData.length === 0 ? (
                 <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
               ) : (
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={2}>
-                      {categoryData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Amount"]}
-                      contentStyle={{ borderRadius: "0.75rem", fontSize: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <CategoryPieChart data={categoryData} currency={currency} />
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Category breakdown list */}
       {categoryData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+        <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Category Breakdown</CardTitle>
@@ -162,7 +143,7 @@ export default function AnalyticsPage() {
                 : categoryData.map((c, i) => {
                     const pct = totalCents > 0 ? (c.cents / totalCents) * 100 : 0;
                     return (
-                      <motion.div
+                      <m.div
                         key={c.cat}
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -180,7 +161,7 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                          <motion.div
+                          <m.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
                             transition={{ duration: 0.6, delay: 0.4 + i * 0.04, ease: "easeOut" }}
@@ -188,12 +169,12 @@ export default function AnalyticsPage() {
                             style={{ backgroundColor: c.color }}
                           />
                         </div>
-                      </motion.div>
+                      </m.div>
                     );
                   })}
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

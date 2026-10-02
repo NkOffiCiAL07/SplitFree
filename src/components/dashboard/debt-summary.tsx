@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +20,7 @@ interface Props { balances?: PersonBalance[]; netBalance?: number; currency?: st
 
 export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", isLoading }: Props) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.28, ease: "easeOut" }}
@@ -56,7 +56,7 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", i
             <p className="text-xs text-muted-foreground text-center py-6">No outstanding balances</p>
           ) : (
             balances.map((b, i) => (
-              <motion.div
+              <m.div
                 key={b.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -76,11 +76,11 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", i
                 )}>
                   {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net), currency)}
                 </span>
-              </motion.div>
+              </m.div>
             ))
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }

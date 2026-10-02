@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, SplitSquareHorizontal, Equal, Hash, Percent, Users, UserPlus, User } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { useGroups, useGroup } from "@/hooks/use-groups";
@@ -482,7 +482,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
               {/* Non-equal split inputs */}
               <AnimatePresence>
                 {splitType !== "EQUAL" && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
@@ -512,7 +512,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                         </div>
                       );
                     })}
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>

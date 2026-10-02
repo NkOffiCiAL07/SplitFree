@@ -27,6 +27,8 @@ vi.mock("framer-motion", () => {
   );
   return {
     motion,
+    m: motion,
+    LazyMotion: ({ children }: { children: React.ReactNode }) => children,
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
     useAnimation: () => ({ start: vi.fn(), stop: vi.fn() }),
     useMotionValue: (v: unknown) => ({ get: () => v, set: vi.fn() }),

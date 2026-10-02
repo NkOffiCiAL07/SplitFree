@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 
@@ -97,7 +97,7 @@ export default function SignupForm() {
 
   if (emailSent) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="text-center space-y-4"
@@ -113,12 +113,12 @@ export default function SignupForm() {
         <Button variant="outline" onClick={() => setEmailSent(false)}>
           Use a different email
         </Button>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -247,6 +247,6 @@ export default function SignupForm() {
           <p className="text-[10px] text-center text-muted-foreground mt-1.5">Only visible in development</p>
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 }

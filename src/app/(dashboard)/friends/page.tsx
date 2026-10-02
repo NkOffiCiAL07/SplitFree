@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal, Receipt, Users } from "lucide-react";
 import {
   useFriends, useAddFriend, useRemoveFriend,
@@ -128,7 +128,7 @@ export default function FriendsPage() {
             <Badge variant="secondary" className="text-[10px] px-1.5">{pending!.length}</Badge>
           </h3>
           {pending!.map((req: any, i: number) => (
-            <motion.div
+            <m.div
               key={req.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -164,7 +164,7 @@ export default function FriendsPage() {
                   <X className="size-3" /> Decline
                 </Button>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}
@@ -178,7 +178,7 @@ export default function FriendsPage() {
             <Badge variant="secondary" className="text-[10px] px-1.5">{sent!.length}</Badge>
           </h3>
           {sent!.map((req: any, i: number) => (
-            <motion.div
+            <m.div
               key={req.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -204,7 +204,7 @@ export default function FriendsPage() {
               >
                 <X className="size-3" /> Cancel
               </Button>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}
@@ -229,7 +229,7 @@ export default function FriendsPage() {
           />
         ) : (
           friendships?.map((friendship, i) => (
-            <motion.div
+            <m.div
               key={friendship.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -279,7 +279,7 @@ export default function FriendsPage() {
               >
                 <UserMinus className="size-4" />
               </Button>
-            </motion.div>
+            </m.div>
           ))
         )}
       </div>
@@ -293,7 +293,7 @@ export default function FriendsPage() {
             <Badge variant="secondary" className="text-[10px] px-1.5">{groupContacts.length}</Badge>
           </h3>
           {groupContacts.map((contact, i) => (
-            <motion.div
+            <m.div
               key={contact.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -330,7 +330,7 @@ export default function FriendsPage() {
               >
                 <Receipt className="size-3.5" /> Add expense
               </Button>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}

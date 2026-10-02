@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Receipt, Users, ArrowRightLeft, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,7 +51,7 @@ function activityLabel(a: ActivityItem): { text: string; amount?: number } {
 
 export function RecentActivity({ activities = [], currency = "USD", isLoading }: Props) {
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
+    <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
       <Card>
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-base">Recent Activity</CardTitle>
@@ -70,7 +70,7 @@ export function RecentActivity({ activities = [], currency = "USD", isLoading }:
               const color = COLORS[activity.type] ?? "bg-gray-100 text-gray-600";
               const { text, amount } = activityLabel(activity);
               return (
-                <motion.div
+                <m.div
                   key={activity.id}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -99,12 +99,12 @@ export function RecentActivity({ activities = [], currency = "USD", isLoading }:
                       {formatRelativeTime(new Date(activity.createdAt))}
                     </p>
                   </div>
-                </motion.div>
+                </m.div>
               );
             })
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }

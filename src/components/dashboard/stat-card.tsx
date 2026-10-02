@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -25,7 +25,7 @@ const variantStyles = {
 export function StatCard({ title, value, sub, icon: Icon, variant = "violet", index = 0 }: StatCardProps) {
   const styles = variantStyles[variant];
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: "easeOut" }}
@@ -45,6 +45,6 @@ export function StatCard({ title, value, sub, icon: Icon, variant = "violet", in
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }

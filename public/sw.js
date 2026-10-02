@@ -1,4 +1,4 @@
-const CACHE_NAME = "splitfree-v4";
+const CACHE_NAME = "splitfree-v5";
 const OFFLINE_URL = "/offline";
 const STATIC_ASSETS = [
   "/",
@@ -39,19 +39,28 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin GET requests
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // API routes: network-first, graceful null fallback
+  // API routes: network-first. Only successful responses are cached, and the cached
+  // copy is used solely as an offline fallback.
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
           return response;
         })
-        .catch(() => caches.match(request) ?? new Response(JSON.stringify({ error: { message: "You are offline" } }), {
-          status: 503,
-          headers: { "Content-Type": "application/json" },
-        }))
+        .catch(async () => {
+          const cached = await caches.match(request);
+          return (
+            cached ??
+            new Response(JSON.stringify({ error: { message: "You are offline" } }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            })
+          );
+        })
     );
     return;
   }
@@ -71,13 +80,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Let the browser handle Next.js RSC/prefetch fetches — they share a URL with the HTML
+  // page, so caching them here can serve the wrong payload type and defeats Next's router cache.
+  if (request.headers.has("RSC") || request.headers.has("Next-Router-Prefetch")) return;
+  if (request.mode !== "navigate") return;
+
   // Pages: stale-while-revalidate, serve /offline as fallback when network + cache both fail
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(request).then((cached) => {
         const networkFetch = fetch(request)
           .then((response) => {
-            cache.put(request, response.clone());
+            if (response.ok && !response.redirected) cache.put(request, response.clone());
             return response;
           })
           .catch(async () => {

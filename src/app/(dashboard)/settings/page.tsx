@@ -4,7 +4,7 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -75,7 +75,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Appearance */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Appearance</CardTitle>
@@ -101,10 +101,10 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Notifications */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Notifications</CardTitle>
@@ -134,10 +134,10 @@ export default function SettingsPage() {
             ))}
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Default currency */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Currency</CardTitle>
@@ -159,10 +159,10 @@ export default function SettingsPage() {
             </p>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Data */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Data</CardTitle>
@@ -186,10 +186,10 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
 
       {/* Privacy */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function SettingsPage() {
             </p>
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

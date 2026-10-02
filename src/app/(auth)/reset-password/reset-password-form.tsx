@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +42,7 @@ function RequestResetForm() {
 
   if (sent) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="text-center space-y-4"
@@ -61,12 +61,12 @@ function RequestResetForm() {
             <ArrowLeft className="size-4" /> Back to sign in
           </Button>
         </Link>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+    <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Forgot your password?</h1>
         <p className="text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ function RequestResetForm() {
           Sign in
         </Link>
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 

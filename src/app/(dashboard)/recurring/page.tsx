@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { RefreshCw, Trash2, Calendar } from "lucide-react";
 import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
@@ -61,7 +61,7 @@ export default function RecurringPage() {
 
       {/* Monthly summary banner */}
       {recurring.length > 0 && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl p-5 gradient-brand text-white"
@@ -69,7 +69,7 @@ export default function RecurringPage() {
           <p className="text-sm text-white/80">Estimated monthly cost</p>
           <p className="text-3xl font-bold mt-1">{formatCurrency(Math.round(monthly), userCurrency)}</p>
           <p className="text-sm text-white/70 mt-1">across {recurring.length} recurring {recurring.length === 1 ? "expense" : "expenses"}</p>
-        </motion.div>
+        </m.div>
       )}
 
       {/* List */}
@@ -92,7 +92,7 @@ export default function RecurringPage() {
             const currency = expense.group?.currency ?? userCurrency;
             const isPayer = expense.paidById === user?.id;
             return (
-              <motion.div
+              <m.div
                 key={expense.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -137,7 +137,7 @@ export default function RecurringPage() {
                     <Trash2 className="size-3.5" />
                   </Button>
                 )}
-              </motion.div>
+              </m.div>
             );
           })}
         </div>

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Users, Search, X, Plus } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useGroups } from "@/hooks/use-groups";
 import { useBalances } from "@/hooks/use-balances";
 import { GroupCard } from "@/components/groups/group-card";
@@ -96,7 +96,7 @@ export default function GroupsPage() {
             <GroupCard key={group.id} group={group} index={i} balance={balances?.byGroup[group.id]} />
           ))}
           {/* Create new group card — always visible at the bottom of the list */}
-          <motion.button
+          <m.button
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: Math.min(filtered.length * 0.06, 0.4) }}
@@ -110,7 +110,7 @@ export default function GroupsPage() {
               <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Create new group</p>
               <p className="text-xs text-muted-foreground/70">Trip, home, work, or anything else</p>
             </div>
-          </motion.button>
+          </m.button>
         </div>
       )}
     </div>

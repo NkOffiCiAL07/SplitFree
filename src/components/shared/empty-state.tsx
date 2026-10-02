@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
@@ -22,7 +22,7 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -48,6 +48,6 @@ export function EmptyState({
           {action.label}
         </Button>
       )}
-    </motion.div>
+    </m.div>
   );
 }

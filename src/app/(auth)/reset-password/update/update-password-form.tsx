@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,7 @@ export function UpdatePasswordContent() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+    <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Set new password</h1>
         <p className="text-sm text-muted-foreground">Choose a strong password for your account.</p>
@@ -94,6 +94,6 @@ export function UpdatePasswordContent() {
           Update password
         </Button>
       </form>
-    </motion.div>
+    </m.div>
   );
 }

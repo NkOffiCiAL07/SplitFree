@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, UserPlus, BarChart3, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useUIStore } from "@/stores/ui-store";
 
 const navItems = [
@@ -50,7 +50,7 @@ export function MobileNav() {
               )}
             >
               {active && (
-                <motion.div
+                <m.div
                   layoutId="mobile-nav-active"
                   className="absolute inset-0 bg-primary/10 rounded-xl"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}

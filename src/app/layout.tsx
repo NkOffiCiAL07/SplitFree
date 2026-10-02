@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { APP_NAME, APP_TAGLINE, APP_DESCRIPTION } from "@/lib/app-config";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
+import { MotionProvider } from "@/components/shared/motion-provider";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -94,7 +95,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <ServiceWorkerRegistration />
-            {children}
+            <MotionProvider>{children}</MotionProvider>
             <Toaster
               position="bottom-right"
               richColors

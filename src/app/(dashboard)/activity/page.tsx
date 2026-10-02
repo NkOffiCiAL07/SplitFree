@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Activity, Receipt, Users, ArrowRightLeft, UserPlus, Pencil, Trash2, Check, X } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,7 +139,7 @@ export default function ActivityPage() {
                 const color = TYPE_COLOR[item.type] ?? "bg-gray-100 text-gray-600";
                 const isOwn = item.source === "activity";
                 return (
-                  <motion.div
+                  <m.div
                     key={item.id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -179,7 +179,7 @@ export default function ActivityPage() {
                       )}
                     </div>
                     {!item.isRead && <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0 animate-pulse" />}
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>

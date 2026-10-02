@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useFriends } from "@/hooks/use-friends";
@@ -283,7 +283,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Balance banner */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
@@ -296,7 +296,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         <p className="text-sm mt-1 text-white/80">
           {myBalance > 0 ? "You are owed" : myBalance < 0 ? "You owe" : "All settled up!"}
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Members */}
       <div className="space-y-3">
@@ -428,7 +428,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {group.members?.map((member) => (
-            <motion.div
+            <m.div
               key={member.id}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
@@ -466,7 +466,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   </Button>
                 </div>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -480,7 +480,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
             <h3 className="font-semibold text-sm">Who owes who</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {memberBalances.map((mb: any) => (
-                <motion.div
+                <m.div
                   key={mb.userId}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -512,7 +512,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                       Settle
                     </Button>
                   )}
-                </motion.div>
+                </m.div>
               ))}
             </div>
           </div>
@@ -724,7 +724,7 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
   const currency = groupCurrency ?? expense.currency;
 
   return (
-    <motion.div
+    <m.div
       initial={index < 12 ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index < 12 ? index * 0.04 : 0, duration: 0.25 }}
@@ -756,7 +756,7 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
           <Trash2 className="size-3.5" />
         </Button>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

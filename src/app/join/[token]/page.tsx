@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Users, Receipt, Zap, LogIn, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
       <div className="fixed inset-0 gradient-brand overflow-hidden flex flex-col items-center justify-center">
         {/* Confetti rain */}
         {particles.map((p) => (
-          <motion.div
+          <m.div
             key={p.id}
             className="absolute rounded-sm pointer-events-none"
             style={{ left: `${p.x}%`, top: 0, width: p.w, height: p.h, backgroundColor: p.color }}
@@ -85,14 +85,14 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
         {/* Center content */}
         <div className="relative z-10 flex flex-col items-center gap-6 text-center px-8">
           {/* Check with pulse rings */}
-          <motion.div
+          <m.div
             className="relative flex items-center justify-center"
             initial={{ scale: 0, rotate: -90 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.05 }}
           >
             {[1, 2, 3].map((ring) => (
-              <motion.div
+              <m.div
                 key={ring}
                 className="absolute rounded-full border-2 border-white/25"
                 style={{ width: 96, height: 96 }}
@@ -104,11 +104,11 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
             <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
               <CheckCircle2 className="size-14 text-white drop-shadow-lg" />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Floating emojis */}
           {FLOAT_EMOJIS.map((emoji, i) => (
-            <motion.span
+            <m.span
               key={i}
               className="absolute text-3xl pointer-events-none select-none"
               initial={{ opacity: 0, y: 0, x: 0, scale: 0 }}
@@ -121,11 +121,11 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
               transition={{ delay: 0.25 + i * 0.09, duration: 1.9 }}
             >
               {emoji}
-            </motion.span>
+            </m.span>
           ))}
 
           {/* Headline */}
-          <motion.div
+          <m.div
             className="space-y-2"
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -136,10 +136,10 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
               Welcome to <span className="font-bold text-white">{group?.name}</span>
             </p>
             <p className="text-white/50 text-sm">{APP_NAME} — split expenses, not friendships</p>
-          </motion.div>
+          </m.div>
 
           {/* Pulsing dots + caption */}
-          <motion.div
+          <m.div
             className="flex flex-col items-center gap-3 mt-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -147,7 +147,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
           >
             <div className="flex gap-1.5">
               {[0, 1, 2].map((d) => (
-                <motion.div
+                <m.div
                   key={d}
                   className="w-2 h-2 rounded-full bg-white"
                   animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.25, 0.8] }}
@@ -156,7 +156,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
               ))}
             </div>
             <p className="text-white/50 text-sm">Taking you to the group…</p>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     );
@@ -166,20 +166,20 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   if (authLoading || status === "loading") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <motion.div
+        <m.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="w-12 h-12 gradient-brand rounded-2xl flex items-center justify-center shadow-lg"
         >
           <Zap className="size-6 text-white" />
-        </motion.div>
-        <motion.div
+        </m.div>
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
-        </motion.div>
+        </m.div>
       </div>
     );
   }
@@ -194,7 +194,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
         <span className="font-bold text-base">{APP_NAME}</span>
       </Link>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 280, damping: 22 }}
@@ -214,31 +214,31 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
               <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
               <div className="absolute -bottom-12 -left-12 w-44 h-44 rounded-full bg-white/10 pointer-events-none" />
               <div className="relative z-10">
-                <motion.div
+                <m.div
                   initial={{ scale: 0, rotate: -20 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.12 }}
                   className="text-5xl mb-3"
                 >
                   {CATEGORY_EMOJI[group.category] ?? "📦"}
-                </motion.div>
-                <motion.h1
+                </m.div>
+                <m.h1
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                   className="text-2xl font-bold"
                 >
                   {group.name}
-                </motion.h1>
+                </m.h1>
                 {group.description && (
-                  <motion.p
+                  <m.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.28 }}
                     className="text-sm text-white/80 mt-1.5"
                   >
                     {group.description}
-                  </motion.p>
+                  </m.p>
                 )}
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
             </div>
           </div>
         ) : null}
-      </motion.div>
+      </m.div>
     </div>
   );
 }
