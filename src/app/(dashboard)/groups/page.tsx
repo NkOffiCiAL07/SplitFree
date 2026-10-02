@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Users, Search, X } from "lucide-react";
 import { useGroups } from "@/hooks/use-groups";
+import { useBalances } from "@/hooks/use-balances";
 import { GroupCard } from "@/components/groups/group-card";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -13,6 +14,7 @@ const CATEGORY_OPTIONS = ["ALL", "HOME", "TRIP", "FRIENDS", "COUPLE", "WORK", "O
 
 export default function GroupsPage() {
   const { data: groups, isLoading } = useGroups();
+  const { data: balances } = useBalances();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
   const [createOpen, setCreateOpen] = useState(false);
@@ -90,7 +92,7 @@ export default function GroupsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((group, i) => (
-            <GroupCard key={group.id} group={group} index={i} />
+            <GroupCard key={group.id} group={group} index={i} balance={balances?.byGroup[group.id]} />
           ))}
         </div>
       )}

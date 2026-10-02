@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Users, Receipt, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getInitials, formatRelativeTime, cn } from "@/lib/utils";
+import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/lib/utils";
 import type { Group } from "@/types";
 
 const CATEGORY_CONFIG: Record<string, { emoji: string; gradient: string }> = {
@@ -17,9 +17,13 @@ const CATEGORY_CONFIG: Record<string, { emoji: string; gradient: string }> = {
   OTHER:   { emoji: "📦", gradient: "from-gray-400 to-slate-500" },
 };
 
-interface GroupCardProps { group: Group; index?: number; }
+interface GroupCardProps {
+  group: Group;
+  index?: number;
+  balance?: { net: number; currency: string };
+}
 
-export function GroupCard({ group, index = 0 }: GroupCardProps) {
+export function GroupCard({ group, index = 0, balance }: GroupCardProps) {
   const config = CATEGORY_CONFIG[group.category] ?? CATEGORY_CONFIG.OTHER;
 
   return (
@@ -41,6 +45,16 @@ export function GroupCard({ group, index = 0 }: GroupCardProps) {
               <Badge variant="outline" className="text-[10px] shrink-0 h-4 px-1.5">
                 {group.currency}
               </Badge>
+              {balance && balance.net !== 0 && (
+                <span className={cn(
+                  "ml-auto text-[10px] font-semibold shrink-0",
+                  balance.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                )}>
+                  {balance.net > 0
+                    ? `you're owed ${formatCompactCurrency(balance.net, balance.currency)}`
+                    : `you owe ${formatCompactCurrency(Math.abs(balance.net), balance.currency)}`}
+                </span>
+              )}
             </div>
             {group.description && (
               <p className="text-xs text-muted-foreground truncate mt-0.5">{group.description}</p>

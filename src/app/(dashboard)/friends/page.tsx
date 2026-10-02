@@ -9,6 +9,7 @@ import {
   useSentFriendRequests, useCancelFriendRequest,
 } from "@/hooks/use-friends";
 import { useGroups } from "@/hooks/use-groups";
+import { useBalances } from "@/hooks/use-balances";
 import { useAuth } from "@/hooks/use-auth";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -18,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getInitials, formatRelativeTime } from "@/lib/utils";
+import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/lib/utils";
 import type { Friendship, GroupMember } from "@/types";
 
 export default function FriendsPage() {
@@ -31,6 +32,7 @@ export default function FriendsPage() {
   const removeFriend = useRemoveFriend();
   const respond = useRespondToFriendRequest();
   const cancelRequest = useCancelFriendRequest();
+  const { data: balances } = useBalances();
   const [email, setEmail] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expenseFriend, setExpenseFriend] = useState<{ id: string; name?: string; avatarUrl?: string | null } | null>(null);
@@ -243,9 +245,24 @@ export default function FriendsPage() {
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                {formatRelativeTime(friendship.createdAt)}
-              </p>
+              {(() => {
+                const b = balances?.byPerson[friendship.friendId];
+                if (!b || b.net === 0) return (
+                  <p className="text-xs text-muted-foreground hidden sm:block shrink-0">
+                    {formatRelativeTime(friendship.createdAt)}
+                  </p>
+                );
+                return (
+                  <span className={cn(
+                    "text-xs font-semibold shrink-0 hidden sm:block",
+                    b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                  )}>
+                    {b.net > 0
+                      ? `lent ${formatCompactCurrency(b.net, b.currency)}`
+                      : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
+                  </span>
+                );
+              })()}
               <Button
                 size="sm"
                 variant="brand"
