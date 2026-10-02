@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { m, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
-  Settings, LogOut, ChevronLeft, ChevronRight,
+  Settings, LogOut, Plus, ChevronLeft, ChevronRight,
   Zap, Activity, RefreshCw,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
@@ -34,7 +34,7 @@ const bottomItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, toggleSidebar, setAddExpenseOpen } = useUIStore();
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -72,6 +72,25 @@ export function Sidebar() {
               )}
             </AnimatePresence>
           </Link>
+        </div>
+
+        {/* Global primary action — available from every page */}
+        <div className="px-2 pt-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setAddExpenseOpen(true)}
+                className={cn(
+                  "w-full flex items-center gap-2 rounded-lg gradient-brand text-white text-sm font-medium shadow-sm hover:opacity-90 transition-opacity",
+                  sidebarOpen ? "px-3 py-2" : "justify-center py-2"
+                )}
+              >
+                <Plus className="size-4 shrink-0" />
+                {sidebarOpen && <span>Add expense</span>}
+              </button>
+            </TooltipTrigger>
+            {!sidebarOpen && <TooltipContent side="right">Add expense</TooltipContent>}
+          </Tooltip>
         </div>
 
         {/* Nav */}

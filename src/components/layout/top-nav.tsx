@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Menu, Search, Plus } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "./notification-bell";
@@ -20,6 +20,7 @@ const pageTitles: Record<string, string> = {
   "/settings":  "Settings",
   "/profile":   "Profile",
   "/settle":    "Settle Up",
+  "/recurring": "Recurring",
 };
 
 export function TopNav() {
@@ -81,23 +82,7 @@ export function TopNav() {
         </Button>
         <NotificationBell />
         <ThemeToggle />
-        <AddExpenseButton />
       </div>
     </header>
-  );
-}
-
-function AddExpenseButton() {
-  const { setCommandPaletteOpen } = useUIStore();
-  return (
-    <Button
-      size="sm"
-      variant="brand"
-      className="gap-1.5 hidden sm:flex"
-      onClick={() => setCommandPaletteOpen(true)}
-    >
-      <Plus className="size-3.5" />
-      Add expense
-    </Button>
   );
 }
