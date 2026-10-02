@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname.startsWith("/signup") ||
     url.pathname.startsWith("/reset-password");
   const isApiRoute = url.pathname.startsWith("/api");
-  const isPublicRoute = url.pathname === "/" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline";
+  const isPublicRoute = url.pathname === "/" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support";
 
   if (!user && !isAuthRoute && !isApiRoute && !isPublicRoute) {
     url.pathname = "/login";
