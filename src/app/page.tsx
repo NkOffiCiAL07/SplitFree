@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DemoButton } from "@/components/landing/demo-button";
+import { APP_NAME } from "@/lib/app-config";
 
 const features = [
   {
@@ -82,7 +83,7 @@ const steps = [
 
 const testimonials = [
   {
-    text: "Finally ditched Splitwise! SplitFree has everything I need and the debt simplification saved us 6 extra bank transfers on our Goa trip alone.",
+    text: `Finally ditched Splitwise! ${APP_NAME} has everything I need and the debt simplification saved us 6 extra bank transfers on our Goa trip alone.`,
     name: "Ananya S.",
     role: "Product Designer, Bangalore",
     avatar: "A",
@@ -124,7 +125,7 @@ export default function LandingPage() {
             <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
               <Zap className="size-3.5 text-white" />
             </div>
-            <span className="font-bold text-base">SplitFree</span>
+            <span className="font-bold text-base">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -208,7 +209,7 @@ export default function LandingPage() {
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
               <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
               <div className="flex-1 mx-6 bg-background/80 border rounded-md px-3 py-1 text-[11px] text-muted-foreground text-center max-w-xs mx-auto">
-                splitfree.app/dashboard
+                splitrpro.app/dashboard
               </div>
             </div>
             {/* Mock dashboard */}
@@ -426,7 +427,7 @@ export default function LandingPage() {
                 <Zap className="size-3.5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-sm">SplitFree</span>
+                <span className="font-bold text-sm">{APP_NAME}</span>
                 <p className="text-[10px] text-muted-foreground">Free expense splitting for everyone</p>
               </div>
             </Link>
@@ -436,7 +437,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} SplitFree. Built with ❤️ for people who hate awkward money conversations.</p>
+            <p>© {new Date().getFullYear()} {APP_NAME}. Built with ❤️ for people who hate awkward money conversations.</p>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               <span>All systems operational</span>

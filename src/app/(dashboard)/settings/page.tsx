@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -198,7 +199,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-xs text-muted-foreground">
-              SplitFree does not sell your data. All data is encrypted at rest and in transit via Supabase.
+              {APP_NAME} does not sell your data. All data is encrypted at rest and in transit via Supabase.
             </p>
           </CardContent>
         </Card>

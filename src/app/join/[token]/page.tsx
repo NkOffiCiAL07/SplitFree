@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Users, Receipt, Zap, LogIn, CheckCircle2, Loader2 } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
         <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center">
           <Zap className="size-4 text-white" />
         </div>
-        <span className="font-bold text-base">SplitFree</span>
+        <span className="font-bold text-base">{APP_NAME}</span>
       </Link>
 
       <motion.div
@@ -101,7 +102,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
 
             <div className="p-6 space-y-5">
               <p className="text-center text-sm text-muted-foreground">
-                You&apos;ve been invited to join this group on SplitFree
+                You&apos;ve been invited to join this group on {APP_NAME}
               </p>
 
               {/* Stats */}

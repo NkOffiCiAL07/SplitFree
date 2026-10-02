@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Users, UserPlus, Receipt, ArrowRight, Sparkles } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +27,7 @@ const STEPS = [
   {
     icon: Receipt,
     title: "Log your first expense",
-    description: "Add an expense and SplitFree will calculate who owes what.",
+    description: `Add an expense and ${APP_NAME} will calculate who owes what.`,
     action: "Add expense",
     href: "/expenses",
     color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",

@@ -1,7 +1,7 @@
 {
   "id": "com.splitfree.app",
-  "name": "SplitFree",
-  "short_name": "SplitFree",
+  "name": "Splitr Pro",
+  "short_name": "Splitr Pro",
   "description": "Split expenses, not friendships. The free Splitwise alternative.",
   "start_url": "/dashboard",
   "scope": "/",
@@ -67,14 +67,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "SplitFree Dashboard"
+      "label": "Splitr Pro Dashboard"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "SplitFree Groups"
+      "label": "Splitr Pro Groups"
     }
   ],
   "shortcuts": [

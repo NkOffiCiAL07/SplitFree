@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/lib/utils";
+import { APP_NAME } from "@/lib/app-config";
 import type { Friendship, GroupMember } from "@/types";
 
 export default function FriendsPage() {
@@ -101,7 +102,7 @@ export default function FriendsPage() {
             <DialogHeader><DialogTitle>Add a friend</DialogTitle></DialogHeader>
             <form onSubmit={handleAdd} className="space-y-3 mt-2">
               <p className="text-sm text-muted-foreground">
-                Enter their email address. They must have a SplitFree account.
+                Enter their email address. They must have a {APP_NAME} account.
               </p>
               <Input
                 type="email"

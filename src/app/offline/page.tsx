@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { APP_NAME } from "@/lib/app-config";
 import { TryAgainButton } from "./try-again-button";
 
 export const metadata: Metadata = { title: "You're offline" };
@@ -36,7 +37,7 @@ export default function OfflinePage() {
           </Link>
         </div>
 
-        <p className="text-xs text-muted-foreground">SplitFree</p>
+        <p className="text-xs text-muted-foreground">{APP_NAME}</p>
       </div>
     </div>
   );

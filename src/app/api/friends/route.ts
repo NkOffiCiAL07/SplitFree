@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { APP_NAME } from "@/lib/app-config";
 import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
 import { z } from "zod";
 
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
         userId: friend.id,
         type: "FRIEND_ADDED",
         title: "New friend request",
-        body: `${user!.email} wants to connect with you on SplitFree`,
+        body: `${user!.email} wants to connect with you on ${APP_NAME}`,
         data: { userId: user!.id, email: user!.email, pending: true },
       },
     });

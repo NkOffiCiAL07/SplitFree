@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { APP_NAME } from "@/lib/app-config";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -20,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-violet-600 font-bold text-sm">S</span>
             </div>
-            <span className="text-white font-semibold text-xl">SplitFree</span>
+            <span className="text-white font-semibold text-xl">{APP_NAME}</span>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Zap } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 
 function GoogleIcon() {
   return (
@@ -128,7 +129,7 @@ export default function SignupForm() {
           <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-xs">S</span>
           </div>
-          <span className="font-semibold">SplitFree</span>
+          <span className="font-semibold">{APP_NAME}</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground">

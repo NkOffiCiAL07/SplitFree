@@ -8,6 +8,7 @@ import {
   Settings, LogOut, Zap, Activity, X, RefreshCw,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
+import { APP_NAME } from "@/lib/app-config";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,7 +70,7 @@ export function MobileDrawer() {
                 <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center">
                   <Zap className="size-4 text-white" />
                 </div>
-                <span className="font-bold text-base">SplitFree</span>
+                <span className="font-bold text-base">{APP_NAME}</span>
               </Link>
               <button onClick={close} className="p-1.5 rounded-lg hover:bg-accent transition-colors">
                 <X className="size-4" />

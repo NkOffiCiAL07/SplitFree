@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-helpers";
+import { APP_NAME } from "@/lib/app-config";
 import { format } from "date-fns";
 import { fromCents } from "@/lib/utils";
 
@@ -44,7 +45,7 @@ export default async function PrintExpensesPage() {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>SplitFree — Expense Report</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{APP_NAME} — Expense Report</h1>
             <p style={{ fontSize: 12, color: "#666" }}>Generated on {format(new Date(), "PPP")}</p>
           </div>
           <button
@@ -102,7 +103,7 @@ export default async function PrintExpensesPage() {
         </table>
 
         <p style={{ marginTop: 24, fontSize: 11, color: "#9ca3af", textAlign: "center" }}>
-          SplitFree · Exported {format(new Date(), "PPpp")} · {expenses.length} expenses shown
+          {APP_NAME} · Exported {format(new Date(), "PPpp")} · {expenses.length} expenses shown
         </p>
       </div>
     </>

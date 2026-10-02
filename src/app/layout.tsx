@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { APP_NAME, APP_TAGLINE, APP_DESCRIPTION } from "@/lib/app-config";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
@@ -20,14 +21,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SplitFree — Split expenses, not friendships",
-    template: "%s | SplitFree",
+    default: `${APP_NAME} — ${APP_TAGLINE}`,
+    template: `%s | ${APP_NAME}`,
   },
-  description:
-    "The free, beautiful alternative to Splitwise. Split expenses with friends and groups effortlessly.",
+  description: APP_DESCRIPTION,
   keywords: ["expense splitting", "splitwise alternative", "group expenses", "split bills"],
-  authors: [{ name: "SplitFree" }],
-  creator: "SplitFree",
+  authors: [{ name: APP_NAME }],
+  creator: APP_NAME,
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -39,22 +39,22 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "SplitFree",
-    description: "The free, beautiful alternative to Splitwise.",
-    siteName: "SplitFree",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    siteName: APP_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "SplitFree",
-    description: "The free, beautiful alternative to Splitwise.",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
   },
   // iOS PWA meta tags — not exposed by Next.js Metadata API directly
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "SplitFree",
+    "apple-mobile-web-app-title": APP_NAME,
     "mobile-web-app-capable": "yes",
-    "application-name": "SplitFree",
+    "application-name": APP_NAME,
   },
 };
 

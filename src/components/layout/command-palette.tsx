@@ -8,6 +8,7 @@ import {
   Settings, Activity, Plus, Search, Moon, Sun,
   ArrowRight, Zap,
 } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 import { useUIStore } from "@/stores/ui-store";
 import { useTheme } from "next-themes";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -173,7 +174,7 @@ export function CommandPalette() {
           {/* Footer */}
           <div className="border-t px-3 py-2 flex items-center gap-4 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Zap className="size-3" /> SplitFree
+              <Zap className="size-3" /> {APP_NAME}
             </span>
             <span className="ml-auto flex items-center gap-2">
               <kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px]">↑↓</kbd>

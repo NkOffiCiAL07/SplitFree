@@ -8,6 +8,7 @@ import { NotificationBell } from "./notification-bell";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { APP_NAME } from "@/lib/app-config";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -27,7 +28,7 @@ export function TopNav() {
 
   const title = Object.entries(pageTitles).find(([path]) =>
     pathname === path || pathname.startsWith(path + "/")
-  )?.[1] ?? "SplitFree";
+  )?.[1] ?? APP_NAME;
 
   const openCommand = useCallback(() => {
     setCommandPaletteOpen(true);

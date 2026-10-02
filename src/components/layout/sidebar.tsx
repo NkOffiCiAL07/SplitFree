@@ -8,6 +8,7 @@ import {
   Bell, Settings, LogOut, ChevronLeft, ChevronRight,
   Zap, Activity, RefreshCw,
 } from "lucide-react";
+import { APP_NAME } from "@/lib/app-config";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,7 +68,7 @@ export function Sidebar() {
                   transition={{ duration: 0.15 }}
                   className="font-bold text-base truncate"
                 >
-                  SplitFree
+                  {APP_NAME}
                 </motion.span>
               )}
             </AnimatePresence>
