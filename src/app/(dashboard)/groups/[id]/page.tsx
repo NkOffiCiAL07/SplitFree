@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
@@ -9,7 +10,6 @@ import { useFriendContacts } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
-import { EditExpenseDialog } from "@/components/expenses/edit-expense-dialog";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
 import { BudgetCard } from "@/components/groups/budget-card";
 import type { Expense } from "@/types";
@@ -28,6 +28,12 @@ import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { APP_NAME } from "@/lib/app-config";
+
+// Only fetched when the user actually edits an expense
+const EditExpenseDialog = dynamic(
+  () => import("@/components/expenses/edit-expense-dialog").then((m) => m.EditExpenseDialog),
+  { ssr: false }
+);
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

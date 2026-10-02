@@ -52,6 +52,55 @@ export function handleError(e: unknown) {
   return err(e instanceof Error ? e.message : "Internal server error", 500);
 }
 
+/** Expenses a user may see/modify: they are in the split OR they paid. */
+export function visibleToUser(userId: string) {
+  return { OR: [{ splits: { some: { userId } } }, { paidById: userId }] };
+}
+
+export async function isGroupMember(groupId: string, userId: string) {
+  const m = await prisma.groupMember.findUnique({
+    where: { groupId_userId: { groupId, userId } },
+    select: { userId: true },
+  });
+  return !!m;
+}
+
+/**
+ * IDs the user is allowed to involve in an expense/settlement outside a group:
+ * themselves, accepted friends, people sharing any group, and anyone they already
+ * share an expense with. Prevents attaching debts/notifications to arbitrary users.
+ */
+export async function getKnownUserIds(userId: string): Promise<Set<string>> {
+  const [friends, coMembers, expenseMates] = await Promise.all([
+    prisma.friendship.findMany({ where: { userId, status: "ACCEPTED" }, select: { friendId: true } }),
+    prisma.groupMember.findMany({
+      where: { group: { members: { some: { userId } } } },
+      select: { userId: true },
+    }),
+    prisma.expenseSplit.findMany({
+      where: { expense: visibleToUser(userId) },
+      select: { userId: true, expense: { select: { paidById: true } } },
+      distinct: ["userId"],
+      take: 500,
+    }),
+  ]);
+  const ids = new Set<string>([userId]);
+  friends.forEach((f) => ids.add(f.friendId));
+  coMembers.forEach((m) => ids.add(m.userId));
+  expenseMates.forEach((e) => { ids.add(e.userId); ids.add(e.expense.paidById); });
+  return ids;
+}
+
+export function parseLimit(raw: string | null, def = 50, max = 100) {
+  const n = parseInt(raw ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, max) : def;
+}
+
+/** First hop of x-forwarded-for (the header can be a comma-separated list). */
+export function clientIp(req: Request) {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
 // Simple in-memory rate limiter per IP (resets on cold start)
 const ipMap = new Map<string, { count: number; reset: number }>();
 

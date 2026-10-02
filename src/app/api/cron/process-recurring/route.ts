@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   // Verify cron secret to prevent unauthorized calls
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // Fail closed: without a configured secret nobody can trigger this (except local dev)
+  const devBypass = !cronSecret && process.env.NODE_ENV === "development";
+  if (!devBypass && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -34,63 +36,60 @@ export async function GET(req: NextRequest) {
     for (const expense of recurringExpenses) {
       if (!expense.recurringInterval) continue;
 
-      // Compute the latest occurrence date (from last processed or original date)
-      const baseDate = expense.lastRecurredAt ?? expense.date;
-      const nextDue = nextOccurrence(baseDate, expense.recurringInterval);
+      // Catch up on every missed occurrence (e.g. after downtime), capped per run
+      let cursor = expense.lastRecurredAt ?? expense.date;
+      let madeAny = false;
+      for (let i = 0; i < 12; i++) {
+        const nextDue = nextOccurrence(cursor, expense.recurringInterval);
+        if (nextDue > today) break;
 
-      // Only create if next due date is today or in the past
-      if (nextDue > today) {
-        skipped.push(expense.id);
-        continue;
-      }
-
-      // Check if already created for this period to prevent double-processing
-      const alreadyExists = await prisma.expense.findFirst({
-        where: {
-          recurringParentId: expense.id,
-          date: { gte: startOfDay(nextDue), lte: endOfDay(nextDue) },
-        },
-      });
-
-      if (alreadyExists) {
-        skipped.push(expense.id);
-        continue;
-      }
-
-      // Create the next occurrence
-      await prisma.$transaction(async (tx) => {
-        const newExpense = await tx.expense.create({
-          data: {
-            groupId: expense.groupId,
-            description: expense.description,
-            amount: expense.amount,
-            currency: expense.currency,
-            category: expense.category,
-            splitType: expense.splitType,
-            paidById: expense.paidById,
-            date: nextDue,
-            isRecurring: false,
-            notes: expense.notes,
+        // Skip if this period was already created (guards against double-processing)
+        const alreadyExists = await prisma.expense.findFirst({
+          where: {
             recurringParentId: expense.id,
-            splits: {
-              create: expense.splits.map((s) => ({
-                userId: s.userId,
-                amount: s.amount,
-                percentage: s.percentage,
-                shares: s.shares,
-              })),
-            },
+            date: { gte: startOfDay(nextDue), lte: endOfDay(nextDue) },
           },
+          select: { id: true },
         });
 
-        // Update parent's lastRecurredAt
-        await tx.expense.update({
-          where: { id: expense.id },
-          data: { lastRecurredAt: nextDue },
-        });
-
-        created.push(newExpense.id);
-      });
+        if (!alreadyExists) {
+          await prisma.$transaction(async (tx) => {
+            const newExpense = await tx.expense.create({
+              data: {
+                groupId: expense.groupId,
+                description: expense.description,
+                amount: expense.amount,
+                currency: expense.currency,
+                category: expense.category,
+                splitType: expense.splitType,
+                paidById: expense.paidById,
+                date: nextDue,
+                isRecurring: false,
+                notes: expense.notes,
+                recurringParentId: expense.id,
+                splits: {
+                  create: expense.splits.map((s) => ({
+                    userId: s.userId,
+                    amount: s.amount,
+                    percentage: s.percentage,
+                    shares: s.shares,
+                  })),
+                },
+              },
+            });
+            await tx.expense.update({
+              where: { id: expense.id },
+              data: { lastRecurredAt: nextDue },
+            });
+            created.push(newExpense.id);
+          });
+          madeAny = true;
+        } else {
+          await prisma.expense.update({ where: { id: expense.id }, data: { lastRecurredAt: nextDue } });
+        }
+        cursor = nextDue;
+      }
+      if (!madeAny) skipped.push(expense.id);
     }
 
     return NextResponse.json({ ok: true, created: created.length, skipped: skipped.length });

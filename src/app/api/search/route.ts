@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.expense.findMany({
         where: {
-          splits: { some: { userId: user!.id } },
+          ...visibleToUser(user!.id),
           description: { contains: q, mode: "insensitive" },
         },
         take: 5,

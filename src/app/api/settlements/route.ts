@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
 import { z } from "zod";
 import { toCents, formatCurrency } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
@@ -23,8 +23,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const groupId = searchParams.get("groupId");
     const simplified = searchParams.get("simplified") === "true";
-    const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
+    const limit = parseLimit(searchParams.get("limit"));
     const cursor = searchParams.get("cursor");
+
+    // Group-scoped data is only for members
+    if (groupId && !(await isGroupMember(groupId, user!.id))) {
+      return err("Not a member of this group", 403);
+    }
 
     const settlements = await prisma.settlement.findMany({
       where: {
@@ -32,7 +37,7 @@ export async function GET(req: NextRequest) {
         ...(groupId ? { groupId } : {}),
       },
       include: { fromUser: userSelect, toUser: userSelect },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
@@ -49,9 +54,16 @@ export async function GET(req: NextRequest) {
           .map((s) => ({ fromUserId: s.userId, toUserId: exp.paidById, amount: s.amount }))
       );
 
+      // Netting needs EVERY settlement in the group (not just mine, not just the latest page),
+      // otherwise payments between other members are ignored.
+      const allGroupSettlements = await prisma.settlement.findMany({
+        where: { groupId },
+        select: { fromUserId: true, toUserId: true, amount: true },
+      });
+
       // Represent each settlement as a counter-debt so simplifyDebts can net everything correctly.
       // This handles overpayments and cross-direction payments that settledMap would lose.
-      const settlementCounterDebts = settlements.map((s) => ({
+      const settlementCounterDebts = allGroupSettlements.map((s) => ({
         fromUserId: s.toUserId,
         toUserId: s.fromUserId,
         amount: s.amount,
@@ -79,6 +91,16 @@ export async function POST(req: NextRequest) {
     const data = createSettlementSchema.parse(body);
 
     if (data.toUserId === user!.id) return err("Cannot settle with yourself", 400);
+
+    if (data.groupId) {
+      const [payerIn, payeeIn] = await Promise.all([
+        isGroupMember(data.groupId, user!.id),
+        isGroupMember(data.groupId, data.toUserId),
+      ]);
+      if (!payerIn || !payeeIn) return err("Both people must be members of the group", 403);
+    } else if (!(await getKnownUserIds(user!.id)).has(data.toUserId)) {
+      return err("Unknown recipient", 403);
+    }
 
     // Wrap settlement + all notifications in a transaction
     const settlement = await prisma.$transaction(async (tx) => {

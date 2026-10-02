@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, visibleToUser } from "@/lib/api-helpers";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     // Verify user has access to this expense
     const expense = await prisma.expense.findFirst({
-      where: { id: expenseId, splits: { some: { userId: user!.id } } },
+      where: { id: expenseId, ...visibleToUser(user!.id) },
     });
     if (!expense) return err("Expense not found", 404);
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { id: expenseId } = await params;
 
     const expense = await prisma.expense.findFirst({
-      where: { id: expenseId, splits: { some: { userId: user!.id } } },
+      where: { id: expenseId, ...visibleToUser(user!.id) },
       include: { paidBy: { select: { name: true } }, group: { select: { name: true } } },
     });
     if (!expense) return err("Expense not found", 404);

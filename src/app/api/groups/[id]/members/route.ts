@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
 import { addMemberSchema } from "@/lib/validations/group";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,6 +20,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const invitee = await prisma.user.findUnique({ where: { email } });
 
     if (!invitee) {
+      // Each invite sends a real email — throttle per caller (best-effort, per instance)
+      if (rateLimit(`invite:${user!.id}`, 10, 60 * 60_000)) return err("Too many invites, try again later", 429);
       // Store pending invite
       await prisma.groupInvite.upsert({
         where: { groupId_email: { groupId, email } },
@@ -102,7 +104,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!callerMember || callerMember.role !== "ADMIN") return err("Admin required", 403);
 
     const { userId, role } = await req.json();
-    if (!userId || !["ADMIN", "MEMBER"].includes(role)) return err("Invalid request", 400);
+    if (typeof userId !== "string" || !["ADMIN", "MEMBER"].includes(role)) return err("Invalid request", 400);
     if (userId === user!.id) return err("Cannot change your own role this way", 400);
 
     const updated = await prisma.groupMember.update({
@@ -186,6 +188,18 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             : "This member owes money in the group. They must settle up first.",
           400
         );
+      }
+    }
+
+    // Never leave a group with members but no admin
+    const target = await prisma.groupMember.findUnique({ where: { groupId_userId: { groupId, userId } } });
+    if (target?.role === "ADMIN") {
+      const others = await prisma.groupMember.findMany({
+        where: { groupId, userId: { not: userId } },
+        select: { role: true },
+      });
+      if (others.length > 0 && !others.some((m) => m.role === "ADMIN")) {
+        return err("Promote another member to admin before removing the last admin.", 400);
       }
     }
 

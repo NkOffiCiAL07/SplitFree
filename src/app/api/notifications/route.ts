@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, parseLimit } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,12 +8,12 @@ export async function GET(req: NextRequest) {
     if (error) return error;
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
+    const limit = parseLimit(searchParams.get("limit"), 20);
     const cursor = searchParams.get("cursor");
 
     const notifications = await prisma.notification.findMany({
       where: { userId: user!.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });

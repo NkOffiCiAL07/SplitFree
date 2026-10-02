@@ -1,12 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useMemo } from "react";
 import { m } from "framer-motion";
 import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
 import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
-import { EditExpenseDialog } from "@/components/expenses/edit-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,12 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 const CATEGORIES = ["ALL", "FOOD", "TRANSPORT", "ACCOMMODATION", "ENTERTAINMENT", "UTILITIES", "SHOPPING", "HEALTH", "TRAVEL", "EDUCATION", "OTHER"] as const;
+
+// Only fetched when the user actually edits an expense
+const EditExpenseDialog = dynamic(
+  () => import("@/components/expenses/edit-expense-dialog").then((m) => m.EditExpenseDialog),
+  { ssr: false }
+);
 
 export default function ExpensesPage() {
   const { data: expenses, isLoading } = useExpenses();

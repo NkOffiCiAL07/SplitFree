@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds } from "@/lib/api-helpers";
 import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
 
     const expense = await prisma.expense.findFirst({
-      where: { id, splits: { some: { userId: user!.id } } },
+      where: { id, ...visibleToUser(user!.id) },
       include: { paidBy: true, splits: { include: { user: true } }, group: true },
     });
     if (!expense) return err("Expense not found", 404);
@@ -38,7 +38,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
 
     const existing = await prisma.expense.findFirst({
-      where: { id, splits: { some: { userId: user!.id } } },
+      where: { id, ...visibleToUser(user!.id) },
+      include: { splits: true },
     });
     if (!existing) return err("Expense not found", 404);
 
@@ -56,7 +57,44 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const data = updateExpenseSchema.parse({ ...body, id });
 
     const totalCents = data.amount ? toCents(data.amount) : existing.amount;
-    const participants = data.participants ?? [];
+    const amountChanged = totalCents !== existing.amount;
+    const splitType = data.splitType ?? existing.splitType;
+    const participants = data.participants ?? existing.splits.map((x) => x.userId);
+    const paidById = data.paidById ?? existing.paidById;
+
+    // Splits must be rebuilt whenever anything that feeds them changes
+    const rebuildSplits = amountChanged || !!data.participants || !!data.splitType || !!data.splits;
+
+    if (rebuildSplits || data.paidById) {
+      let allowed: Set<string>;
+      if (existing.groupId) {
+        const members = await prisma.groupMember.findMany({ where: { groupId: existing.groupId }, select: { userId: true } });
+        allowed = new Set(members.map((m) => m.userId));
+      } else {
+        allowed = await getKnownUserIds(user!.id);
+      }
+      // People already on the expense stay valid even if they have since left the group
+      existing.splits.forEach((x) => allowed.add(x.userId));
+      allowed.add(existing.paidById);
+      if ([paidById, ...participants].some((uid) => !allowed.has(uid))) {
+        return err("All participants must be members of the group", 403);
+      }
+    }
+
+    // Overrides (in dollars/percent/shares) — fall back to the stored values
+    let overrides = data.splits;
+    if (rebuildSplits && !overrides) {
+      if (splitType === "PERCENTAGE") {
+        overrides = Object.fromEntries(existing.splits.map((x) => [x.userId, x.percentage ?? 0]));
+      } else if (splitType === "SHARES") {
+        overrides = Object.fromEntries(existing.splits.map((x) => [x.userId, x.shares ?? 1]));
+      } else if (splitType === "EXACT" && amountChanged) {
+        return err("Provide the per-person amounts when changing the total of an exact split", 400);
+      } else if (splitType === "EXACT") {
+        overrides = Object.fromEntries(existing.splits.map((x) => [x.userId, x.amount / 100]));
+      }
+    }
+    const splitAmounts = rebuildSplits ? calculateSplits(totalCents, participants, splitType, overrides) : {};
 
     const updated = await prisma.expense.update({
       where: { id },
@@ -66,22 +104,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         category: data.category,
         date: data.date,
         notes: data.notes,
+        paidById,
+        splitType,
         isRecurring: data.isRecurring,
         recurringInterval: data.recurringInterval ?? null,
-        ...(participants.length > 0 && data.splitType
+        ...(rebuildSplits
           ? {
-              splits: (() => {
-              const splitAmounts = calculateSplits(totalCents, participants, data.splitType!, data.splits);
-              return {
+              splits: {
                 deleteMany: {},
                 create: participants.map((uid) => ({
                   userId: uid,
                   amount: splitAmounts[uid] ?? 0,
-                  percentage: data.splitType === "PERCENTAGE" ? (data.splits?.[uid] ?? 0) : null,
-                  shares: data.splitType === "SHARES" ? (data.splits?.[uid] ?? 0) : null,
+                  percentage: splitType === "PERCENTAGE" ? (overrides?.[uid] ?? 0) : null,
+                  shares: splitType === "SHARES" ? (overrides?.[uid] ?? 0) : null,
                 })),
-              };
-            })(),
+              },
             }
           : {}),
       },
@@ -128,7 +165,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
 
     const expense = await prisma.expense.findFirst({
-      where: { id, splits: { some: { userId: user!.id } } },
+      where: { id, ...visibleToUser(user!.id) },
       include: { paidBy: true },
     });
     if (!expense) return err("Expense not found", 404);

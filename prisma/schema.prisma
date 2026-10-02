@@ -190,6 +190,7 @@ model Expense {
 
   @@index([groupId])
   @@index([paidById])
+  @@index([paidById, date])
   @@index([date])
   @@index([recurringParentId])
   @@map("expenses")
@@ -209,6 +210,7 @@ model ExpenseSplit {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([expenseId, userId])
+  @@index([userId])
   @@map("expense_splits")
 }
 
@@ -265,6 +267,7 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 

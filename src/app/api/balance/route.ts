@@ -1,4 +1,4 @@
-import { requireAuth, ok, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
 
@@ -10,7 +10,7 @@ export async function GET() {
 
     const [allExpenses, allSettlements] = await Promise.all([
       prisma.expense.findMany({
-        where: { splits: { some: { userId } } },
+        where: visibleToUser(userId),
         select: { paidById: true, splits: { select: { userId: true, amount: true } } },
       }),
       prisma.settlement.findMany({

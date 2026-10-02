@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, getKnownUserIds, parseLimit, clientIp } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
@@ -12,20 +12,20 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const groupId = searchParams.get("groupId");
-    const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
+    const limit = parseLimit(searchParams.get("limit"));
     const cursor = searchParams.get("cursor");
 
     const expenses = await prisma.expense.findMany({
       where: {
         ...(groupId ? { groupId } : {}),
-        splits: { some: { userId: user!.id } },
+        ...visibleToUser(user!.id),
       },
       include: {
         paidBy: true,
         splits: { include: { user: true } },
         group: true,
       },
-      orderBy: { date: "desc" },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
       take: limit,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = clientIp(req);
   if (rateLimit(ip, 30)) return err("Too many requests", 429);
 
   try {
@@ -54,6 +54,22 @@ export async function POST(req: NextRequest) {
         where: { groupId_userId: { groupId: data.groupId, userId: user!.id } },
       });
       if (!member) return err("Not a member of this group", 403);
+    }
+
+    // Everyone involved must belong to the group (or be someone the caller already knows)
+    const involved = [...new Set([data.paidById, ...data.participants])];
+    let allowed: Set<string>;
+    if (data.groupId) {
+      const members = await prisma.groupMember.findMany({
+        where: { groupId: data.groupId },
+        select: { userId: true },
+      });
+      allowed = new Set(members.map((m) => m.userId));
+    } else {
+      allowed = await getKnownUserIds(user!.id);
+    }
+    if (involved.some((id) => !allowed.has(id))) {
+      return err(data.groupId ? "All participants must be members of the group" : "Unknown participant", 403);
     }
 
     const totalCents = toCents(data.amount);

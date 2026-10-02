@@ -10,11 +10,11 @@ export async function GET() {
   try {
     await ensureUserProfile(user!.id, user!.email!);
     const userId = user!.id;
-    const sixMonthsAgo = subMonths(new Date(), 6);
-
+    
+    // Totals/balances are all-time (they must match /api/balances); only the chart is limited to 6 months.
     const [mySplits, myPaidSplits, groups, recentActivity, profile, primaryGroup, mySettlements] = await Promise.all([
       prisma.expenseSplit.findMany({
-        where: { userId, expense: { paidById: { not: userId }, date: { gte: sixMonthsAgo } } },
+        where: { userId, expense: { paidById: { not: userId } } },
         select: {
           amount: true,
           expense: {
@@ -27,7 +27,7 @@ export async function GET() {
         },
       }),
       prisma.expenseSplit.findMany({
-        where: { userId: { not: userId }, expense: { paidById: userId, date: { gte: sixMonthsAgo } } },
+        where: { userId: { not: userId }, expense: { paidById: userId } },
         select: {
           amount: true,
           userId: true,
@@ -53,10 +53,7 @@ export async function GET() {
         select: { currency: true },
       }),
       prisma.settlement.findMany({
-        where: {
-          OR: [{ fromUserId: userId }, { toUserId: userId }],
-          createdAt: { gte: sixMonthsAgo },
-        },
+        where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
         select: {
           fromUserId: true, toUserId: true, amount: true,
           fromUser: { select: { name: true, avatarUrl: true } },
