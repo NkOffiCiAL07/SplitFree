@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, handleError } from "@/lib/api-helpers";
 import { subMonths, startOfMonth, format } from "date-fns";
 import { NextResponse } from "next/server";
+import { getRates, convertToBase } from "@/lib/rates";
 
 export async function GET() {
   const { user, error } = await requireAuth();
@@ -114,6 +115,25 @@ export async function GET() {
       .filter(([cur, t]) => cur !== currency && (t.owed > 0 || t.owing > 0))
       .map(([cur, t]) => ({ currency: cur, owed: t.owed, owing: t.owing }));
 
+    // Approximate combined total across currencies (live rates, best effort: omitted if unavailable)
+    let combined: { owed: number; owing: number; net: number; date: string; complete: boolean } | null = null;
+    if (otherCurrencies.length > 0) {
+      const rates = await getRates(currency);
+      if (rates) {
+        let owed = main.owed;
+        let owing = main.owing;
+        let complete = true;
+        for (const o of otherCurrencies) {
+          const co = convertToBase(o.owed, o.currency, rates);
+          const cw = convertToBase(o.owing, o.currency, rates);
+          if (co === null || cw === null) { complete = false; continue; }
+          owed += co;
+          owing += cw;
+        }
+        combined = { owed, owing, net: owed - owing, date: rates.date, complete };
+      }
+    }
+
     const personBalances = [...balanceMap.values()]
       .filter((b) => b.net !== 0)
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
@@ -121,7 +141,7 @@ export async function GET() {
 
     const body = JSON.stringify({
       data: {
-        stats: { totalOwed: main.owed, totalOwing: main.owing, groupCount: groups, netBalance: main.owed - main.owing, otherCurrencies },
+        stats: { totalOwed: main.owed, totalOwing: main.owing, groupCount: groups, netBalance: main.owed - main.owing, otherCurrencies, combined },
         monthly: months,
         personBalances,
         recentActivity,

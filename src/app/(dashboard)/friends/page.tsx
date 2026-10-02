@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { m } from "framer-motion";
-import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal, Receipt, Users } from "lucide-react";
+import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal, Receipt, Users, MessageCircle } from "lucide-react";
+import { buildInviteMessage, whatsappShareUrl } from "@/lib/invite";
 import {
   useFriends, useAddFriend, useRemoveFriend,
   usePendingFriendRequests, useRespondToFriendRequest,
@@ -114,6 +115,19 @@ export default function FriendsPage() {
             )}
           </p>
         </div>
+        <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => {
+            // Built on click (not render) so server and client HTML match
+            const text = buildInviteMessage(`${window.location.origin}/signup`, user?.user_metadata?.name);
+            window.open(whatsappShareUrl(text), "_blank", "noopener,noreferrer");
+          }}
+        >
+          <MessageCircle className="size-4" /> Invite
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="brand" size="sm" className="gap-1.5">
@@ -139,6 +153,7 @@ export default function FriendsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Incoming pending requests */}

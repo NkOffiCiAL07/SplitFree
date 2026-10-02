@@ -121,6 +121,12 @@ export default function DashboardPage() {
               ].filter(Boolean).join(", ")
             )
             .join(" · ")}
+          {data.stats.combined && (
+            <span title={`Live exchange rates as of ${data.stats.combined.date}`}>
+              {" "}— ≈ {formatCompactCurrency(Math.abs(data.stats.combined.net), currency)}{" "}
+              {data.stats.combined.net >= 0 ? "in your favour" : "to pay"} overall (approx.)
+            </span>
+          )}
         </p>
       )}
 
