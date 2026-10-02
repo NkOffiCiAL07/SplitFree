@@ -71,6 +71,15 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
+      {/* iOS PWA meta tags — Next.js metadata API doesn't expose these */}
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="SplitFree" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="SplitFree" />
+        <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
+      </head>
       <body className="min-h-full bg-background font-sans antialiased">
         <ThemeProvider
           attribute="class"

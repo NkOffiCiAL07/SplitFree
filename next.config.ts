@@ -12,6 +12,22 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
   },
+  headers: async () => [
+    {
+      // Service worker must NEVER be cached — browser needs to check for updates on every load
+      source: "/sw.js",
+      headers: [
+        { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
+        { key: "Content-Type", value: "application/javascript" },
+      ],
+    },
+    {
+      source: "/manifest.json",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=3600" },
+      ],
+    },
+  ],
 };
 
 export default nextConfig;

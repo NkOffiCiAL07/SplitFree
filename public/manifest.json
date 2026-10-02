@@ -60,6 +60,22 @@
       "purpose": "maskable any"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SplitFree Dashboard"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SplitFree Groups"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Add Expense",

@@ -1,14 +1,16 @@
-const CACHE_NAME = "splitfree-v3";
+const CACHE_NAME = "splitfree-v4";
+const OFFLINE_URL = "/offline";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",
+  "/offline",
   "/manifest.json",
   "/apple-touch-icon.png",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
 ];
 
-// Install: cache static shell
+// Install: cache static shell + offline page
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
@@ -27,9 +29,9 @@ self.addEventListener("activate", (event) => {
 });
 
 // Fetch strategy:
-//  - /api/*  → network-first (fresh data), fallback cached if offline
-//  - _next/static/* → cache-first (immutable hashed assets)
-//  - everything else → stale-while-revalidate
+//  - /api/*          → network-first, fallback cached, fallback null (no offline page for API)
+//  - /_next/static/* → cache-first (immutable hashed assets)
+//  - pages           → stale-while-revalidate, fallback /offline
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -37,7 +39,7 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin GET requests
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // API routes: network-first
+  // API routes: network-first, graceful null fallback
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(
       fetch(request)
@@ -46,7 +48,10 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(() => caches.match(request) ?? new Response(JSON.stringify({ error: { message: "You are offline" } }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        }))
     );
     return;
   }
@@ -66,14 +71,20 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pages: stale-while-revalidate
+  // Pages: stale-while-revalidate, serve /offline as fallback when network + cache both fail
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(request).then((cached) => {
-        const networkFetch = fetch(request).then((response) => {
-          cache.put(request, response.clone());
-          return response;
-        });
+        const networkFetch = fetch(request)
+          .then((response) => {
+            cache.put(request, response.clone());
+            return response;
+          })
+          .catch(async () => {
+            // Network failed and nothing cached — show offline page
+            const offlinePage = await caches.match(OFFLINE_URL);
+            return offlinePage ?? new Response("Offline", { status: 503 });
+          });
         return cached || networkFetch;
       })
     )
