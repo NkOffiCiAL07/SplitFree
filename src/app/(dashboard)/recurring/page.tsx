@@ -130,7 +130,7 @@ export default function RecurringPage() {
                     className="size-7 text-muted-foreground hover:text-destructive shrink-0"
                     onClick={() => {
                       if (confirm("Stop this recurring expense?")) {
-                        deleteMutation.mutate(expense.id);
+                        deleteMutation.mutate(expense);
                       }
                     }}
                   >

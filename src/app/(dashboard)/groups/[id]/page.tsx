@@ -634,7 +634,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 index={i}
                 groupCurrency={group.currency}
                 onEdit={() => setEditingExpense(exp as Expense)}
-                onDelete={() => deleteExpense.mutate(exp.id)}
+                onDelete={() => deleteExpense.mutate(exp)}
                 onClick={() => setViewingExpense(exp as Expense)}
               />
             ))}
@@ -702,7 +702,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   </Button>
                   <Button
                     variant="destructive" size="sm" className="gap-1.5"
-                    onClick={() => { deleteExpense.mutate(viewingExpense.id); setViewingExpense(null); }}
+                    onClick={() => { deleteExpense.mutate(viewingExpense); setViewingExpense(null); }}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>

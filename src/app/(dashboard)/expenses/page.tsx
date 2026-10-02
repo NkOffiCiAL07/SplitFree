@@ -266,7 +266,7 @@ export default function ExpensesPage() {
                         variant="destructive"
                         size="sm"
                         className="gap-1.5"
-                        onClick={() => { deleteMutation.mutate(selectedExpense.id); setSelectedExpense(null); }}
+                        onClick={() => { deleteMutation.mutate(selectedExpense); setSelectedExpense(null); }}
                       >
                         <Trash2 className="size-3.5" />
                       </Button>

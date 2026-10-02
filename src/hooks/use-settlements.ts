@@ -47,3 +47,17 @@ export function useSettleUp() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+/** Nudge someone who owes you (amount in cents). The server allows one reminder per person per day. */
+export function useSendReminder() {
+  return useMutation({
+    mutationFn: (data: { debtorId: string; amount: number; currency: string }) =>
+      fetchJSON("/api/settlements/remind", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => toast.success("Reminder sent"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

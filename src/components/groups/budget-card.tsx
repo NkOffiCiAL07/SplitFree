@@ -36,7 +36,6 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
   const [period, setPeriod] = useState("MONTHLY");
 
   const budgets: BudgetRow[] = data?.budgets ?? [];
-  const totalSpent: number = data?.totalSpentThisMonth ?? 0;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +119,7 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
         <div className="space-y-2">
           {budgets.map((b) => {
             const limitDollars = b.amount;
-            const spentDollars = b.category ? 0 : totalSpent;
+            const spentDollars = b.spent ?? 0;
             const pct = limitDollars > 0 ? Math.min((spentDollars / limitDollars) * 100, 100) : 0;
             const isOver = spentDollars > limitDollars;
             const isWarning = pct >= 80 && !isOver;

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, SplitSquareHorizontal, Equal, Hash, Percent, Users, UserPlus, User } from "lucide-react";
+import { Plus, SplitSquareHorizontal, Equal, Hash, Percent, Users, UserPlus, User, Zap } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +21,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import type { GroupMember } from "@/types";
+import { parseQuickExpense, matchPeople } from "@/lib/quick-add";
 
 const CATEGORIES = ["FOOD","TRANSPORT","ACCOMMODATION","ENTERTAINMENT","UTILITIES","SHOPPING","HEALTH","TRAVEL","EDUCATION","OTHER"] as const;
 
@@ -182,6 +183,26 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     return null;
   })();
 
+  // "Dinner 1200 with Rahul and Priya" → fills description, amount and the people
+  const [quickText, setQuickText] = useState("");
+  const applyQuickAdd = () => {
+    const parsed = parseQuickExpense(quickText);
+    if (!parsed.description && parsed.amount === null) return;
+    if (parsed.description) setValue("description", parsed.description);
+    if (parsed.amount !== null) setValue("amount", String(parsed.amount));
+    if (parsed.names.length > 0) {
+      const people = (friendships ?? []).map((f) => ({ id: f.friendId, name: f.friend?.name }));
+      const { matched, unmatched } = matchPeople(parsed.names, people);
+      if (matched.length > 0) {
+        setSplitContext("friends");
+        setParticipants([]);
+        setSelectedFriendIds(matched.map((p) => p.id));
+      }
+      if (unmatched.length > 0) toast.info(`Couldn't find: ${unmatched.join(", ")}`);
+    }
+    setQuickText("");
+  };
+
   const onInvalid = (errs: FieldErrors<FormValues>) => {
     const first = Object.values(errs)[0] as { message?: string } | undefined;
     toast.error(first?.message ?? "Please fill in all required fields");
@@ -255,6 +276,24 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5 mt-2">
+
+          {/* ── Quick add (global mode): free-text shortcut ── */}
+          {isGlobalMode && (
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Zap className="size-3" /> Quick add
+              </Label>
+              <Input
+                placeholder="Dinner 1200 with Rahul and Priya  ↵"
+                value={quickText}
+                onChange={(e) => setQuickText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); applyQuickAdd(); }
+                }}
+                onBlur={() => { if (quickText.trim()) applyQuickAdd(); }}
+              />
+            </div>
+          )}
 
           {/* ── Global mode: Split with picker ── */}
           {isGlobalMode && (

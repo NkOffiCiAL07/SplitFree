@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
+import { expenseToCreatePayload } from "@/lib/expense-payload";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -73,18 +74,53 @@ export function useUpdateExpense() {
   });
 }
 
+function invalidateExpenseData(qc: ReturnType<typeof useQueryClient>, groupId?: string | null) {
+  qc.invalidateQueries({ queryKey: ["expenses"] });
+  qc.invalidateQueries({ queryKey: ["dashboard"] });
+  qc.invalidateQueries({ queryKey: ["analytics"] });
+  qc.invalidateQueries({ queryKey: ["balance"] });
+  qc.invalidateQueries({ queryKey: ["balances"] });
+  qc.invalidateQueries({ queryKey: ["groups"] });
+  if (groupId) qc.invalidateQueries({ queryKey: ["budget", groupId] });
+}
+
+/**
+ * Pass the whole expense to get an "Undo" action on the toast (the expense is re-created from
+ * its stored data); passing just an id still deletes, without undo.
+ */
 export function useDeleteExpense() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      fetchJSON(`/api/expenses/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["expenses"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
-      qc.invalidateQueries({ queryKey: ["analytics"] });
-      qc.invalidateQueries({ queryKey: ["balance"] });
-      qc.invalidateQueries({ queryKey: ["groups"] });
-      toast.success("Expense deleted");
+    mutationFn: async (target: string | Expense) => {
+      const id = typeof target === "string" ? target : target.id;
+      await fetchJSON(`/api/expenses/${id}`, { method: "DELETE" });
+      return typeof target === "string" ? null : target;
+    },
+    onSuccess: (deleted) => {
+      invalidateExpenseData(qc, deleted?.groupId);
+      if (!deleted) {
+        toast.success("Expense deleted");
+        return;
+      }
+      toast.success("Expense deleted", {
+        duration: 8000,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            try {
+              await fetchJSON("/api/expenses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(expenseToCreatePayload(deleted)),
+              });
+              invalidateExpenseData(qc, deleted.groupId);
+              toast.success("Expense restored");
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : "Couldn't restore the expense");
+            }
+          },
+        },
+      });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -97,19 +133,9 @@ export function useDuplicateExpense() {
       fetchJSON("/api/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: `${expense.description} (copy)`,
-          amount: expense.amount / 100,
-          currency: expense.currency,
-          category: expense.category,
-          splitType: expense.splitType,
-          paidById: expense.paidById,
-          groupId: expense.groupId ?? null,
-          date: new Date(),
-          notes: expense.notes,
-          isRecurring: false,
-          participants: expense.splits?.map((s) => s.userId) ?? [],
-        }),
+        body: JSON.stringify(
+          expenseToCreatePayload(expense, { description: `${expense.description} (copy)`, date: new Date(), isRecurring: false })
+        ),
       }),
     onSuccess: (dup: Expense) => {
       qc.invalidateQueries({ queryKey: ["expenses"] });

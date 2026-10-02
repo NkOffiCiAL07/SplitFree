@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { m } from "framer-motion";
-import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock } from "lucide-react";
-import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
+import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock, Bell, Share2, Smartphone } from "lucide-react";
+import { toast } from "sonner";
+import { useSettlements, useSettleUp, useBalance, useSendReminder } from "@/hooks/use-settlements";
 import { useFriendContacts } from "@/hooks/use-friends";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserCurrency } from "@/hooks/use-profile";
@@ -14,6 +15,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SimplifiedDebt, Settlement } from "@/types";
+import { buildUpiLink, formatSettlePlan } from "@/lib/settle-tools";
+import { APP_NAME } from "@/lib/app-config";
+
+const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"];
 import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
 
 /** Sum debts per currency and join them ("$10.00 + ₹500.00") — never add across currencies. */
@@ -33,12 +38,15 @@ export default function SettlePage() {
   const { data: friends } = useFriendContacts();
   const { user } = useAuth();
   const settleUp = useSettleUp();
+  const sendReminder = useSendReminder();
+  const [upiId, setUpiId] = useState("");
   const [selectedFriend, setSelectedFriend] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   // Currency of the debt being settled — payments must be recorded in the debt's own currency
   const [settleCurrency, setSettleCurrency] = useState<string | null>(null);
+  const [debtLocked, setDebtLocked] = useState(false); // true when opened from a specific debt
 
   const userCurrency = useUserCurrency();
   const settlements = Array.isArray(data) ? data : [];
@@ -47,20 +55,45 @@ export default function SettlePage() {
   const myDebts = simplified.filter((d) => d.fromUserId === user?.id);
   const othersDebts = simplified.filter((d) => d.toUserId === user?.id);
 
+  const effectiveCurrency = settleCurrency ?? userCurrency;
+  const selectedFriendName = friends?.find((f) => f.friendId === selectedFriend)?.friend?.name;
+  const upiLink = buildUpiLink({
+    vpa: upiId,
+    name: selectedFriendName,
+    amountCents: Math.round(parseFloat(amount || "0") * 100),
+    note: note || `${APP_NAME} settle up`,
+  });
+
+  const sharePlan = async () => {
+    const text = formatSettlePlan(simplified, user?.id, APP_NAME);
+    try {
+      if (navigator.share) await navigator.share({ text });
+      else {
+        await navigator.clipboard.writeText(text);
+        toast.success("Settle plan copied");
+      }
+    } catch {
+      /* user dismissed the share sheet */
+    }
+  };
+
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFriend || !amount) return;
-    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), currency: settleCurrency ?? userCurrency, note });
+    await settleUp.mutateAsync({ toUserId: selectedFriend, amount: parseFloat(amount), currency: effectiveCurrency, note });
     setDialogOpen(false);
     setAmount("");
     setNote("");
     setSelectedFriend("");
     setSettleCurrency(null);
+    setDebtLocked(false);
+    setUpiId("");
   };
 
   const openSettleFor = (toUserId: string, amt: number, currency: string) => {
     setSelectedFriend(toUserId);
     setSettleCurrency(currency);
+    setDebtLocked(true);
     setAmount((amt / 100).toFixed(2));
     setDialogOpen(true);
   };
@@ -73,7 +106,7 @@ export default function SettlePage() {
           <h2 className="text-xl font-bold">Settle Up</h2>
           <p className="text-sm text-muted-foreground">Record payments and clear balances</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setSelectedFriend(""); setAmount(""); setNote(""); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setSelectedFriend(""); setAmount(""); setNote(""); setSettleCurrency(null); setDebtLocked(false); setUpiId(""); } }}>
           <DialogTrigger asChild>
             <Button variant="brand" size="sm" className="gap-1.5">
               <CreditCard className="size-4" /> Record payment
@@ -111,14 +144,37 @@ export default function SettlePage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Amount</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{userCurrency}</span>
+                <div className="flex gap-2">
+                  <select
+                    aria-label="Currency"
+                    value={effectiveCurrency}
+                    disabled={debtLocked}
+                    onChange={(e) => setSettleCurrency(e.target.value)}
+                    className="h-9 rounded-md border border-input bg-background px-2 text-sm disabled:opacity-70"
+                  >
+                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
                   <Input type="number" step="0.01" min="0.01" placeholder="0.00"
                     value={amount} onChange={(e) => setAmount(e.target.value)}
-                    className="pl-12"
                   />
                 </div>
               </div>
+              {effectiveCurrency === "INR" && (
+                <div className="space-y-1.5">
+                  <Label>Their UPI ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <div className="flex gap-2">
+                    <Input placeholder="name@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} />
+                    {upiLink && (
+                      <Button asChild type="button" variant="outline" size="sm" className="gap-1.5 shrink-0">
+                        <a href={upiLink}><Smartphone className="size-3.5" /> Pay in UPI app</a>
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Opens GPay / PhonePe / Paytm on your phone. After paying, tap “Record payment” here.
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label>Note <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <Input placeholder="UPI, cash, bank transfer…" value={note} onChange={(e) => setNote(e.target.value)} />
@@ -157,6 +213,11 @@ export default function SettlePage() {
           <Zap className="size-4 text-primary" />
           <h3 className="font-semibold text-sm">Simplified debts</h3>
           <span className="text-xs text-muted-foreground hidden sm:inline">— minimum transactions to settle everything</span>
+          {simplified.length > 0 && (
+            <Button variant="ghost" size="sm" className="ml-auto h-7 gap-1.5 text-xs" onClick={sharePlan}>
+              <Share2 className="size-3.5" /> Share plan
+            </Button>
+          )}
         </div>
 
         {balanceLoading ? (
@@ -209,6 +270,17 @@ export default function SettlePage() {
                       onClick={() => openSettleFor(debt.toUserId, debt.amount, debt.currency ?? userCurrency)}
                     >
                       Pay
+                    </Button>
+                  )}
+                  {!isMyDebt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-3 gap-1 shrink-0"
+                      disabled={sendReminder.isPending}
+                      onClick={() => sendReminder.mutate({ debtorId: debt.fromUserId, amount: debt.amount, currency: debt.currency ?? userCurrency })}
+                    >
+                      <Bell className="size-3" /> Remind
                     </Button>
                   )}
                 </m.div>
