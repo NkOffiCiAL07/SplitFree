@@ -573,6 +573,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           groupId={id}
           names={memberNames}
           currentUserId={user?.id}
+          upiIds={Object.fromEntries((group.members ?? []).map((mm) => [mm.userId, mm.user?.upiId]))}
           onPay={(d) => setSettleTarget({ userId: d.toUserId, name: memberNames[d.toUserId] ?? "member", balance: -d.amount, currency: d.currency })}
         />
         <GroupStatsCard stats={group.stats} names={memberNames} currentUserId={user?.id} />

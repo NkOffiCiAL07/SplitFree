@@ -110,7 +110,7 @@ export function useRemoveFriend() {
 }
 
 export interface FriendDetail {
-  friend: { id: string; name: string; email: string; avatarUrl: string | null };
+  friend: { id: string; name: string; email: string; avatarUrl: string | null; upiId?: string | null };
   /** Net per currency: positive = they owe you, negative = you owe them */
   balances: CurrencyNet[];
   expenses: (Pick<Expense, "id" | "description" | "amount" | "currency" | "category" | "date" | "paidById"> & {

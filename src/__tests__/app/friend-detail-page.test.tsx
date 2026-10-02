@@ -110,4 +110,25 @@ describe("FriendDetailPage", () => {
     expect(screen.getByText("+₹15.00")).toBeInTheDocument();
     expect(screen.getByText(/Asha paid you/)).toBeInTheDocument();
   });
+
+  it("when you owe them rupees and they saved a UPI ID: offers one-tap UPI with the exact amount", async () => {
+    useFriendDetail.mockReturnValue({
+      isLoading: false,
+      data: detail({ friend: { ...FRIEND, upiId: "asha@okhdfc" }, balances: [{ currency: "INR", net: -250050 }] }),
+    });
+    await renderPage();
+    const link = screen.getByRole("link", { name: /pay asha rao via upi/i });
+    expect(link.getAttribute("href")).toContain("am=2500.50");
+    expect(link.getAttribute("href")).toContain("pa=asha%40okhdfc");
+  });
+
+  it.each([
+    ["they owe you", { friend: { ...FRIEND, upiId: "asha@okhdfc" }, balances: [{ currency: "INR", net: 500 }] }],
+    ["they have no saved UPI ID", { friend: { ...FRIEND, upiId: null }, balances: [{ currency: "INR", net: -500 }] }],
+    ["the debt is in another currency", { friend: { ...FRIEND, upiId: "asha@okhdfc" }, balances: [{ currency: "USD", net: -500 }] }],
+  ])("no UPI button when %s", async (_label, over) => {
+    useFriendDetail.mockReturnValue({ isLoading: false, data: detail(over) });
+    await renderPage();
+    expect(screen.queryByRole("link", { name: /via upi/i })).not.toBeInTheDocument();
+  });
 });

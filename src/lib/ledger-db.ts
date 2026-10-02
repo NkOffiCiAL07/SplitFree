@@ -38,10 +38,10 @@ export async function loadGroupLedger(groupId: string) {
 
 /** id → profile for the given users (one query). */
 export async function loadPeople(ids: string[]) {
-  if (ids.length === 0) return new Map<string, { id: string; name: string; avatarUrl: string | null }>();
+  if (ids.length === 0) return new Map<string, { id: string; name: string; avatarUrl: string | null; upiId: string | null }>();
   const users = await prisma.user.findMany({
     where: { id: { in: [...new Set(ids)] } },
-    select: { id: true, name: true, avatarUrl: true },
+    select: { id: true, name: true, avatarUrl: true, upiId: true },
   });
   return new Map(users.map((u) => [u.id, u]));
 }

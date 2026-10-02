@@ -69,4 +69,26 @@ describe("GroupDebtsCard", () => {
     await userEvent.click(payButtons[0]);
     expect(onPay).toHaveBeenCalledWith(expect.objectContaining({ fromUserId: "me", toUserId: "a", amount: 50000 }));
   });
+
+  it("offers one-tap UPI only on my own rupee debts to someone who saved a UPI ID", () => {
+    useGroupDebts.mockReturnValue({
+      isLoading: false,
+      data: { simplified: [
+        { fromUserId: "me", toUserId: "a", amount: 50000, currency: "INR" },
+        { fromUserId: "me", toUserId: "b", amount: 20000, currency: "INR" },
+        { fromUserId: "b", toUserId: "a", amount: 10000, currency: "INR" },
+      ] },
+    });
+    render(<GroupDebtsCard groupId="g" names={names} currentUserId="me" upiIds={{ a: "asha@ybl" }} onPay={vi.fn()} />);
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(1); // not for Bhanu (no UPI id) and not for Bhanu→Asha (not my debt)
+    expect(links[0].getAttribute("href")).toContain("pa=asha%40ybl");
+    expect(links[0].getAttribute("href")).toContain("am=500.00");
+  });
+
+  it("doesn't offer UPI for non-rupee debts", () => {
+    useGroupDebts.mockReturnValue({ isLoading: false, data: { simplified: [{ fromUserId: "me", toUserId: "a", amount: 5000, currency: "USD" }] } });
+    render(<GroupDebtsCard groupId="g" names={names} currentUserId="me" upiIds={{ a: "asha@ybl" }} onPay={vi.fn()} />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
 });

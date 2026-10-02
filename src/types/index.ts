@@ -64,6 +64,8 @@ export interface UserProfile {
   email: string;
   name: string;
   avatarUrl: string | null;
+  /** Payment address people can pay to (INR) */
+  upiId?: string | null;
   currency: Currency;
   timezone: string;
   createdAt: Date;
@@ -107,8 +109,8 @@ export interface SimplifiedDebt {
   toUserId: string;
   amount: number;
   currency?: string;
-  fromUser?: { id: string; name: string; avatarUrl: string | null };
-  toUser?: { id: string; name: string; avatarUrl: string | null };
+  fromUser?: { id: string; name: string; avatarUrl: string | null; upiId?: string | null };
+  toUser?: { id: string; name: string; avatarUrl: string | null; upiId?: string | null };
 }
 
 export interface GroupMember {

@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (!(await getKnownUserIds(me)).has(friendId)) return err("Person not found", 404);
 
     const [friend, expenses, settlements] = await Promise.all([
-      prisma.user.findUnique({ where: { id: friendId }, select: { id: true, name: true, email: true, avatarUrl: true } }),
+      prisma.user.findUnique({ where: { id: friendId }, select: { id: true, name: true, email: true, avatarUrl: true, upiId: true } }),
       // Expenses I can see that also involve the friend (as payer, one of several payers, or in the split)
       prisma.expense.findMany({
         where: {

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFriendDetail } from "@/hooks/use-friends";
 import { useSettleUp, useSendReminder } from "@/hooks/use-settlements";
+import { UpiPayLink } from "@/components/shared/upi-pay-link";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 
 export default function FriendDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -88,7 +89,10 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setConfirming(null)}>Cancel</Button>
                 </>
               ) : (
-                <Button size="sm" variant="brand" className="h-7 text-xs" onClick={() => setConfirming(currency)}>Settle up</Button>
+                <>
+                  <UpiPayLink vpa={friend.upiId} payeeName={friend.name} amountCents={-net} currency={currency} />
+                  <Button size="sm" variant="brand" className="h-7 text-xs" onClick={() => setConfirming(currency)}>Settle up</Button>
+                </>
               )}
             </div>
           ))}

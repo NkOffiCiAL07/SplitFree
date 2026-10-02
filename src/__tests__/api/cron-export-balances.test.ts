@@ -154,6 +154,16 @@ describe("balances are tracked per currency", () => {
     expect(data.byGroup[G]).toMatchObject({ net: 500, currency: "INR" });
   });
 
+  it("/api/balance includes the payee's saved UPI ID so the app can offer one-tap payment", async () => {
+    p.expense.findMany.mockResolvedValue([
+      { id: "u", paidById: OTHER, currency: "INR", amount: 1000, groupId: null, payers: [], splits: [{ userId: ME, amount: 500 }, { userId: OTHER, amount: 500 }] },
+    ]);
+    p.settlement.findMany.mockResolvedValue([]);
+    p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null, upiId: "pal@ybl" }]);
+    const { data } = await BALANCE().then((r) => r.json());
+    expect(data.simplified[0]).toMatchObject({ fromUserId: ME, toUserId: OTHER, currency: "INR", toUser: { upiId: "pal@ybl" } });
+  });
+
   it("/api/balance simplifies each currency separately and labels every payment", async () => {
     p.expense.findMany.mockResolvedValue([
       { paidById: ME, currency: "INR", amount: 1000, groupId: null, payers: [], splits: [{ userId: ME, amount: 500 }, { userId: OTHER, amount: 500 }] },

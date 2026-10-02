@@ -55,6 +55,15 @@ describe("GET /api/friends/[id]", () => {
     expect(data.settlements).toHaveLength(1);
   });
 
+  it("returns the friend's saved UPI ID (for one-tap payment) and asks the database for it", async () => {
+    p.user.findUnique.mockResolvedValue({ id: OTHER, name: "Asha", email: "a@x.com", avatarUrl: null, upiId: "asha@ybl" });
+    p.expense.findMany.mockResolvedValue([]);
+    p.settlement.findMany.mockResolvedValue([]);
+    const { data } = await (await call(OTHER)).json();
+    expect(data.friend.upiId).toBe("asha@ybl");
+    expect(p.user.findUnique.mock.calls[0][0].select).toMatchObject({ upiId: true });
+  });
+
   it("asks for expenses I can see that involve the friend as payer, co-payer or in the split", async () => {
     p.user.findUnique.mockResolvedValue({ id: OTHER, name: "Asha", email: "a@x.com", avatarUrl: null });
     p.expense.findMany.mockResolvedValue([]);

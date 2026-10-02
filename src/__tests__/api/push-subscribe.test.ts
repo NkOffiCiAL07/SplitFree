@@ -85,3 +85,35 @@ describe("PATCH /api/profile — emailNotifications", () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe("PATCH /api/profile — upiId", () => {
+  const patch = (body: unknown) => PATCH_PROFILE(new Request("http://x", { method: "PATCH", body: JSON.stringify(body) }));
+
+  it("saves a valid UPI ID (trimmed)", async () => {
+    p.user.update.mockResolvedValue({ id: ME });
+    expect((await patch({ upiId: "  nishant@okaxis " })).status).toBe(200);
+    expect(p.user.update.mock.calls[0][0].data).toEqual({ upiId: "nishant@okaxis" });
+  });
+
+  it("clears it with an empty string or null", async () => {
+    p.user.update.mockResolvedValue({ id: ME });
+    await patch({ upiId: "" });
+    expect(p.user.update.mock.calls[0][0].data).toEqual({ upiId: null });
+    await patch({ upiId: null });
+    expect(p.user.update.mock.calls[1][0].data).toEqual({ upiId: null });
+  });
+
+  it("rejects things that aren't UPI IDs", async () => {
+    for (const bad of ["nishant", "@okaxis", "a b@ybl", "me@", "<script>@x", 123]) {
+      const res = await patch({ upiId: bad });
+      expect(res.status).toBe(422);
+    }
+    expect(p.user.update).not.toHaveBeenCalled();
+  });
+
+  it("leaves it untouched when not sent", async () => {
+    p.user.update.mockResolvedValue({ id: ME });
+    await patch({ name: "New Name" });
+    expect(p.user.update.mock.calls[0][0].data).toEqual({ name: "New Name" });
+  });
+});

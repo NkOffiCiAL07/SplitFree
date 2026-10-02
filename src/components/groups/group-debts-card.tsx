@@ -10,18 +10,21 @@ import { formatCurrency } from "@/lib/utils";
 import { formatSettlePlan } from "@/lib/settle-tools";
 import { APP_NAME } from "@/lib/app-config";
 import type { SimplifiedDebt } from "@/types";
+import { UpiPayLink } from "@/components/shared/upi-pay-link";
 
 interface Props {
   groupId: string;
   /** userId → display name */
   names: Record<string, string>;
   currentUserId?: string;
+  /** userId → saved UPI ID, for one-tap rupee payments */
+  upiIds?: Record<string, string | null | undefined>;
   /** Called when the user taps Pay on a debt they owe */
   onPay: (debt: SimplifiedDebt) => void;
 }
 
 /** "Simplify group debts": the fewest payments that settle everyone in the group. */
-export function GroupDebtsCard({ groupId, names, currentUserId, onPay }: Props) {
+export function GroupDebtsCard({ groupId, names, currentUserId, upiIds = {}, onPay }: Props) {
   const { data, isLoading } = useGroupDebts(groupId);
   const debts = data?.simplified ?? [];
   const label = (id: string) => (id === currentUserId ? "You" : names[id] ?? "Someone");
@@ -70,6 +73,9 @@ export function GroupDebtsCard({ groupId, names, currentUserId, onPay }: Props) 
                 <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
                 <span className="font-medium truncate flex-1">{label(d.toUserId)}</span>
                 <span className="font-semibold shrink-0">{formatCurrency(d.amount, d.currency ?? "INR")}</span>
+                {d.fromUserId === currentUserId && (
+                  <UpiPayLink vpa={upiIds[d.toUserId]} payeeName={names[d.toUserId]} amountCents={d.amount} currency={d.currency ?? "INR"} />
+                )}
                 {d.fromUserId === currentUserId && (
                   <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => onPay(d)}>Pay</Button>
                 )}

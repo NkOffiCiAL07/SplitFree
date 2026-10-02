@@ -121,6 +121,7 @@ model User {
   revisions        ExpenseRevision[]
   pushSubscriptions PushSubscription[]
   emailNotifications Boolean       @default(true) @map("email_notifications")
+  upiId            String?        @map("upi_id") // payment address shown to people who owe you (INR)
 
   @@map("users")
 }

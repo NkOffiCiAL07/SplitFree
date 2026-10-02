@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SimplifiedDebt, Settlement } from "@/types";
 import { buildUpiLink, formatSettlePlan } from "@/lib/settle-tools";
+import { UpiPayLink } from "@/components/shared/upi-pay-link";
 import { APP_NAME } from "@/lib/app-config";
 
 import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
@@ -262,6 +263,9 @@ export default function SettlePage() {
                   <span className={cn("text-sm font-bold shrink-0", isMyDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
                     {formatCurrency(debt.amount, debt.currency ?? userCurrency)}
                   </span>
+                  {isMyDebt && (
+                    <UpiPayLink vpa={debt.toUser?.upiId} payeeName={debt.toUser?.name} amountCents={debt.amount} currency={debt.currency ?? userCurrency} className="h-7 gap-1 px-2 text-xs shrink-0" />
+                  )}
                   {isMyDebt && (
                     <Button
                       variant="brand"

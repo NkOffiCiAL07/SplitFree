@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { UpiSettings } from "@/components/settings/upi-settings";
 
 
 export default function SettingsPage() {
@@ -103,6 +104,19 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <NotificationSettings />
+          </CardContent>
+        </Card>
+      </m.div>
+
+      {/* Get paid */}
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }}>
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Get paid faster</CardTitle>
+            <CardDescription>Add your UPI ID so friends can settle up in one tap</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <UpiSettings />
           </CardContent>
         </Card>
       </m.div>
