@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.splitfree.app",
-    "sha256_cert_fingerprints": ["REPLACE_WITH_FINGERPRINT_FROM_PWABUILDER"]
+    "sha256_cert_fingerprints": ["E3:0D:15:40:3A:90:F1:F7:DD:B7:FF:49:85:87:5B:1E:FF:E8:50:E4:64:EB:FA:55:A2:FB:6C:AE:C4:B3:E7:86"]
   }
 }]
