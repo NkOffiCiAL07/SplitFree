@@ -20,8 +20,15 @@ export const createExpenseSchema = z.object({
   splits: z.record(z.string(), z.number()).optional(),
 });
 
+// NOTE: zod keeps `.default()` values on `.partial()` fields, which would silently reset
+// currency/category/splitType/isRecurring on every edit. Redeclare them without defaults so an
+// omitted field means "unchanged".
 export const updateExpenseSchema = createExpenseSchema.partial().extend({
   id: z.string().uuid(),
+  currency: createExpenseSchema.shape.currency.removeDefault().optional(),
+  category: createExpenseSchema.shape.category.removeDefault().optional(),
+  splitType: createExpenseSchema.shape.splitType.removeDefault().optional(),
+  isRecurring: createExpenseSchema.shape.isRecurring.removeDefault().optional(),
 });
 
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;

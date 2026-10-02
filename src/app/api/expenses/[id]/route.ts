@@ -107,7 +107,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         paidById,
         splitType,
         isRecurring: data.isRecurring,
-        recurringInterval: data.recurringInterval ?? null,
+        recurringInterval: data.recurringInterval, // undefined = unchanged, null = clear
         ...(rebuildSplits
           ? {
               splits: {

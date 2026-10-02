@@ -17,7 +17,7 @@ vi.mock("next/link", () => ({
 
 // framer-motion — render as plain elements in tests
 vi.mock("framer-motion", () => {
-  const tags = ["div", "span", "button", "a", "ul", "li", "p", "h1", "h2", "h3", "section", "article", "nav"];
+  const tags = ["div", "span", "button", "a", "ul", "li", "p", "h1", "h2", "h3", "section", "article", "nav", "aside", "header", "footer", "main", "form", "label", "svg", "circle", "path"];
   const motion = Object.fromEntries(
     tags.map((tag) => [
       tag,

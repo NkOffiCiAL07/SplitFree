@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createExpenseSchema } from "@/lib/validations/expense";
+import { createExpenseSchema, updateExpenseSchema } from "@/lib/validations/expense";
 
 const validExpense = {
   description: "Dinner",
@@ -119,5 +119,21 @@ describe("createExpenseSchema", () => {
     expect(() =>
       createExpenseSchema.parse({ ...validExpense, notes: "x".repeat(501) })
     ).toThrow();
+  });
+});
+
+describe("updateExpenseSchema — omitted fields mean 'unchanged'", () => {
+  const id = "55555555-5555-4555-8555-555555555555";
+  it("does not inject defaults for fields the client did not send", () => {
+    const r = updateExpenseSchema.parse({ id, description: "New name" });
+    expect(r).toEqual({ id, description: "New name" });
+    expect(r).not.toHaveProperty("splitType");
+    expect(r).not.toHaveProperty("category");
+    expect(r).not.toHaveProperty("isRecurring");
+    expect(r).not.toHaveProperty("currency");
+  });
+  it("still validates the fields that are sent", () => {
+    expect(updateExpenseSchema.safeParse({ id, splitType: "NOPE" }).success).toBe(false);
+    expect(updateExpenseSchema.parse({ id, splitType: "SHARES" }).splitType).toBe("SHARES");
   });
 });

@@ -135,6 +135,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const { id: groupId } = await params;
 
     const { userId } = await req.json();
+    if (typeof userId !== "string" || !userId) return err("userId is required", 400);
 
     const adminMember = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId: user!.id } },
