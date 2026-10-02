@@ -245,25 +245,24 @@ export default function FriendsPage() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
+                {(() => {
+                  const b = balances?.byPerson[friendship.friendId];
+                  if (!b || b.net === 0) return null;
+                  return (
+                    <p className={cn(
+                      "text-xs font-semibold mt-0.5",
+                      b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                    )}>
+                      {b.net > 0
+                        ? `lent ${formatCompactCurrency(b.net, b.currency)}`
+                        : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
+                    </p>
+                  );
+                })()}
               </div>
-              {(() => {
-                const b = balances?.byPerson[friendship.friendId];
-                if (!b || b.net === 0) return (
-                  <p className="text-xs text-muted-foreground hidden sm:block shrink-0">
-                    {formatRelativeTime(friendship.createdAt)}
-                  </p>
-                );
-                return (
-                  <span className={cn(
-                    "text-xs font-semibold shrink-0 hidden sm:block",
-                    b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                  )}>
-                    {b.net > 0
-                      ? `lent ${formatCompactCurrency(b.net, b.currency)}`
-                      : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
-                  </span>
-                );
-              })()}
+              <p className="text-xs text-muted-foreground hidden sm:block shrink-0">
+                {formatRelativeTime(friendship.createdAt)}
+              </p>
               <Button
                 size="sm"
                 variant="brand"
@@ -308,21 +307,21 @@ export default function FriendsPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{contact.name ?? "Member"}</p>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
+                {(() => {
+                  const b = balances?.byPerson[contact.id];
+                  if (!b || b.net === 0) return null;
+                  return (
+                    <p className={cn(
+                      "text-xs font-semibold mt-0.5",
+                      b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                    )}>
+                      {b.net > 0
+                        ? `lent ${formatCompactCurrency(b.net, b.currency)}`
+                        : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
+                    </p>
+                  );
+                })()}
               </div>
-              {(() => {
-                const b = balances?.byPerson[contact.id];
-                if (!b || b.net === 0) return null;
-                return (
-                  <span className={cn(
-                    "text-xs font-semibold shrink-0 hidden sm:block",
-                    b.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                  )}>
-                    {b.net > 0
-                      ? `lent ${formatCompactCurrency(b.net, b.currency)}`
-                      : `owes ${formatCompactCurrency(Math.abs(b.net), b.currency)}`}
-                  </span>
-                );
-              })()}
               <Button
                 size="sm"
                 variant="brand"
