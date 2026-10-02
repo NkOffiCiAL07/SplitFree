@@ -28,8 +28,10 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-export function EditGroupDialog({ group }: { group: Group }) {
-  const [open, setOpen] = useState(false);
+export function EditGroupDialog({ group, open: controlledOpen, onOpenChange }: { group: Group; open?: boolean; onOpenChange?: (v: boolean) => void }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const updateGroup = useUpdateGroup();
 
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({

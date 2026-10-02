@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EditGroupDialog } from "@/components/groups/edit-group-dialog";
@@ -48,6 +49,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrUrl, setQrUrl] = useState("");
+  const [editGroupOpen, setEditGroupOpen] = useState(false);
 
   const myMember = group?.members?.find((m) => m.userId === user?.id);
   const isAdmin = myMember?.role === "ADMIN";
@@ -114,78 +116,130 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1 min-w-0">
           <h2 className="text-xl font-bold truncate">{group.name}</h2>
           {group.description && (
-            <p className="text-sm text-muted-foreground">{group.description}</p>
+            <p className="text-xs text-muted-foreground truncate">{group.description}</p>
           )}
         </div>
-        <div className="flex items-center gap-1">
-          <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []} />
-          {isAdmin && <EditGroupDialog group={group} />}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            title="Copy invite link"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={async () => {
-              const res = await fetch(`/api/groups/${id}/invite-link`);
-              const json = await res.json();
-              if (json.data?.token) {
-                const url = `${window.location.origin}/join/${json.data.token}`;
-                await navigator.clipboard.writeText(url);
-                toast.success("Invite link copied!");
-              } else {
-                toast.error("Failed to generate invite link");
-              }
-            }}
-          >
-            <Link2 className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            title="QR code invite"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={async () => {
-              const res = await fetch(`/api/groups/${id}/invite-link`);
-              const json = await res.json();
-              if (json.data?.token) {
-                setQrUrl(`${window.location.origin}/join/${json.data.token}`);
-                setQrOpen(true);
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Add expense — icon-only on mobile, text on desktop */}
+          <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []}>
+            <Button variant="brand" size="sm" className="gap-1.5">
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Add expense</span>
+            </Button>
+          </AddExpenseDialog>
+
+          {/* Secondary actions — inline on desktop, dropdown on mobile */}
+          <div className="hidden sm:flex items-center gap-1">
+            {isAdmin && <EditGroupDialog group={group} open={editGroupOpen} onOpenChange={setEditGroupOpen} />}
+            <Button
+              variant="ghost" size="icon-sm" title="Copy invite link"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={async () => {
+                const res = await fetch(`/api/groups/${id}/invite-link`);
+                const json = await res.json();
+                if (json.data?.token) {
+                  await navigator.clipboard.writeText(`${window.location.origin}/join/${json.data.token}`);
+                  toast.success("Invite link copied!");
+                } else toast.error("Failed to generate invite link");
+              }}
+            >
+              <Link2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost" size="icon-sm" title="QR code invite"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={async () => {
+                const res = await fetch(`/api/groups/${id}/invite-link`);
+                const json = await res.json();
+                if (json.data?.token) {
+                  setQrUrl(`${window.location.origin}/join/${json.data.token}`);
+                  setQrOpen(true);
               } else {
                 toast.error("Failed to generate QR code");
               }
             }}
           >
-            <QrCode className="size-4" />
-          </Button>
-          {!isCreator && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              title="Leave group"
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={handleLeave}
-            >
-              <LogOut className="size-4" />
-            </Button>
-          )}
-          {isCreator && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleDelete}
-              title="Delete group"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          )}
+                  <QrCode className="size-4" />
+                </Button>
+                {!isCreator && (
+                  <Button
+                    variant="ghost" size="icon-sm" title="Leave group"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleLeave}
+                  >
+                    <LogOut className="size-4" />
+                  </Button>
+                )}
+                {isCreator && (
+                  <Button
+                    variant="ghost" size="icon-sm" title="Delete group"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Mobile: ⋮ dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" className="sm:hidden text-muted-foreground">
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {isAdmin && (
+                    <DropdownMenuItem onSelect={() => setEditGroupOpen(true)}>
+                      <Pencil className="size-4 mr-2" /> Edit group
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={async () => {
+                    const res = await fetch(`/api/groups/${id}/invite-link`);
+                    const json = await res.json();
+                    if (json.data?.token) {
+                      await navigator.clipboard.writeText(`${window.location.origin}/join/${json.data.token}`);
+                      toast.success("Invite link copied!");
+                    } else toast.error("Failed to generate invite link");
+                  }}>
+                    <Link2 className="size-4 mr-2" /> Copy invite link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={async () => {
+                    const res = await fetch(`/api/groups/${id}/invite-link`);
+                    const json = await res.json();
+                    if (json.data?.token) {
+                      setQrUrl(`${window.location.origin}/join/${json.data.token}`);
+                      setQrOpen(true);
+                    } else toast.error("Failed to generate QR code");
+                  }}>
+                    <QrCode className="size-4 mr-2" /> QR code invite
+                  </DropdownMenuItem>
+                  {!isCreator && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={handleLeave} className="text-destructive focus:text-destructive">
+                        <LogOut className="size-4 mr-2" /> Leave group
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isCreator && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={handleDelete} className="text-destructive focus:text-destructive">
+                        <Trash2 className="size-4 mr-2" /> Delete group
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
         </div>
       </div>
 
