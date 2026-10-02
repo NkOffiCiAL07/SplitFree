@@ -4,7 +4,7 @@ import { useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock } from "lucide-react";
 import { useSettlements, useSettleUp, useBalance } from "@/hooks/use-settlements";
-import { useFriends } from "@/hooks/use-friends";
+import { useFriendContacts } from "@/hooks/use-friends";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserCurrency } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
 export default function SettlePage() {
   const { data, isLoading } = useSettlements();
   const { data: balanceData, isLoading: balanceLoading } = useBalance();
-  const { data: friends } = useFriends();
+  const { data: friends } = useFriendContacts();
   const { user } = useAuth();
   const settleUp = useSettleUp();
   const [selectedFriend, setSelectedFriend] = useState<string>("");

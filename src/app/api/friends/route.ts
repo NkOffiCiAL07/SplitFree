@@ -40,6 +40,29 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
+    // contacts=true: friends plus everyone you share a group with (for pickers)
+    if (new URL(req.url).searchParams.get("contacts") === "true") {
+      const friendIds = new Set(friendships.map((f) => f.friendId));
+      const coMembers = await prisma.groupMember.findMany({
+        where: {
+          userId: { notIn: [user!.id, ...friendIds] },
+          group: { members: { some: { userId: user!.id } } },
+        },
+        distinct: ["userId"],
+        include: { user: true },
+      });
+      const groupContacts = coMembers.map((m) => ({
+        id: `group-${m.userId}`,
+        userId: user!.id,
+        friendId: m.userId,
+        status: "ACCEPTED",
+        createdAt: m.joinedAt,
+        friend: m.user,
+        fromGroup: true,
+      }));
+      return ok([...friendships, ...groupContacts]);
+    }
+
     return ok(friendships);
   } catch (e) {
     return handleError(e);

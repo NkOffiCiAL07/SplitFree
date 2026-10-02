@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
 import { ArrowLeft, UserPlus, Trash2, Receipt, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, MessageCircle, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
-import { useFriends } from "@/hooks/use-friends";
+import { useFriendContacts } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
@@ -43,7 +43,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const [addEmail, setAddEmail] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [friendSearch, setFriendSearch] = useState("");
-  const { data: friends } = useFriends();
+  const { data: friends } = useFriendContacts();
   const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
   const [settleNote, setSettleNote] = useState("");
   const [transferTarget, setTransferTarget] = useState<string | null>(null);

@@ -144,6 +144,8 @@ export interface Friendship {
   friendId: string;
   createdAt: Date;
   friend?: UserProfile;
+  /** true for people who share a group with you but aren't formal friends */
+  fromGroup?: boolean;
 }
 
 /* ─── Debt ────────────────────────────────────────────────── */

@@ -9,7 +9,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { useGroups, useGroup } from "@/hooks/use-groups";
-import { useFriends } from "@/hooks/use-friends";
+import { useFriendContacts } from "@/hooks/use-friends";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,7 +85,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   const { mutateAsync, isPending } = useCreateExpense();
   const { data: groups } = useGroups();
   const { data: localGroupData } = useGroup(localGroupId);
-  const { data: friendships } = useFriends();
+  const { data: friendships } = useFriendContacts();
 
   const { register, handleSubmit, control, watch, reset, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),

@@ -30,12 +30,15 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     let currentUserId: string | null | undefined;
     const { data: { subscription } } = createClient().auth.onAuthStateChange((event, session) => {
       const nextUserId = session?.user?.id ?? null;
+      // Only a real sign-out or a switch between two accounts counts; the initial
+      // session / first sign-in must never wipe in-flight queries.
       const changed =
         event === "SIGNED_OUT" ||
-        (currentUserId !== undefined && currentUserId !== nextUserId);
+        (!!currentUserId && !!nextUserId && currentUserId !== nextUserId);
       currentUserId = nextUserId;
       if (!changed) return;
-      queryClient.clear();
+      queryClient.cancelQueries();
+      queryClient.removeQueries();
       if (typeof caches !== "undefined") {
         caches.keys().then((names) =>
           Promise.all(names.map(async (name) => {

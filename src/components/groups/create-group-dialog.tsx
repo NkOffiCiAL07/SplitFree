@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Check } from "lucide-react";
 import { createGroupSchema, type CreateGroupInput } from "@/lib/validations/group";
 import { useCreateGroup } from "@/hooks/use-groups";
-import { useFriends } from "@/hooks/use-friends";
+import { useFriendContacts } from "@/hooks/use-friends";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ export function CreateGroupDialog({
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const { mutateAsync, isPending } = useCreateGroup();
-  const { data: friends } = useFriends();
+  const { data: friends } = useFriendContacts();
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CreateGroupInput>({

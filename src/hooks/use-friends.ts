@@ -18,6 +18,14 @@ export function useFriends() {
   });
 }
 
+/** Friends plus people from your groups — use for pickers; Friends page uses useFriends. */
+export function useFriendContacts() {
+  return useQuery<Friendship[]>({
+    queryKey: ["friends", "contacts"],
+    queryFn: () => fetchJSON("/api/friends?contacts=true"),
+  });
+}
+
 export function usePendingFriendRequests() {
   return useQuery<any[]>({
     queryKey: ["friends", "pending"],
