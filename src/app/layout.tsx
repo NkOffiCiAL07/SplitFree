@@ -48,6 +48,14 @@ export const metadata: Metadata = {
     title: "SplitFree",
     description: "The free, beautiful alternative to Splitwise.",
   },
+  // iOS PWA meta tags — not exposed by Next.js Metadata API directly
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "SplitFree",
+    "mobile-web-app-capable": "yes",
+    "application-name": "SplitFree",
+  },
 };
 
 export const viewport: Viewport = {
@@ -71,15 +79,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
-      {/* iOS PWA meta tags — Next.js metadata API doesn't expose these */}
-      <head>
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SplitFree" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="SplitFree" />
-        <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
-      </head>
       <body className="min-h-full bg-background font-sans antialiased">
         <ThemeProvider
           attribute="class"
