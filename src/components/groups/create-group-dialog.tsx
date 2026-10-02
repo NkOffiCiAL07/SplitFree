@@ -1,13 +1,14 @@
 "use client";
 
-import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
-import { useState } from "react";
+import { CURRENCY_CODES as CURRENCIES } from "@/lib/currencies";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Check } from "lucide-react";
 import { createGroupSchema, type CreateGroupInput } from "@/lib/validations/group";
 import { useCreateGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
+import { useUserCurrency } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,11 +41,14 @@ export function CreateGroupDialog({
   const { mutateAsync, isPending } = useCreateGroup();
   const { data: friends } = useFriendContacts();
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
+  // New groups start in the user's home currency (Settings → Currency); it can still be changed per group
+  const homeCurrency = useUserCurrency() as CreateGroupInput["currency"];
 
-  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CreateGroupInput>({
+  const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm<CreateGroupInput>({
     resolver: zodResolver(createGroupSchema),
-    defaultValues: { category: "OTHER", currency: DEFAULT_CURRENCY },
+    defaultValues: { category: "OTHER", currency: homeCurrency },
   });
+  useEffect(() => { setValue("currency", homeCurrency); }, [homeCurrency, setValue]);
 
   const toggleFriend = (id: string) =>
     setSelectedFriendIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -56,7 +60,7 @@ export function CreateGroupDialog({
       .filter(Boolean) as string[];
     await mutateAsync({ ...data, memberEmails: memberEmails.length ? memberEmails : undefined });
     setOpen(false);
-    reset();
+    reset({ category: "OTHER", currency: homeCurrency });
     setSelectedFriendIds([]);
   };
 
@@ -101,7 +105,7 @@ export function CreateGroupDialog({
             </div>
             <div className="space-y-1.5">
               <Label>Currency</Label>
-              <Select defaultValue={DEFAULT_CURRENCY} onValueChange={(v) => setValue("currency", v as CreateGroupInput["currency"])}>
+              <Select value={watch("currency")} onValueChange={(v) => setValue("currency", v as CreateGroupInput["currency"])}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}

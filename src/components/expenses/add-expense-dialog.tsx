@@ -11,6 +11,7 @@ import { useCreateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { useGroups, useGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
+import { useUserCurrency } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,6 +92,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
   const { data: groups } = useGroups();
   const { data: localGroupData } = useGroup(localGroupId);
   const { data: friendships } = useFriendContacts();
+  // Inside a group the group's currency applies; standalone expenses start in the user's home currency
+  const homeCurrency = useUserCurrency();
 
   const { register, handleSubmit, control, watch, reset, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -99,7 +102,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
       category: "OTHER",
       isRecurring: false,
       paidById: user?.id ?? "",
-      currency: groupCurrency,
+      currency: isGlobalMode ? homeCurrency : groupCurrency,
     },
   });
 
@@ -107,6 +110,11 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
   useEffect(() => {
     if (user?.id) setValue("paidById", user.id);
   }, [user?.id, setValue]);
+
+  // Standalone expenses follow the home currency (until a group is picked, which sets its own)
+  useEffect(() => {
+    if (isGlobalMode && !localGroupData?.currency) setValue("currency", homeCurrency);
+  }, [isGlobalMode, homeCurrency, localGroupData?.currency, setValue]);
 
   // Sync currency when a group is selected in global mode
   useEffect(() => {
@@ -259,7 +267,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      reset({ date: new Date().toISOString().split("T")[0], category: "OTHER", isRecurring: false, paidById: user?.id ?? "", currency: groupCurrency });
+      reset({ date: new Date().toISOString().split("T")[0], category: "OTHER", isRecurring: false, paidById: user?.id ?? "", currency: isGlobalMode ? homeCurrency : groupCurrency });
       setSplitValues({});
       setParticipants([]);
       setMultiPayers(false);

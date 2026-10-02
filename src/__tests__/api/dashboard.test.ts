@@ -34,7 +34,6 @@ function seed({ expenses = [] as unknown[], settlements = [] as unknown[] }) {
   p.user.findMany.mockResolvedValue([{ id: OTHER, name: "Pal", avatarUrl: null }]);
   p.group.count.mockResolvedValue(1);
   p.activity.findMany.mockResolvedValue([]);
-  p.group.findFirst.mockResolvedValue({ currency: "INR" });
 }
 
 beforeEach(() => {
@@ -116,5 +115,24 @@ describe("GET /api/dashboard", () => {
     const { data } = await (await GET()).json();
     expect(data.stats.totalOwed).toBe(300); // only Third owes me; Pal is square
     expect(data.personBalances).toHaveLength(1);
+  });
+
+  it("the headline currency is the user's home currency, NOT whatever their latest group uses (regression)", async () => {
+    seed({ expenses: [owed({ amount: 100000, currency: "USD" })] });
+    p.user.findUnique.mockResolvedValue({ currency: "USD" });
+    p.group.findFirst.mockResolvedValue({ currency: "INR" }); // an INR group exists, but must not override the setting
+    getRates.mockResolvedValue(null);
+    const { data } = await (await GET()).json();
+    expect(data.currency).toBe("USD");
+    expect(data.stats.totalOwed).toBe(100000);
+    expect(data.stats.otherCurrencies).toEqual([]);
+    expect(p.group.findFirst).not.toHaveBeenCalled(); // the group lookup is gone entirely
+  });
+
+  it("falls back to INR when the profile has no currency yet", async () => {
+    seed({ expenses: [] });
+    p.user.findUnique.mockResolvedValue(null);
+    const { data } = await (await GET()).json();
+    expect(data.currency).toBe("INR");
   });
 });

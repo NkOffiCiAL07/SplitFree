@@ -138,8 +138,8 @@ export default function SettingsPage() {
       <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-base">Currency</CardTitle>
-            <CardDescription>Default currency for your dashboard display</CardDescription>
+            <CardTitle className="text-base">Home currency</CardTitle>
+            <CardDescription>The currency you think in — it drives your totals and sets your defaults</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <Select value={currency} onValueChange={handleCurrencyChange} disabled={savingCurrency}>
@@ -152,9 +152,18 @@ export default function SettingsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-2">
-              This sets how amounts are displayed on the dashboard.
-            </p>
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground" data-testid="currency-help">
+              <p className="font-medium text-foreground">Your home currency is used for:</p>
+              <ul className="list-disc space-y-1 pl-4">
+                <li>The totals and chart on your <strong>dashboard</strong> and in <strong>analytics</strong></li>
+                <li>The <strong>default</strong> for new groups and for expenses you add outside a group</li>
+                <li>The base for the “≈ total” shown when you have balances in other currencies</li>
+              </ul>
+              <p>
+                Existing groups and expenses keep their own currency, and balances in different currencies are
+                never added together. You can still pick any currency for an individual group or expense.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </m.div>

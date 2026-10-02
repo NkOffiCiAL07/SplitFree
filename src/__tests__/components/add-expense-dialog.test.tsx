@@ -4,13 +4,14 @@ import userEvent from "@testing-library/user-event";
 
 const { mutateAsync, toast, state } = vi.hoisted(() => ({
   mutateAsync: vi.fn(), toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
-  state: { groups: [] as unknown[], group: undefined as unknown, friends: [] as unknown[] },
+  state: { groups: [] as unknown[], group: undefined as unknown, friends: [] as unknown[], home: "INR" },
 }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => ({ user: { id: "me", email: "me@x.com", user_metadata: { name: "Nishant Kumar" } } }) }));
 vi.mock("@/hooks/use-expenses", () => ({ useCreateExpense: () => ({ mutateAsync, isPending: false }) }));
 vi.mock("@/hooks/use-groups", () => ({ useGroups: () => ({ data: state.groups }), useGroup: () => ({ data: state.group }) }));
 vi.mock("@/hooks/use-friends", () => ({ useFriendContacts: () => ({ data: state.friends }) }));
+vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => state.home }));
 
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 
@@ -35,6 +36,7 @@ beforeEach(() => {
   state.groups = [{ id: "g1", name: "Goa Trip" }];
   state.group = undefined;
   state.friends = [];
+  state.home = "INR";
 });
 
 describe("AddExpenseDialog — a group expense", () => {
@@ -207,5 +209,40 @@ describe("AddExpenseDialog — standalone (no group)", () => {
     await submit();
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Please select a group or change split context"));
     expect(mutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("AddExpenseDialog — currency", () => {
+  it("inside a group the group's currency applies, whatever the home currency is", async () => {
+    state.home = "USD";
+    renderGroup({ groupCurrency: "INR" });
+    await fill("Dinner", "100");
+    await submit();
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
+    expect(mutateAsync.mock.calls[0][0].currency).toBe("INR");
+  });
+
+  it("outside a group, expenses start in the user's home currency", async () => {
+    state.home = "USD";
+    state.group = undefined;
+    render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: /personal|just me/i }));
+    await fill("Coffee", "5");
+    await submit();
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
+    expect(mutateAsync.mock.calls[0][0].currency).toBe("USD");
+  });
+
+  it("picking a group in the standalone dialog switches to that group's currency", async () => {
+    state.home = "USD";
+    state.groups = [{ id: "g1", name: "Goa Trip" }];
+    state.group = { id: "g1", currency: "INR", members };
+    render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
+    await userEvent.click(screen.getByText(/choose a group/i).closest("button") as HTMLElement);
+    await userEvent.click(await screen.findByRole("option", { name: "Goa Trip" }));
+    await fill("Dinner", "100");
+    await submit();
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
+    expect(mutateAsync.mock.calls[0][0].currency).toBe("INR");
   });
 });

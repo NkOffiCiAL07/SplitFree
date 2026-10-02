@@ -16,7 +16,7 @@ export async function GET() {
     const userId = user!.id;
 
     // Totals/balances are all-time (they must match /api/balances); only the chart is limited to 6 months.
-    const [ledger, groups, recentActivity, profile, primaryGroup] = await Promise.all([
+    const [ledger, groups, recentActivity, profile] = await Promise.all([
       loadUserLedger(userId),
       prisma.group.count({ where: { members: { some: { userId } }, archivedAt: null } }),
       prisma.activity.findMany({
@@ -29,17 +29,12 @@ export async function GET() {
         },
       }),
       prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }),
-      // Most recently updated group to detect preferred currency
-      prisma.group.findFirst({
-        where: { members: { some: { userId } }, archivedAt: null },
-        orderBy: { updatedAt: "desc" },
-        select: { currency: true },
-      }),
     ]);
     const { edges } = ledger;
 
-    // Headline currency: group currency takes priority over the profile default
-    const currency = primaryGroup?.currency ?? profile?.currency ?? DEFAULT_CURRENCY;
+    // Headline currency = the user's home currency from Settings. (It used to be overridden by the most
+    // recently updated group's currency, which made the setting do nothing for most people.)
+    const currency = profile?.currency ?? DEFAULT_CURRENCY;
 
     // Monthly chart — primary currency only (amounts in different currencies are never summed).
     // Built from expense-created debts (settlements are not "spending"), accumulated in cents.

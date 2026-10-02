@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const h = vi.hoisted(() => ({ create: vi.fn(), friends: { data: [] as unknown[] } }));
+const h = vi.hoisted(() => ({ create: vi.fn(), friends: { data: [] as unknown[] }, home: { value: "INR" } }));
 vi.mock("@/hooks/use-groups", () => ({ useCreateGroup: () => ({ mutateAsync: h.create, isPending: false }) }));
 vi.mock("@/hooks/use-friends", () => ({ useFriendContacts: () => h.friends }));
+vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => h.home.value }));
 
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 
@@ -14,6 +15,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   h.create.mockResolvedValue({ id: "g1", name: "Goa" });
   h.friends.data = [];
+  h.home.value = "INR";
 });
 
 const renderOpen = (onOpenChange = vi.fn()) => render(<CreateGroupDialog open onOpenChange={onOpenChange} />);
@@ -58,6 +60,44 @@ describe("CreateGroupDialog", () => {
     await userEvent.type(screen.getByPlaceholderText(/weekend trip/i), "US Trip");
     await submit();
     await waitFor(() => expect(h.create.mock.calls[0][0].currency).toBe("USD"));
+  });
+
+  describe("home currency (Settings → Home currency)", () => {
+    it("new groups start in the user's home currency, not a hardcoded one", async () => {
+      h.home.value = "USD";
+      renderOpen();
+      expect(screen.getAllByRole("combobox")[1]).toHaveTextContent("USD");
+      await userEvent.type(screen.getByPlaceholderText(/weekend trip/i), "NYC");
+      await submit();
+      await waitFor(() => expect(h.create.mock.calls[0][0].currency).toBe("USD"));
+    });
+
+    it("can still be changed for this one group", async () => {
+      h.home.value = "USD";
+      renderOpen();
+      await userEvent.click(screen.getAllByRole("combobox")[1]);
+      await userEvent.click(await screen.findByRole("option", { name: "EUR" }));
+      await userEvent.type(screen.getByPlaceholderText(/weekend trip/i), "Paris");
+      await submit();
+      await waitFor(() => expect(h.create.mock.calls[0][0].currency).toBe("EUR"));
+    });
+
+    it("follows the home currency when the profile loads after the dialog opens", async () => {
+      const { rerender } = renderOpen();
+      expect(screen.getAllByRole("combobox")[1]).toHaveTextContent("INR");
+      h.home.value = "GBP";
+      rerender(<CreateGroupDialog open onOpenChange={vi.fn()} />);
+      await waitFor(() => expect(screen.getAllByRole("combobox")[1]).toHaveTextContent("GBP"));
+    });
+
+    it("after creating a group the form goes back to the home currency (not INR)", async () => {
+      h.home.value = "AUD";
+      renderOpen();
+      await userEvent.type(screen.getByPlaceholderText(/weekend trip/i), "Sydney");
+      await submit();
+      await waitFor(() => expect(h.create).toHaveBeenCalled());
+      expect(screen.getAllByRole("combobox")[1]).toHaveTextContent("AUD");
+    });
   });
 
   it("lets you pick a category", async () => {

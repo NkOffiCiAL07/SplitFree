@@ -24,7 +24,7 @@ beforeEach(() => {
 describe("SettingsPage", () => {
   it("has every section", () => {
     renderPage();
-    for (const heading of ["Appearance", "Notifications", "Get paid faster", "Import", "Currency", "Data", "Privacy & Security"]) {
+    for (const heading of ["Appearance", "Notifications", "Get paid faster", "Import", "Home currency", "Data", "Privacy & Security"]) {
       expect(screen.getByText(heading)).toBeInTheDocument();
     }
     expect(screen.getByTestId("notification-settings")).toBeInTheDocument();
@@ -39,6 +39,30 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "Light" }).className).not.toContain("border-primary");
     await userEvent.click(screen.getByRole("button", { name: "Light" }));
     expect(h.setTheme).toHaveBeenCalledWith("light");
+  });
+
+  describe("home currency explanation", () => {
+    it("tells the user exactly what the setting does", () => {
+      renderPage();
+      const help = screen.getByTestId("currency-help");
+      expect(help).toHaveTextContent("Your home currency is used for");
+      expect(help).toHaveTextContent(/dashboard/i);
+      expect(help).toHaveTextContent(/analytics/i);
+      expect(help).toHaveTextContent(/default for new groups and for expenses you add outside a group/i);
+      expect(help).toHaveTextContent(/≈ total/);
+    });
+
+    it("is honest about its limits: existing data keeps its currency and currencies are never mixed", () => {
+      renderPage();
+      const help = screen.getByTestId("currency-help");
+      expect(help).toHaveTextContent(/existing groups and expenses keep their own currency/i);
+      expect(help).toHaveTextContent(/never added together/i);
+    });
+
+    it("no longer claims to only affect how the dashboard is displayed", () => {
+      renderPage();
+      expect(screen.queryByText(/sets how amounts are displayed on the dashboard/i)).not.toBeInTheDocument();
+    });
   });
 
   describe("default currency", () => {
