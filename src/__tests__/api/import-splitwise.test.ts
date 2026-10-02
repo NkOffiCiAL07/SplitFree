@@ -16,7 +16,7 @@ const dinner = { date: "2026-01-05", description: "Dinner", category: "Dining ou
 const payment = { date: "2026-01-09", description: "Payment", category: "Payment", cost: 30000, currency: "INR", isPayment: true, nets: { Asha: 30000, Me: -30000 } };
 const THIRD = "66666666-6666-4666-8666-666666666666";
 
-const send = (body: Record<string, unknown>, ip = "1.1.1.1") =>
+const send = (body: Record<string, unknown>) =>
   POST(new NextRequest("http://x/api/import/splitwise", { method: "POST", body: JSON.stringify(body) }));
 
 const valid = (over: Record<string, unknown> = {}) => ({

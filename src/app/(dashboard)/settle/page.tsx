@@ -332,7 +332,7 @@ export default function SettlePage() {
                     {s.note && <p className="text-[10px] text-muted-foreground truncate">{s.note}</p>}
                   </div>
                   <span className={cn("font-semibold shrink-0 text-sm", isOutgoing ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
-                    {isOutgoing ? "−" : "+"}{formatCurrency(s.amount, userCurrency)}
+                    {isOutgoing ? "−" : "+"}{formatCurrency(s.amount, s.currency ?? userCurrency)}
                   </span>
                   <span className="text-[10px] text-muted-foreground shrink-0">{formatDate(s.createdAt)}</span>
                 </m.div>

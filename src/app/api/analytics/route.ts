@@ -27,7 +27,7 @@ export async function GET() {
       }),
       loadUserLedger(userId),
       prisma.group.findMany({
-        where: { members: { some: { userId } } },
+        where: { members: { some: { userId } }, archivedAt: null }, // archived groups aren't active
         select: { id: true, name: true },
       }),
     ]);

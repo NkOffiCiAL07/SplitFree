@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, parseLimit } from "@/lib/api-helpers";
 
 const ACTION_LABELS: Record<string, string> = {
   EXPENSE_CREATED: "You added an expense",
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     if (error) return error;
 
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") ?? "30"), 100);
+    const limit = parseLimit(searchParams.get("limit"), 30);
 
     const [activities, notifications] = await Promise.all([
       prisma.activity.findMany({

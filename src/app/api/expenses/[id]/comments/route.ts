@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, visibleToUser } from "@/lib/api-helpers";
 
+const MAX_COMMENT_LENGTH = 1000;
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { user, error } = await requireAuth();
@@ -40,7 +42,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!expense) return err("Expense not found", 404);
 
     const { text } = await req.json();
-    if (!text?.trim()) return err("Comment text is required", 400);
+    if (typeof text !== "string" || !text.trim()) return err("Comment text is required", 400);
+    if (text.trim().length > MAX_COMMENT_LENGTH) return err(`Comments can be at most ${MAX_COMMENT_LENGTH} characters`, 400);
 
     const comment = await prisma.expenseComment.create({
       data: { expenseId, userId: user!.id, text: text.trim() },
@@ -77,6 +80,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (error) return error;
     const { id: expenseId } = await params;
     const { commentId } = await req.json();
+    // An undefined id would be ignored by Prisma and match the user's first comment — reject it
+    if (typeof commentId !== "string" || !commentId) return err("commentId is required", 400);
 
     const comment = await prisma.expenseComment.findFirst({
       where: { id: commentId, expenseId, userId: user!.id },

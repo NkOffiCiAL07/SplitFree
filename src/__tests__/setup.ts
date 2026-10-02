@@ -47,3 +47,14 @@ vi.mock("qrcode.react", () => ({
   QRCodeCanvas: ({ value }: { value: string }) =>
     React.createElement("canvas", { "data-testid": "qr-canvas", "data-value": value }),
 }));
+
+// jsdom lacks a few browser APIs that Radix UI (Select, Dialog, Popover…) relies on
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
+}
+if (typeof Element !== "undefined") {
+  Element.prototype.hasPointerCapture ??= () => false;
+  Element.prototype.setPointerCapture ??= () => {};
+  Element.prototype.releasePointerCapture ??= () => {};
+  Element.prototype.scrollIntoView ??= () => {};
+}

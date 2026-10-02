@@ -161,8 +161,15 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
     return total / count;
   })();
 
+  // `participants` is empty while "everyone" is selected, so a click must start from the full list:
+  // clicking a selected person removes just them (it used to select ONLY them), and the last person can't be removed.
   const toggleParticipant = (uid: string) => {
-    setParticipants((prev) => prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]);
+    setParticipants((prev) => {
+      const current = prev.length === 0 ? allMemberIds : prev;
+      if (!current.includes(uid)) return [...current, uid];
+      if (current.length === 1) return prev;
+      return current.filter((id) => id !== uid);
+    });
   };
 
   const toggleFriend = (friendId: string) => {
@@ -266,7 +273,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
 
   const splitTabs = [
     { value: "EQUAL", label: "Equal", icon: Equal },
-    { value: "EXACT", label: "Exact $", icon: SplitSquareHorizontal },
+    { value: "EXACT", label: "Exact", icon: SplitSquareHorizontal },
     { value: "PERCENTAGE", label: "Percent", icon: Percent },
     { value: "SHARES", label: "Shares", icon: Hash },
   ];

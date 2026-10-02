@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/api-helpers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeRedirectPath(searchParams.get("next"));
 
   if (code) {
     try {
@@ -20,11 +21,8 @@ export async function GET(request: Request) {
             // Upsert the user profile
             await prisma.user.upsert({
               where: { id: user.id },
-              update: {
-                email: user.email!,
-                name: user.user_metadata?.name ?? user.email!.split("@")[0],
-                avatarUrl: user.user_metadata?.avatar_url ?? null,
-              },
+              // Keep what the user may have edited (name, avatar); only the email follows the auth account
+              update: { email: user.email! },
               create: {
                 id: user.id,
                 email: user.email!,
