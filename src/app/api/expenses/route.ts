@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, getKnownUserIds, parseLimit, clientIp } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         where: { groupId_userId: { groupId: data.groupId, userId: user!.id } },
       });
       if (!member) return err("Not a member of this group", 403);
+      if (await isGroupArchived(data.groupId)) return err(ARCHIVED_MESSAGE, 409);
     }
 
     // Multiple payers: amounts (major units) → cents, must add up to the total

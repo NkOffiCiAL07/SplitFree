@@ -67,6 +67,14 @@ export async function isGroupMember(groupId: string, userId: string) {
   return !!m;
 }
 
+/** True when the group exists and has been archived (read-only history). */
+export async function isGroupArchived(groupId: string) {
+  const g = await prisma.group.findUnique({ where: { id: groupId }, select: { archivedAt: true } });
+  return !!g?.archivedAt;
+}
+
+export const ARCHIVED_MESSAGE = "This group is archived. Restore it to make changes.";
+
 /**
  * IDs the user is allowed to involve in an expense/settlement outside a group:
  * themselves, accepted friends, people sharing any group, and anyone they already

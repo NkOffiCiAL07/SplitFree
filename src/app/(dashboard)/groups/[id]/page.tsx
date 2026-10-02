@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
-import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership } from "@/hooks/use-groups";
+import { ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Archive, ArchiveRestore, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
+import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership, useArchiveGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
 import { useDeleteExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
@@ -49,6 +49,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const removeMemberMutation = useRemoveMember();
   const leaveGroup = useLeaveGroup();
   const transferOwnership = useTransferOwnership();
+  const archiveGroup = useArchiveGroup();
   const settleUp = useSettleUp();
   const [addEmail, setAddEmail] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -163,6 +164,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const memberNames: Record<string, string> = Object.fromEntries(
     (group.members ?? []).map((mm) => [mm.userId, mm.user?.name ?? "Member"])
   );
+  const isArchived = !!group.archivedAt;
   const myBalance = (group.memberBalances ?? []).find((mb) => mb.userId === user?.id)?.balance ?? 0;
 
   return (
@@ -179,13 +181,15 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {/* Add expense — icon-only on mobile, text on desktop */}
-          <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []}>
-            <Button variant="brand" size="sm" className="gap-1.5">
-              <Plus className="size-4" />
-              <span className="hidden sm:inline">Add expense</span>
-            </Button>
-          </AddExpenseDialog>
+          {/* Add expense — icon-only on mobile, text on desktop (archived groups are read-only) */}
+          {!isArchived && (
+            <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []}>
+              <Button variant="brand" size="sm" className="gap-1.5">
+                <Plus className="size-4" />
+                <span className="hidden sm:inline">Add expense</span>
+              </Button>
+            </AddExpenseDialog>
+          )}
 
           {/* Secondary actions — inline on desktop, dropdown on mobile */}
           <div className="hidden sm:flex items-center gap-1">
@@ -273,6 +277,17 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   }}>
                     <QrCode className="size-4 mr-2" /> QR code invite
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        if (!isArchived && !confirm("Archive this group? It becomes read-only history; you can restore it any time.")) return;
+                        await archiveGroup.mutateAsync({ id, archived: !isArchived });
+                      }}
+                    >
+                      {isArchived ? <ArchiveRestore className="size-4 mr-2" /> : <Archive className="size-4 mr-2" />}
+                      {isArchived ? "Restore group" : "Archive group"}
+                    </DropdownMenuItem>
+                  )}
                   {!isCreator && (
                     <>
                       <DropdownMenuSeparator />
@@ -294,6 +309,19 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
         </div>
       </div>
+
+      {isArchived && (
+        <div role="status" className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/10 dark:text-amber-300">
+          <Archive className="size-4 shrink-0" />
+          <span className="flex-1">This group is archived — it&apos;s read-only history. You can still settle up.</span>
+          {isAdmin && (
+            <Button size="sm" variant="outline" className="h-7 text-xs" loading={archiveGroup.isPending}
+              onClick={() => archiveGroup.mutate({ id, archived: false })}>
+              Restore
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Balance banner */}
       <m.div
@@ -350,6 +378,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </DialogContent>
               </Dialog>
             )}
+            {!isArchived && (
             <Dialog open={addDialogOpen} onOpenChange={(o) => { setAddDialogOpen(o); if (!o) { setAddEmail(""); setFriendSearch(""); } }}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs">
@@ -437,6 +466,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               </DialogContent>
             </Dialog>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

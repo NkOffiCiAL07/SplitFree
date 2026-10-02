@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
 import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
@@ -45,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       include: { splits: true, payers: true },
     });
     if (!existing) return err("Expense not found", 404);
+    if (existing.groupId && (await isGroupArchived(existing.groupId))) return err(ARCHIVED_MESSAGE, 409);
 
     // Group expenses: any member can edit. Personal expenses: only a payer.
     const isPayer = existing.paidById === user!.id || existing.payers.some((p) => p.userId === user!.id);
@@ -201,6 +202,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
       include: { paidBy: true },
     });
     if (!expense) return err("Expense not found", 404);
+    if (expense.groupId && (await isGroupArchived(expense.groupId))) return err(ARCHIVED_MESSAGE, 409);
 
     // Group expenses: any member can delete. Personal expenses: only payer.
     if (expense.paidById !== user!.id && expense.groupId) {

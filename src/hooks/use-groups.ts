@@ -11,10 +11,11 @@ async function fetchJSON(url: string, init?: RequestInit) {
   return json.data;
 }
 
-export function useGroups() {
+/** Active groups by default; pass `archived` for the archived ones. */
+export function useGroups(archived = false) {
   return useQuery<Group[]>({
-    queryKey: ["groups"],
-    queryFn: () => fetchJSON("/api/groups"),
+    queryKey: archived ? ["groups", "archived"] : ["groups"],
+    queryFn: () => fetchJSON(archived ? "/api/groups?archived=true" : "/api/groups"),
   });
 }
 
@@ -56,6 +57,24 @@ export function useUpdateGroup() {
       qc.invalidateQueries({ queryKey: ["groups"] });
       qc.invalidateQueries({ queryKey: ["groups", group.id] });
       toast.success("Group updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useArchiveGroup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, archived }: { id: string; archived: boolean }) =>
+      fetchJSON(`/api/groups/${id}/archive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived }),
+      }),
+    onSuccess: (_data, { archived }) => {
+      qc.invalidateQueries({ queryKey: ["groups"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success(archived ? "Group archived" : "Group restored");
     },
     onError: (e: Error) => toast.error(e.message),
   });

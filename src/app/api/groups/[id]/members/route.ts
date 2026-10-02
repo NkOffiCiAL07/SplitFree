@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, rateLimit, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
 import { loadGroupLedger } from "@/lib/ledger-db";
 import { userNet } from "@/lib/ledger";
 import { addMemberSchema } from "@/lib/validations/group";
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { groupId_userId: { groupId, userId: user!.id } },
     });
     if (!callerMember) return err("Not a member of this group", 403);
+    if (await isGroupArchived(groupId)) return err(ARCHIVED_MESSAGE, 409);
 
     const body = await req.json();
     const { email } = addMemberSchema.parse(body);

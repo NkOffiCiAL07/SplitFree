@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
   try {
     // Find all root recurring expenses whose next due date has arrived
     const recurringExpenses = await prisma.expense.findMany({
-      where: { isRecurring: true, recurringParentId: null },
+      // Archived groups are frozen: don't keep generating expenses into them
+      where: { isRecurring: true, recurringParentId: null, OR: [{ groupId: null }, { group: { archivedAt: null } }] },
       include: { splits: true, payers: true },
     });
 

@@ -3,13 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit } from "@/lib/api-helpers";
 import { createGroupSchema } from "@/lib/validations/group";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
 
+    // Active groups by default; ?archived=true lists the archived ones instead
+    const archived = new URL(req.url).searchParams.get("archived") === "true";
+
     const groups = await prisma.group.findMany({
-      where: { members: { some: { userId: user!.id } } },
+      where: { members: { some: { userId: user!.id } }, archivedAt: archived ? { not: null } : null },
       include: {
         members: {
           take: 5,

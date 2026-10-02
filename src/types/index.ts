@@ -82,6 +82,8 @@ export interface Group {
   updatedAt: Date;
   members?: GroupMember[];
   _count?: { expenses: number; members: number };
+  /** Set when the group has been archived (read-only history) */
+  archivedAt?: string | Date | null;
 }
 
 /** A member's net balance with the current user inside one group (cents; + they owe you) */

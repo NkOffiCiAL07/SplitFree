@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 const CATEGORY_OPTIONS = ["ALL", "HOME", "TRIP", "FRIENDS", "COUPLE", "WORK", "OTHER"] as const;
 
 export default function GroupsPage() {
-  const { data: groups, isLoading } = useGroups();
+  const [showArchived, setShowArchived] = useState(false);
+  const { data: groups, isLoading } = useGroups(showArchived);
   const { data: balances } = useBalances();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("ALL");
@@ -39,6 +40,23 @@ export default function GroupsPage() {
           </p>
         </div>
         <CreateGroupDialog open={createOpen} onOpenChange={setCreateOpen} />
+      </div>
+
+      {/* Active / archived */}
+      <div className="flex gap-1.5" role="tablist" aria-label="Group status">
+        {([[false, "Active"], [true, "Archived"]] as const).map(([value, label]) => (
+          <button
+            key={label}
+            role="tab"
+            aria-selected={showArchived === value}
+            onClick={() => setShowArchived(value)}
+            className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+              showArchived === value ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Search + filter */}

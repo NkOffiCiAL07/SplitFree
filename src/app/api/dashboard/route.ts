@@ -18,7 +18,7 @@ export async function GET() {
     // Totals/balances are all-time (they must match /api/balances); only the chart is limited to 6 months.
     const [ledger, groups, recentActivity, profile, primaryGroup] = await Promise.all([
       loadUserLedger(userId),
-      prisma.group.count({ where: { members: { some: { userId } } } }),
+      prisma.group.count({ where: { members: { some: { userId } }, archivedAt: null } }),
       prisma.activity.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -31,7 +31,7 @@ export async function GET() {
       prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }),
       // Most recently updated group to detect preferred currency
       prisma.group.findFirst({
-        where: { members: { some: { userId } } },
+        where: { members: { some: { userId } }, archivedAt: null },
         orderBy: { updatedAt: "desc" },
         select: { currency: true },
       }),

@@ -7,6 +7,7 @@ async function findGroup(token: string) {
     where: {
       inviteToken: token,
       inviteTokenExpiresAt: { gt: new Date() },
+      archivedAt: null, // archived groups can't be joined
     },
     select: {
       id: true, name: true, description: true, category: true, currency: true,

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
       prisma.group.findMany({
         where: {
           members: { some: { userId: user!.id } },
+          archivedAt: null,
           name: { contains: q, mode: "insensitive" },
         },
         take: 5,
