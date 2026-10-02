@@ -2,7 +2,7 @@
   "buildCommand": "npm run db:generate && next build",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "regions": ["iad1"],
+  "regions": ["icn1"],
   "crons": [
     {
       "path": "/api/cron/process-recurring",

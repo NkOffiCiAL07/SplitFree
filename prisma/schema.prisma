@@ -99,7 +99,7 @@ model User {
   email     String   @unique
   name      String
   avatarUrl String?  @map("avatar_url")
-  currency  Currency @default(USD)
+  currency  Currency @default(INR)
   timezone  String   @default("UTC")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -117,6 +117,10 @@ model User {
   sentInvites      GroupInvite[]  @relation("SentInvites")
   comments         ExpenseComment[]
   budgets          Budget[]
+  expensePayments  ExpensePayer[]
+  revisions        ExpenseRevision[]
+  pushSubscriptions PushSubscription[]
+  emailNotifications Boolean       @default(true) @map("email_notifications")
 
   @@map("users")
 }
@@ -127,13 +131,14 @@ model Group {
   description String?
   imageUrl    String?       @map("image_url")
   category    GroupCategory @default(OTHER)
-  currency    Currency      @default(USD)
+  currency    Currency      @default(INR)
   createdById String        @map("created_by_id")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   inviteToken          String?       @unique @map("invite_token")
   inviteTokenExpiresAt DateTime?     @map("invite_token_expires_at")
+  archivedAt           DateTime?     @map("archived_at")
 
   createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
   members     GroupMember[]
@@ -166,7 +171,7 @@ model Expense {
   groupId           String?            @map("group_id")
   description       String
   amount            Int                // stored in cents
-  currency          Currency           @default(USD)
+  currency          Currency           @default(INR)
   category          ExpenseCategory    @default(OTHER)
   splitType         SplitType          @default(EQUAL)
   paidById          String             @map("paid_by_id")
@@ -185,6 +190,8 @@ model Expense {
   splits            ExpenseSplit[]
   activities        Activity[]
   comments          ExpenseComment[]
+  payers            ExpensePayer[]
+  revisions         ExpenseRevision[]
   recurringParent   Expense?       @relation("RecurringChildren", fields: [recurringParentId], references: [id], onDelete: SetNull)
   recurringChildren Expense[]      @relation("RecurringChildren")
 
@@ -220,7 +227,7 @@ model Settlement {
   fromUserId String   @map("from_user_id")
   toUserId   String   @map("to_user_id")
   amount     Int      // in cents
-  currency   Currency @default(USD)
+  currency   Currency @default(INR)
   note       String?
   createdAt  DateTime @default(now()) @map("created_at")
 
@@ -338,4 +345,52 @@ model Budget {
   @@index([userId])
   @@index([groupId])
   @@map("budgets")
+}
+
+
+// Extra payers for an expense. When an expense has no rows here, `Expense.paidById` paid the full amount.
+// When it has rows, they say how much each person paid (amounts sum to Expense.amount).
+model ExpensePayer {
+  id        String   @id @default(uuid())
+  expenseId String   @map("expense_id")
+  userId    String   @map("user_id")
+  amount    Int      // cents paid by this person
+  createdAt DateTime @default(now()) @map("created_at")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId])
+  @@map("expense_payers")
+}
+
+// Edit history: one row per PATCH with the before/after of every changed field.
+model ExpenseRevision {
+  id        String   @id @default(uuid())
+  expenseId String   @map("expense_id")
+  userId    String   @map("user_id")
+  changes   Json     // { field: { from, to } }
+  createdAt DateTime @default(now()) @map("created_at")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId, createdAt])
+  @@map("expense_revisions")
+}
+
+// Web Push (VAPID) subscriptions — one per browser/device.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
