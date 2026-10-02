@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { m, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+import { m } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
-  Settings, LogOut, ChevronLeft, ChevronRight,
+  Settings, LogOut, PanelLeftClose, PanelLeftOpen,
   Zap, Activity, RefreshCw,
 } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
@@ -36,6 +37,19 @@ const bottomItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
+
+  // ⌘B / Ctrl+B toggles the sidebar (as in ChatGPT, Claude, Linear…), except while typing in a field
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "b") return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      e.preventDefault();
+      toggleSidebar();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [toggleSidebar]);
   const { user, signOut } = useAuth();
   const router = useRouter();
 
@@ -53,26 +67,47 @@ export function Sidebar() {
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className="relative flex flex-col h-full border-r bg-card shrink-0 overflow-hidden"
       >
-        {/* Logo */}
-        <div className="flex items-center h-14 px-3 border-b shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center shrink-0">
-              <Zap className="size-4 text-white" />
-            </div>
-            <AnimatePresence>
-              {sidebarOpen && (
-                <m.span
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="font-bold text-base truncate"
+        {/* Header: logo + collapse control (the toggle lives here, like ChatGPT/Claude — not floating on the edge) */}
+        <div className={cn("flex items-center h-14 border-b shrink-0", sidebarOpen ? "justify-between px-3" : "justify-center px-2")}>
+          {sidebarOpen ? (
+            <>
+              <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center shrink-0">
+                  <Zap className="size-4 text-white" />
+                </div>
+                <span className="font-bold text-base truncate">{APP_NAME}</span>
+              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleSidebar}
+                    aria-label="Collapse sidebar"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  >
+                    <PanelLeftClose className="size-[18px]" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Collapse sidebar <kbd className="ml-1.5 rounded border px-1 text-[10px] opacity-70">⌘B</kbd></TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            // Collapsed: the logo IS the expand button — it swaps to the panel icon on hover/focus
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleSidebar}
+                  aria-label="Expand sidebar"
+                  className="group relative flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-accent focus-visible:bg-accent"
                 >
-                  {APP_NAME}
-                </m.span>
-              )}
-            </AnimatePresence>
-          </Link>
+                  <span className="flex size-8 items-center justify-center rounded-lg gradient-brand transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0">
+                    <Zap className="size-4 text-white" />
+                  </span>
+                  <PanelLeftOpen className="absolute size-[18px] text-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Expand sidebar <kbd className="ml-1.5 rounded border px-1 text-[10px] opacity-70">⌘B</kbd></TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {/* Nav */}
@@ -151,18 +186,6 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Collapse toggle */}
-        <button
-          onClick={toggleSidebar}
-          className="absolute -right-3 top-[72px] z-20 flex size-6 items-center justify-center rounded-full border bg-background shadow-sm hover:bg-accent transition-colors"
-          aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          {sidebarOpen ? (
-            <ChevronLeft className="size-3" />
-          ) : (
-            <ChevronRight className="size-3" />
-          )}
-        </button>
       </m.aside>
     </TooltipProvider>
   );
