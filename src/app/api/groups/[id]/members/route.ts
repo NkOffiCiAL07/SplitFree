@@ -141,6 +141,54 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return err("Admin required to remove others", 403);
     }
 
+    // Block leave/remove if the target user has an unsettled balance in this group
+    const [expenses, settlements] = await Promise.all([
+      prisma.expense.findMany({
+        where: {
+          groupId,
+          OR: [{ paidById: userId }, { splits: { some: { userId } } }],
+        },
+        include: { splits: true },
+      }),
+      prisma.settlement.findMany({
+        where: { groupId, OR: [{ fromUserId: userId }, { toUserId: userId }] },
+      }),
+    ]);
+
+    let net = 0;
+    for (const expense of expenses) {
+      for (const split of expense.splits) {
+        if (expense.paidById === userId && split.userId !== userId) {
+          net += split.amount; // others owe this user
+        } else if (expense.paidById !== userId && split.userId === userId) {
+          net -= split.amount; // this user owes the payer
+        }
+      }
+    }
+    for (const s of settlements) {
+      if (s.fromUserId === userId) net += s.amount;
+      else net -= s.amount;
+    }
+
+    if (net !== 0) {
+      const isSelf = userId === user!.id;
+      if (net > 0) {
+        return err(
+          isSelf
+            ? "You are owed money in this group. Settle up before leaving."
+            : "This member is owed money in the group. They must settle up first.",
+          400
+        );
+      } else {
+        return err(
+          isSelf
+            ? "You owe money in this group. Settle up before leaving."
+            : "This member owes money in the group. They must settle up first.",
+          400
+        );
+      }
+    }
+
     await prisma.groupMember.delete({
       where: { groupId_userId: { groupId, userId } },
     });

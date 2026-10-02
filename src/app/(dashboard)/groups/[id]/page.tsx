@@ -62,9 +62,13 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   };
 
   const handleLeave = async () => {
-    if (!confirm("Leave this group?")) return;
-    await leaveGroup.mutateAsync({ groupId: id, userId: user!.id });
-    router.push("/groups");
+    if (!confirm("Leave this group? You can only leave if all balances are settled.")) return;
+    try {
+      await leaveGroup.mutateAsync({ groupId: id, userId: user!.id });
+      router.push("/groups");
+    } catch {
+      // error already shown via toast in the hook
+    }
   };
 
   const handleAddMember = async (e: React.FormEvent) => {
