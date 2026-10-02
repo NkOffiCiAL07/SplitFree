@@ -88,20 +88,32 @@ export function NotificationBell() {
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error.message);
-      // Mark the notification as read
-      await fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [notifId] }),
-      });
-      return { action };
+      return { action, notifId };
+    },
+    onMutate: async ({ notifId }) => {
+      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      const previous = queryClient.getQueryData<any[]>(["notifications"]);
+      // Optimistically clear pending flag so buttons disappear immediately
+      queryClient.setQueryData(["notifications"], (old: any[]) =>
+        (old ?? []).map((n) =>
+          n.id === notifId
+            ? { ...n, isRead: true, data: { ...n.data, pending: false } }
+            : n
+        )
+      );
+      return { previous };
+    },
+    onError: (e: Error, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["notifications"], ctx.previous);
+      toast.error(e.message);
     },
     onSuccess: ({ action }) => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["friends"] });
       toast.success(action === "accept" ? "Friend request accepted!" : "Friend request declined");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["friends"] });
+    },
   });
 
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;

@@ -59,6 +59,21 @@ export async function POST(req: NextRequest) {
     if (body.action === "accept" || body.action === "decline") {
       const { requesterId, action } = body as { requesterId: string; action: "accept" | "decline" };
 
+      // Clear the pending notification regardless of accept/decline
+      const pendingNotifs = await prisma.notification.findMany({
+        where: { userId: user!.id, type: "FRIEND_ADDED", isRead: false },
+        select: { id: true, data: true },
+      });
+      const notifIds = pendingNotifs
+        .filter((n) => (n.data as any)?.userId === requesterId && (n.data as any)?.pending === true)
+        .map((n) => n.id);
+      if (notifIds.length > 0) {
+        await prisma.notification.updateMany({
+          where: { id: { in: notifIds } },
+          data: { isRead: true, data: { userId: requesterId, pending: false } },
+        });
+      }
+
       if (action === "decline") {
         await prisma.friendship.deleteMany({
           where: { userId: requesterId, friendId: user!.id },
