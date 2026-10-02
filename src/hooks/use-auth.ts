@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -16,7 +16,8 @@ export function useAuth() {
     session: null,
     loading: true,
   });
-  const supabase = createClient();
+  // Stable reference — createClient() must not be called on every render
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,26 +31,26 @@ export function useAuth() {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-  }, [supabase.auth]);
+  }, [supabase]);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (next = "/dashboard") => {
     return supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
-  }, [supabase.auth]);
+  }, [supabase]);
 
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
       return supabase.auth.signInWithPassword({ email, password });
     },
-    [supabase.auth]
+    [supabase]
   );
 
   const signUpWithEmail = useCallback(
@@ -63,16 +64,16 @@ export function useAuth() {
         },
       });
     },
-    [supabase.auth]
+    [supabase]
   );
 
   const resetPassword = useCallback(
     async (email: string) => {
       return supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password/update`,
       });
     },
-    [supabase.auth]
+    [supabase]
   );
 
   return {

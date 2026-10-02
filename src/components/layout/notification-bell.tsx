@@ -35,6 +35,7 @@ export function NotificationBell() {
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
     staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   const markAllRead = useMutation({
@@ -51,6 +52,28 @@ export function NotificationBell() {
     },
     onError: (_err, _vars, ctx) => {
       // Roll back on failure
+      if (ctx?.previous) queryClient.setQueryData(["notifications"], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const markOneRead = useMutation({
+    mutationFn: async (id: string) => {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] }),
+      });
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["notifications"] });
+      const previous = queryClient.getQueryData<any[]>(["notifications"]);
+      queryClient.setQueryData(["notifications"], (old: any[]) =>
+        (old ?? []).map((n) => n.id === id ? { ...n, isRead: true } : n)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(["notifications"], ctx.previous);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
@@ -133,7 +156,8 @@ export function NotificationBell() {
                 return (
                   <div
                     key={n.id}
-                    className={`w-full text-left px-4 py-3 border-b last:border-0 ${!n.isRead ? "bg-primary/5" : ""}`}
+                    onClick={() => { if (!n.isRead) markOneRead.mutate(n.id); }}
+                    className={`w-full text-left px-4 py-3 border-b last:border-0 transition-colors ${!n.isRead ? "bg-primary/5 cursor-pointer hover:bg-primary/10" : ""}`}
                   >
                     <div className="flex items-start gap-2">
                       {!n.isRead && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />}

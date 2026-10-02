@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Camera, Mail, User, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,6 +19,11 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [name, setName] = useState(user?.user_metadata?.name ?? "");
+
+  // user is null on first render (auth is async) — sync when it loads
+  useEffect(() => {
+    if (user?.user_metadata?.name) setName(user.user_metadata.name);
+  }, [user?.user_metadata?.name]);
 
   const updateProfile = useMutation({
     mutationFn: async (payload: { name: string }) => {

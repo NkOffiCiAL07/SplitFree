@@ -60,7 +60,7 @@ function LoginPageContent() {
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { error } = await signInWithGoogle(redirect);
     if (error) {
       toast.error(error.message);
       setGoogleLoading(false);

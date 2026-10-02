@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -23,7 +25,15 @@ export default function SettingsPage() {
   const { data: profile } = useProfile();
   const [currency, setCurrency] = useState("USD");
   const [savingCurrency, setSavingCurrency] = useState(false);
-  const [notifs, setNotifs] = useState({ expenseAdded: true, settlement: true, reminders: true });
+  const [notifs, setNotifs] = useState(() => {
+    if (typeof window === "undefined") return { expenseAdded: true, settlement: true, reminders: true };
+    try {
+      const saved = localStorage.getItem("splitfree_notif_prefs");
+      return saved ? JSON.parse(saved) : { expenseAdded: true, settlement: true, reminders: true };
+    } catch {
+      return { expenseAdded: true, settlement: true, reminders: true };
+    }
+  });
 
   useEffect(() => {
     if (profile?.currency) setCurrency(profile.currency);
@@ -112,7 +122,12 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notifs[key]}
-                  onCheckedChange={(v) => setNotifs((prev) => ({ ...prev, [key]: v }))}
+                  onCheckedChange={(v) => {
+                    const next = { ...notifs, [key]: v };
+                    setNotifs(next);
+                    try { localStorage.setItem("splitfree_notif_prefs", JSON.stringify(next)); } catch {}
+                    toast.success("Preference saved");
+                  }}
                 />
               </div>
             ))}
