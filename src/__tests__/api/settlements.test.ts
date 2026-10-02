@@ -96,7 +96,7 @@ describe("POST /api/settlements — validation", () => {
     p.groupMember.findMany.mockResolvedValue([]);
     p.expenseSplit.findMany.mockResolvedValue([]);
     p.settlement.create.mockResolvedValue({ id: "s1", fromUser: { name: "Me" }, toUser: { name: "Pal" } });
-    p.notification.create.mockResolvedValue({});
+    p.notification.createMany.mockResolvedValue({});
     p.activity.create.mockResolvedValue({});
     const res = await POST(req("/api/settlements", json({ ...valid, currency: "USD", amount: 12.5 })));
     expect(res.status).toBe(201);
@@ -122,16 +122,17 @@ describe("POST /api/settlements/remind", () => {
     p.groupMember.findMany.mockResolvedValue([]);
     p.expenseSplit.findMany.mockResolvedValue([]);
     p.notification.findMany.mockResolvedValue([]);
-    p.notification.create.mockResolvedValue({});
+    p.notification.createMany.mockResolvedValue({});
 
     const first = await REMIND(req("/api/settlements/remind", json(valid)));
     expect(first.status).toBe(201);
-    expect(p.notification.create.mock.calls[0][0].data.type).toBe("PAYMENT_REMINDER");
-    expect(p.notification.create.mock.calls[0][0].data.userId).toBe(OTHER);
+    const row = p.notification.createMany.mock.calls[0][0].data[0];
+    expect(row.type).toBe("PAYMENT_REMINDER");
+    expect(row.userId).toBe(OTHER);
 
     p.notification.findMany.mockResolvedValue([{ data: { fromUserId: ME } }]);
     const second = await REMIND(req("/api/settlements/remind", json(valid)));
     expect(second.status).toBe(429);
-    expect(p.notification.create).toHaveBeenCalledTimes(1);
+    expect(p.notification.createMany).toHaveBeenCalledTimes(1);
   });
 });

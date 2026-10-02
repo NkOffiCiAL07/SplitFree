@@ -9,15 +9,14 @@ import { m } from "framer-motion";
 import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
+import { NotificationSettings } from "@/components/settings/notification-settings";
 
 
 export default function SettingsPage() {
@@ -26,16 +25,6 @@ export default function SettingsPage() {
   const { data: profile } = useProfile();
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [savingCurrency, setSavingCurrency] = useState(false);
-  const [notifs, setNotifs] = useState(() => {
-    if (typeof window === "undefined") return { expenseAdded: true, settlement: true, reminders: true };
-    try {
-      const saved = localStorage.getItem("splitfree_notif_prefs");
-      return saved ? JSON.parse(saved) : { expenseAdded: true, settlement: true, reminders: true };
-    } catch {
-      return { expenseAdded: true, settlement: true, reminders: true };
-    }
-  });
-
   // Adopt the saved currency once the profile loads (state adjusted during render, not in an effect)
   const [syncedCurrency, setSyncedCurrency] = useState<string | undefined>(undefined);
   if (profile?.currency && profile.currency !== syncedCurrency) {
@@ -111,30 +100,10 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Notifications</CardTitle>
-            <CardDescription>Control what you&apos;re notified about</CardDescription>
+            <CardDescription>Choose how you hear about activity in your groups</CardDescription>
           </CardHeader>
-          <CardContent className="pt-0 space-y-4">
-            {([
-              { key: "expenseAdded" as const, label: "Expense added", description: "When someone adds an expense to your group" },
-              { key: "settlement" as const, label: "Settlement recorded", description: "When someone marks a payment to you" },
-              { key: "reminders" as const, label: "Payment reminders", description: "Weekly reminder of outstanding balances" },
-            ]).map(({ key, label, description }) => (
-              <div key={key} className="flex items-center justify-between gap-4">
-                <div>
-                  <Label className="text-sm">{label}</Label>
-                  <p className="text-xs text-muted-foreground">{description}</p>
-                </div>
-                <Switch
-                  checked={notifs[key]}
-                  onCheckedChange={(v) => {
-                    const next = { ...notifs, [key]: v };
-                    setNotifs(next);
-                    try { localStorage.setItem("splitfree_notif_prefs", JSON.stringify(next)); } catch {}
-                    toast.success("Preference saved");
-                  }}
-                />
-              </div>
-            ))}
+          <CardContent className="pt-0">
+            <NotificationSettings />
           </CardContent>
         </Card>
       </m.div>

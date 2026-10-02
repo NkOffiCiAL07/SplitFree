@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -163,16 +164,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (notifyIds.length > 0) {
       const editor = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
       const editorName = editor?.name ?? user!.email ?? "Someone";
-      await prisma.notification.createMany({
-        data: notifyIds.map((uid) => ({
+      await createNotifications(notifyIds.map((uid) => ({
           userId: uid,
           type: "EXPENSE_UPDATED" as const,
           title: `${editorName} updated an expense`,
           body: `"${updated.description}" was edited`,
           data: { expenseId: id, groupId: existing.groupId },
-        })),
-        skipDuplicates: true,
-      });
+        })));
     }
 
     await prisma.activity.create({
@@ -222,16 +220,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (notifyIds.length > 0) {
       const editor = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
       const editorName = editor?.name ?? user!.email ?? "Someone";
-      await prisma.notification.createMany({
-        data: notifyIds.map((uid) => ({
+      await createNotifications(notifyIds.map((uid) => ({
           userId: uid,
           type: "EXPENSE_DELETED" as const,
           title: `${editorName} deleted an expense`,
           body: `"${expense.description}" was removed`,
           data: { groupId: expense.groupId },
-        })),
-        skipDuplicates: true,
-      });
+        })));
     }
 
     await prisma.activity.create({

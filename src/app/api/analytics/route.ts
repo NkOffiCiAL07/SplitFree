@@ -2,7 +2,7 @@ import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { loadUserLedger } from "@/lib/ledger-db";
 import { pairNets } from "@/lib/ledger";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError } from "@/lib/api-helpers";
 import { format, startOfMonth, subMonths } from "date-fns";
 
 export async function GET() {

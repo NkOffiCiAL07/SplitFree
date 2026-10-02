@@ -109,8 +109,6 @@ describe("PATCH — keeping splits consistent", () => {
 });
 
 describe("PATCH — multiple payers", () => {
-  const twoPayers = [{ userId: ME, amount: 200 }, { userId: OTHER, amount: 100 }]; // major units, total ₹300
-
   it("switches a single-payer expense to multiple payers (primary payer = whoever paid most)", async () => {
     const cur = existing(); p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
     const res = await patch({ payers: [{ userId: OTHER, amount: 100 }, { userId: ME, amount: 200 }] });

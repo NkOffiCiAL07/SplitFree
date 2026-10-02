@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
@@ -140,8 +141,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (notifyIds.length > 0) {
-      await prisma.notification.createMany({
-        data: notifyIds.map((uid) => {
+      await createNotifications(notifyIds.map((uid) => {
           const myShare = splitAmounts[uid];
           return {
             userId: uid,
@@ -150,9 +150,7 @@ export async function POST(req: NextRequest) {
             body: `${data.description}${myShare != null ? ` — your share: ${formatCurrency(myShare, data.currency)}` : ""}`,
             data: { expenseId: expense.id, groupId: data.groupId },
           };
-        }),
-        skipDuplicates: true,
-      });
+        }));
     }
 
     await prisma.activity.create({

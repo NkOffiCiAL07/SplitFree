@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { APP_NAME } from "@/lib/app-config";
@@ -118,15 +119,13 @@ export async function POST(req: NextRequest) {
       ]);
 
       // Notify requester
-      await prisma.notification.create({
-        data: {
+      await createNotifications([{
           userId: requesterId,
           type: "FRIEND_ADDED",
           title: "Friend request accepted",
           body: `${user!.email} accepted your friend request`,
           data: { userId: user!.id, accepted: true },
-        },
-      });
+        }]);
 
       return ok({ accepted: true });
     }
@@ -149,15 +148,13 @@ export async function POST(req: NextRequest) {
       include: { friend: true },
     });
 
-    await prisma.notification.create({
-      data: {
+    await createNotifications([{
         userId: friend.id,
         type: "FRIEND_ADDED",
         title: "New friend request",
         body: `${user!.email} wants to connect with you on ${APP_NAME}`,
         data: { userId: user!.id, email: user!.email, pending: true },
-      },
-    });
+      }]);
 
     return ok(friendship, 201);
   } catch (e) {

@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, visibleToUser } from "@/lib/api-helpers";
@@ -55,16 +56,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const commenter = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
 
     if (participantIds.length > 0) {
-      await prisma.notification.createMany({
-        data: participantIds.map(({ userId }) => ({
+      await createNotifications(participantIds.map(({ userId }) => ({
           userId,
           type: "EXPENSE_COMMENTED" as const,
           title: `${commenter?.name ?? "Someone"} commented on an expense`,
           body: `"${expense.description}": ${text.trim().slice(0, 80)}`,
           data: { expenseId, groupId: expense.groupId },
-        })),
-        skipDuplicates: true,
-      });
+        })));
     }
 
     return ok(comment, 201);

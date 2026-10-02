@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -104,15 +105,13 @@ export async function POST(req: NextRequest) {
         include: { fromUser: userSelect, toUser: userSelect },
       });
 
-      await tx.notification.create({
-        data: {
+      await createNotifications([{
           userId: data.toUserId,
           type: "SETTLEMENT_ADDED",
           title: "Payment received",
           body: `${s.fromUser.name} paid you ${formatCurrency(toCents(data.amount), data.currency)}`,
           data: { settlementId: s.id, groupId: data.groupId },
-        },
-      });
+        }], tx);
 
       if (data.groupId) {
         const groupMembers = await tx.groupMember.findMany({
@@ -124,16 +123,13 @@ export async function POST(req: NextRequest) {
           .filter((id) => id !== user!.id && id !== data.toUserId);
 
         if (otherIds.length > 0) {
-          await tx.notification.createMany({
-            data: otherIds.map((uid) => ({
+          await createNotifications(otherIds.map((uid) => ({
               userId: uid,
               type: "SETTLEMENT_ADDED" as const,
               title: "Payment recorded",
               body: `${s.fromUser.name} paid ${s.toUser.name} ${formatCurrency(toCents(data.amount), data.currency)}`,
               data: { settlementId: s.id, groupId: data.groupId },
-            })),
-            skipDuplicates: true,
-          });
+            })), tx);
         }
       }
 

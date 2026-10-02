@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -33,15 +34,13 @@ export async function POST(req: NextRequest) {
     }
 
     const sender = await prisma.user.findUnique({ where: { id: user!.id }, select: { name: true } });
-    await prisma.notification.create({
-      data: {
+    await createNotifications([{
         userId: debtorId,
         type: "PAYMENT_REMINDER",
         title: `${sender?.name ?? "A friend"} sent you a reminder`,
         body: `Friendly nudge: you owe ${formatCurrency(amount, currency)}. Open Settle up to pay.`,
         data: { fromUserId: user!.id, amount, currency },
-      },
-    });
+      }]);
 
     return ok({ sent: true }, 201);
   } catch (e) {

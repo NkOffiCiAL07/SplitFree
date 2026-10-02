@@ -1,4 +1,4 @@
-const CACHE_NAME = "splitfree-v5";
+const CACHE_NAME = "splitfree-v6";
 const OFFLINE_URL = "/offline";
 const STATIC_ASSETS = [
   "/",
@@ -119,13 +119,20 @@ async function syncPendingExpenses() {
 // Push notifications
 self.addEventListener("push", (event) => {
   if (!event.data) return;
-  const data = event.data.json();
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: "Splitr Pro", body: event.data.text() };
+  }
   event.waitUntil(
     self.registration.showNotification(data.title ?? "Splitr Pro", {
       body: data.body,
       icon: "/icons/icon-192x192.png",
       badge: "/icons/icon-72x72.png",
       data: { url: data.url ?? "/activity" },
+      tag: data.tag, // same-type notifications replace each other instead of stacking
+      renotify: !!data.tag,
       vibrate: [100, 50, 100],
     })
   );
@@ -133,12 +140,16 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url ?? "/dashboard";
+  const target = new URL(event.notification.data?.url ?? "/dashboard", self.location.origin).href;
   event.waitUntil(
-    clients.matchAll({ type: "window" }).then((windowClients) => {
-      const existing = windowClients.find((c) => c.url === targetUrl);
-      if (existing) return existing.focus();
-      return clients.openWindow(targetUrl);
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (windowClients) => {
+      // Reuse an open tab of the app (and send it to the right page) instead of opening another
+      const existing = windowClients.find((c) => c.url.startsWith(self.location.origin));
+      if (existing) {
+        await existing.focus();
+        return "navigate" in existing ? existing.navigate(target) : undefined;
+      }
+      return clients.openWindow(target);
     })
   );
 });

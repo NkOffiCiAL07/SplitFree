@@ -134,7 +134,7 @@ describe("archived groups are read-only", () => {
   it("still lets people settle up", async () => {
     p.groupMember.findUnique.mockResolvedValue({ userId: ME });
     p.settlement.create.mockResolvedValue({ id: "s", fromUser: { name: "Me" }, toUser: { name: "Pal" } });
-    p.notification.create.mockResolvedValue({});
+    p.notification.createMany.mockResolvedValue({});
     p.groupMember.findMany.mockResolvedValue([]);
     p.activity.create.mockResolvedValue({});
     const res = await SETTLE(post("/api/settlements", { toUserId: OTHER, amount: 50, currency: "INR", groupId: GROUP }));

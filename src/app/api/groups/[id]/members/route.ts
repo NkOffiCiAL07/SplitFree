@@ -1,3 +1,4 @@
+import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, rateLimit, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
@@ -56,15 +57,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const group = await prisma.group.findUnique({ where: { id: groupId }, select: { name: true } });
 
     // Notify the new member
-    await prisma.notification.create({
-      data: {
+    await createNotifications([{
         userId: invitee.id,
         type: "GROUP_JOINED",
         title: `You were added to "${group?.name}"`,
         body: `${user!.email} added you to the group`,
         data: { groupId },
-      },
-    });
+      }]);
 
     // Notify all existing members that someone new joined
     const existingMemberIds = (await prisma.groupMember.findMany({
@@ -73,16 +72,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     })).map((m) => m.userId);
 
     if (existingMemberIds.length > 0) {
-      await prisma.notification.createMany({
-        data: existingMemberIds.map((uid) => ({
+      await createNotifications(existingMemberIds.map((uid) => ({
           userId: uid,
           type: "FRIEND_ADDED" as const,
           title: `${invitee.name} joined "${group?.name}"`,
           body: `${user!.email} added ${invitee.name} to the group`,
           data: { groupId, memberId: invitee.id },
-        })),
-        skipDuplicates: true,
-      });
+        })));
     }
 
     await prisma.activity.create({
