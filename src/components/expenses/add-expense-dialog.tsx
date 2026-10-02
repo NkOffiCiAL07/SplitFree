@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, SplitSquareHorizontal, Equal, Hash, Percent } from "lucide-react";
+import { Plus, SplitSquareHorizontal, Equal, Hash, Percent, Users, UserPlus, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
+import { useGroups, useGroup } from "@/hooks/use-groups";
+import { useFriends } from "@/hooks/use-friends";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +55,8 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+type SplitContext = "group" | "friends" | "personal";
+
 interface Props {
   groupId?: string;
   groupCurrency?: string;
@@ -66,11 +70,22 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
+
   const [splitType, setSplitType] = useState<"EQUAL"|"EXACT"|"PERCENTAGE"|"SHARES">("EQUAL");
   const [participants, setParticipants] = useState<string[]>([]);
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
+
+  // Global mode state (no group/members pre-set)
+  const isGlobalMode = !groupId && members.length === 0;
+  const [splitContext, setSplitContext] = useState<SplitContext>("group");
+  const [localGroupId, setLocalGroupId] = useState<string>("");
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
+
   const { user } = useAuth();
   const { mutateAsync, isPending } = useCreateExpense();
+  const { data: groups } = useGroups();
+  const { data: localGroupData } = useGroup(localGroupId);
+  const { data: friendships } = useFriends();
 
   const { register, handleSubmit, control, watch, reset, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -83,20 +98,24 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     },
   });
 
-  // Auth may resolve after form mounts — keep paidById in sync
+  // Auth may resolve after form mounts
   useEffect(() => {
     if (user?.id) setValue("paidById", user.id);
   }, [user?.id, setValue]);
 
-  // Smart auto-categorization based on description keywords
+  // Sync currency when a group is selected in global mode
+  useEffect(() => {
+    if (isGlobalMode && localGroupData?.currency) {
+      setValue("currency", localGroupData.currency);
+    }
+  }, [isGlobalMode, localGroupData?.currency, setValue]);
+
+  // Smart auto-categorization
   const description = watch("description");
   useEffect(() => {
     if (!description) return;
     for (const [pattern, cat] of KEYWORD_CATEGORY) {
-      if (pattern.test(description)) {
-        setValue("category", cat);
-        break;
-      }
+      if (pattern.test(description)) { setValue("category", cat); break; }
     }
   }, [description, setValue]);
 
@@ -105,10 +124,30 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   const paidById = watch("paidById");
   const selectedCurrency = watch("currency");
 
-  const allMemberIds = members.length > 0
-    ? members.map((m) => m.userId)
-    : user ? [user.id] : [];
+  // Resolve the effective members list
+  const resolvedMembers: GroupMember[] = useMemo(() => {
+    if (members.length > 0) return members; // pre-set (group page or friend page)
+    if (!isGlobalMode) return [];
+    if (splitContext === "group" && localGroupData?.members) return localGroupData.members;
+    if (splitContext === "friends" && user) {
+      const placeholder = { avatarUrl: null, currency: "USD" as const, timezone: "UTC", createdAt: new Date() };
+      const me: GroupMember = { id: "", groupId: "", userId: user.id, role: "MEMBER", joinedAt: new Date(), user: { ...placeholder, id: user.id, name: user.user_metadata?.name ?? "You", email: user.email ?? "" } };
+      const friendMembers: GroupMember[] = (friendships ?? [])
+        .filter((f) => selectedFriendIds.includes(f.friendId))
+        .map((f) => ({ id: "", groupId: "", userId: f.friendId, role: "MEMBER" as const, joinedAt: new Date(), user: { ...placeholder, id: f.friendId, name: f.friend?.name ?? "Friend", email: "" } }));
+      return [me, ...friendMembers];
+    }
+    // personal — just current user
+    if (user) {
+      const placeholder = { avatarUrl: null, currency: "USD" as const, timezone: "UTC", createdAt: new Date() };
+      return [{ id: "", groupId: "", userId: user.id, role: "MEMBER", joinedAt: new Date(), user: { ...placeholder, id: user.id, name: user.user_metadata?.name ?? "You", email: user.email ?? "" } }];
+    }
+    return [];
+  }, [members, isGlobalMode, splitContext, localGroupData, friendships, selectedFriendIds, user]);
 
+  const resolvedGroupId = groupId ?? (isGlobalMode && splitContext === "group" ? localGroupId || null : null);
+
+  const allMemberIds = resolvedMembers.map((m) => m.userId);
   const activeParticipants = participants.length > 0 ? participants : allMemberIds;
 
   const equalSplitPerPerson = (() => {
@@ -119,17 +158,17 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   })();
 
   const toggleParticipant = (uid: string) => {
-    setParticipants((prev) =>
-      prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
-    );
+    setParticipants((prev) => prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]);
+  };
+
+  const toggleFriend = (friendId: string) => {
+    setSelectedFriendIds((prev) => prev.includes(friendId) ? prev.filter((id) => id !== friendId) : [...prev, friendId]);
   };
 
   const buildSplits = () => {
     if (splitType === "EQUAL") return undefined;
     const result: Record<string, number> = {};
-    activeParticipants.forEach((uid) => {
-      result[uid] = parseFloat(splitValues[uid] ?? "0") || 0;
-    });
+    activeParticipants.forEach((uid) => { result[uid] = parseFloat(splitValues[uid] ?? "0") || 0; });
     return result;
   };
 
@@ -137,12 +176,10 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     if (splitType === "EQUAL" || activeParticipants.length === 0) return null;
     const total = parseFloat(amountStr ?? "0") || 0;
     const sum = activeParticipants.reduce((acc, uid) => acc + (parseFloat(splitValues[uid] ?? "0") || 0), 0);
-    if (splitType === "EXACT" && total > 0 && Math.abs(sum - total) > 0.01) {
+    if (splitType === "EXACT" && total > 0 && Math.abs(sum - total) > 0.01)
       return `Split amounts must sum to ${total.toFixed(2)} (currently ${sum.toFixed(2)})`;
-    }
-    if (splitType === "PERCENTAGE" && sum > 0 && Math.abs(sum - 100) > 0.01) {
+    if (splitType === "PERCENTAGE" && sum > 0 && Math.abs(sum - 100) > 0.01)
       return `Percentages must sum to 100% (currently ${sum.toFixed(1)}%)`;
-    }
     return null;
   })();
 
@@ -153,6 +190,10 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
 
   const onSubmit = async (values: FormValues) => {
     if (splitValidationError) return;
+    if (isGlobalMode && splitContext === "group" && !localGroupId) {
+      toast.error("Please select a group or change split context");
+      return;
+    }
     await mutateAsync({
       description: values.description,
       amount: parseFloat(values.amount),
@@ -160,7 +201,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
       category: values.category,
       splitType,
       paidById: values.paidById,
-      groupId: groupId ?? null,
+      groupId: resolvedGroupId ?? null,
       date: new Date(values.date),
       notes: values.notes,
       isRecurring: values.isRecurring,
@@ -172,21 +213,20 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
     reset();
     setSplitValues({});
     setParticipants([]);
+    setLocalGroupId("");
+    setSelectedFriendIds([]);
   };
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      reset({
-        date: new Date().toISOString().split("T")[0],
-        category: "OTHER",
-        isRecurring: false,
-        paidById: user?.id ?? "",
-        currency: groupCurrency,
-      });
+      reset({ date: new Date().toISOString().split("T")[0], category: "OTHER", isRecurring: false, paidById: user?.id ?? "", currency: groupCurrency });
       setSplitValues({});
       setParticipants([]);
       setSplitType("EQUAL");
+      setLocalGroupId("");
+      setSelectedFriendIds([]);
+      setSplitContext("group");
     }
   };
 
@@ -210,12 +250,84 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger}
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add expense</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5 mt-2">
+
+          {/* ── Global mode: Split with picker ── */}
+          {isGlobalMode && (
+            <div className="space-y-3">
+              <Label>Split with</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { key: "group", label: "A group", icon: Users },
+                  { key: "friends", label: "Friends", icon: UserPlus },
+                  { key: "personal", label: "Just me", icon: User },
+                ] as const).map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setSplitContext(key); setParticipants([]); }}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all",
+                      splitContext === key
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:bg-accent"
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Group selector */}
+              {splitContext === "group" && (
+                <Select value={localGroupId} onValueChange={setLocalGroupId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a group…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(groups ?? []).map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Friend multi-select */}
+              {splitContext === "friends" && (
+                <div className="flex flex-wrap gap-2">
+                  {(friendships ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No friends yet — add friends first.</p>
+                  ) : (friendships ?? []).map((f) => (
+                    <button
+                      key={f.friendId}
+                      type="button"
+                      onClick={() => toggleFriend(f.friendId)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs transition-all",
+                        selectedFriendIds.includes(f.friendId)
+                          ? "border-primary bg-primary/10 text-primary font-medium"
+                          : "border-border text-muted-foreground hover:bg-accent"
+                      )}
+                    >
+                      <Avatar className="size-4">
+                        <AvatarFallback className="text-[8px]">{getInitials(f.friend?.name ?? "?")}</AvatarFallback>
+                      </Avatar>
+                      {f.friend?.name?.split(" ")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Description */}
           <div className="space-y-1.5">
             <Label>Description</Label>
@@ -237,13 +349,9 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {CURRENCIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
+                      {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
@@ -259,9 +367,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
               control={control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>
@@ -274,8 +380,8 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             />
           </div>
 
-          {/* Paid by — show member picker in group context */}
-          {members.length > 0 && (
+          {/* Paid by */}
+          {resolvedMembers.length > 1 && (
             <div className="space-y-1.5">
               <Label>Paid by</Label>
               <Controller
@@ -283,7 +389,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-wrap gap-2">
-                    {members.map((m) => (
+                    {resolvedMembers.map((m) => (
                       <button
                         key={m.userId}
                         type="button"
@@ -313,26 +419,26 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             <Input type="date" {...register("date")} />
           </div>
 
-          {/* Split type */}
-          <div className="space-y-3">
-            <Label>Split type</Label>
-            <Tabs value={splitType} onValueChange={(v) => setSplitType(v as typeof splitType)}>
-              <TabsList className="w-full grid grid-cols-4">
-                {splitTabs.map(({ value, label, icon: Icon }) => (
-                  <TabsTrigger key={value} value={value} className="gap-1 text-xs">
-                    <Icon className="size-3" />
-                    <span className="hidden sm:inline">{label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+          {/* Split type + participants */}
+          {resolvedMembers.length > 1 && (
+            <div className="space-y-3">
+              <Label>Split type</Label>
+              <Tabs value={splitType} onValueChange={(v) => setSplitType(v as typeof splitType)}>
+                <TabsList className="w-full grid grid-cols-4">
+                  {splitTabs.map(({ value, label, icon: Icon }) => (
+                    <TabsTrigger key={value} value={value} className="gap-1 text-xs">
+                      <Icon className="size-3" />
+                      <span className="hidden sm:inline">{label}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
 
-            {/* Participant selector for group expenses */}
-            {members.length > 0 && (
+              {/* Participant selector */}
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Select participants</p>
                 <div className="flex flex-wrap gap-2">
-                  {members.map((m) => {
+                  {resolvedMembers.map((m) => {
                     const isActive = participants.length === 0 || participants.includes(m.userId);
                     return (
                       <button
@@ -341,80 +447,76 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
                         onClick={() => toggleParticipant(m.userId)}
                         className={cn(
                           "flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs transition-all",
-                          isActive
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground"
+                          isActive ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
                         )}
                       >
                         <Avatar className="size-4">
-                          <AvatarFallback className="text-[8px]">
-                            {getInitials(m.user?.name ?? "?")}
-                          </AvatarFallback>
+                          <AvatarFallback className="text-[8px]">{getInitials(m.user?.name ?? "?")}</AvatarFallback>
                         </Avatar>
-                        {m.user?.name?.split(" ")[0]}
+                        {m.userId === user?.id ? "You" : m.user?.name?.split(" ")[0]}
                       </button>
                     );
                   })}
                 </div>
               </div>
-            )}
 
-            {/* Live equal-split preview */}
-            {splitType === "EQUAL" && equalSplitPerPerson !== null && members.length > 0 && (
-              <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-1">
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Split preview</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  {activeParticipants.map((uid) => {
-                    const m = members.find((x) => x.userId === uid);
-                    const name = m?.user?.name?.split(" ")[0] ?? (uid === user?.id ? "You" : uid.slice(0, 6));
-                    return (
-                      <span key={uid} className="text-xs">
-                        <span className="font-medium">{name}</span>
-                        <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(2)} {selectedCurrency}</span>
-                      </span>
-                    );
-                  })}
+              {/* Equal split preview */}
+              {splitType === "EQUAL" && equalSplitPerPerson !== null && (
+                <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-1">
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Split preview</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {activeParticipants.map((uid) => {
+                      const m = resolvedMembers.find((x) => x.userId === uid);
+                      const name = m?.user?.name?.split(" ")[0] ?? (uid === user?.id ? "You" : uid.slice(0, 6));
+                      return (
+                        <span key={uid} className="text-xs">
+                          <span className="font-medium">{name}</span>
+                          <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(2)} {selectedCurrency}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Split input fields (for non-equal splits) */}
-            <AnimatePresence>
-              {splitType !== "EQUAL" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-2 overflow-hidden"
-                >
-                  <p className="text-xs text-muted-foreground">
-                    {splitType === "EXACT" ? "Enter each person's exact amount" :
-                     splitType === "PERCENTAGE" ? "Enter percentage for each (must sum to 100%)" :
-                     "Enter shares for each person"}
-                  </p>
-                  {activeParticipants.map((uid) => {
-                    const member = members.find((m) => m.userId === uid);
-                    const name = member?.user?.name ?? (uid === user?.id ? "You" : uid.slice(0, 8));
-                    return (
-                      <div key={uid} className="flex items-center gap-2">
-                        <span className="text-xs w-24 truncate">{name}</span>
-                        <Input
-                          type="number"
-                          step={splitType === "SHARES" ? "1" : "0.01"}
-                          min="0"
-                          placeholder={splitType === "PERCENTAGE" ? "%" : splitType === "SHARES" ? "shares" : "0.00"}
-                          value={splitValues[uid] ?? ""}
-                          onChange={(e) => setSplitValues((p) => ({ ...p, [uid]: e.target.value }))}
-                          className="h-8 text-sm"
-                        />
-                        {splitType === "PERCENTAGE" && <span className="text-xs text-muted-foreground">%</span>}
-                      </div>
-                    );
-                  })}
-                </motion.div>
               )}
-            </AnimatePresence>
-          </div>
+
+              {/* Non-equal split inputs */}
+              <AnimatePresence>
+                {splitType !== "EQUAL" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {splitType === "EXACT" ? "Enter each person's exact amount" :
+                       splitType === "PERCENTAGE" ? "Enter percentage for each (must sum to 100%)" :
+                       "Enter shares for each person"}
+                    </p>
+                    {activeParticipants.map((uid) => {
+                      const member = resolvedMembers.find((m) => m.userId === uid);
+                      const name = member?.user?.name ?? (uid === user?.id ? "You" : uid.slice(0, 8));
+                      return (
+                        <div key={uid} className="flex items-center gap-2">
+                          <span className="text-xs w-24 truncate">{name}</span>
+                          <Input
+                            type="number"
+                            step={splitType === "SHARES" ? "1" : "0.01"}
+                            min="0"
+                            placeholder={splitType === "PERCENTAGE" ? "%" : splitType === "SHARES" ? "shares" : "0.00"}
+                            value={splitValues[uid] ?? ""}
+                            onChange={(e) => setSplitValues((p) => ({ ...p, [uid]: e.target.value }))}
+                            className="h-8 text-sm"
+                          />
+                          {splitType === "PERCENTAGE" && <span className="text-xs text-muted-foreground">%</span>}
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* Notes */}
           <div className="space-y-1.5">
@@ -431,9 +533,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             <Controller
               name="isRecurring"
               control={control}
-              render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )}
+              render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
             />
           </div>
           {isRecurring && (
@@ -453,13 +553,13 @@ export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [],
             />
           )}
 
-          {splitValidationError && (
-            <p className="text-xs text-destructive">{splitValidationError}</p>
-          )}
+          {splitValidationError && <p className="text-xs text-destructive">{splitValidationError}</p>}
 
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="ghost" className="flex-1" onClick={() => handleOpenChange(false)}>Cancel</Button>
-            <Button type="submit" variant="brand" className="flex-1" loading={isPending} disabled={!!splitValidationError}>Add expense</Button>
+            <Button type="submit" variant="brand" className="flex-1" loading={isPending} disabled={!!splitValidationError}>
+              Add expense
+            </Button>
           </div>
         </form>
       </DialogContent>
