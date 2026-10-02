@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, handleError, visibleToUser } from "@/lib/api-helpers";
+import { buildExpenseFilter } from "@/lib/expense-filters";
 import { format } from "date-fns";
 import { fromCents } from "@/lib/utils";
 
@@ -9,13 +10,11 @@ export async function GET(req: NextRequest) {
     const { user, error } = await requireAuth();
     if (error) return error;
 
-    const groupId = new URL(req.url).searchParams.get("groupId");
+    // Export exactly what the list shows: the same search/category/date/group filters apply
+    const params = new URL(req.url).searchParams;
 
     const expenses = await prisma.expense.findMany({
-      where: {
-        ...visibleToUser(user!.id),
-        ...(groupId ? { groupId } : {}),
-      },
+      where: { AND: [visibleToUser(user!.id), buildExpenseFilter(params)] },
       include: {
         paidBy: true,
         payers: { include: { user: true } },

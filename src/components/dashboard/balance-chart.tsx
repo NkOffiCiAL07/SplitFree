@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatAxisCurrency } from "@/lib/utils";
 
 interface MonthlyPoint { month: string; owed: number; owing: number }
 interface Props { data?: MonthlyPoint[]; isLoading?: boolean; currency?: string }
@@ -68,7 +68,7 @@ export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-owed" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
@@ -84,7 +84,8 @@ export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY
                 <YAxis
                   tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false} tickLine={false}
-                  tickFormatter={(v) => formatCurrency(v * 100, currency)}
+                  width={52}
+                  tickFormatter={(v) => formatAxisCurrency(Number(v), currency)}
                 />
                 <Tooltip content={<CustomTooltip currency={currency} />} />
                 <Area type="monotone" dataKey="owed" name="owed" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#grad-owed)" dot={false} activeDot={{ r: 4, fill: "#8b5cf6" }} />

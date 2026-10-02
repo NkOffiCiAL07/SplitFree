@@ -75,7 +75,27 @@ describe("GET /api/export — CSV safety", () => {
   it("exports expenses the user paid even when not in the split", async () => {
     p.expense.findMany.mockResolvedValue([]);
     await EXPORT(new NextRequest("http://x/api/export"));
-    expect(p.expense.findMany.mock.calls[0][0].where.OR).toContainEqual({ paidById: ME });
+    expect(p.expense.findMany.mock.calls[0][0].where.AND[0].OR).toContainEqual({ paidById: ME });
+  });
+});
+
+describe("GET /api/export — filters", () => {
+  it("exports exactly what the list shows (same search/category/date/group filters)", async () => {
+    p.expense.findMany.mockResolvedValue([]);
+    await EXPORT(new NextRequest("http://x/api/export?q=goa&category=FOOD&from=2026-01-01&to=2026-01-31&groupId=g1"));
+    const and = p.expense.findMany.mock.calls[0][0].where.AND;
+    expect(and[0].OR).toBeDefined(); // visibility
+    expect(and[1].AND).toEqual(expect.arrayContaining([
+      { groupId: "g1" }, { category: "FOOD" },
+      { date: { gte: new Date("2026-01-01T00:00:00.000Z") } },
+      { date: { lte: new Date("2026-01-31T23:59:59.999Z") } },
+    ]));
+  });
+
+  it("still exports everything when no filter is given", async () => {
+    p.expense.findMany.mockResolvedValue([]);
+    await EXPORT(new NextRequest("http://x/api/export"));
+    expect(p.expense.findMany.mock.calls[0][0].where.AND[1]).toEqual({});
   });
 });
 

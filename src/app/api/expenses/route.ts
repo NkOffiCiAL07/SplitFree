@@ -6,6 +6,7 @@ import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
 import { validatePayers } from "@/lib/ledger";
+import { buildExpenseFilter } from "@/lib/expense-filters";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,15 +14,13 @@ export async function GET(req: NextRequest) {
     if (error) return error;
 
     const { searchParams } = new URL(req.url);
-    const groupId = searchParams.get("groupId");
     const limit = parseLimit(searchParams.get("limit"));
     const cursor = searchParams.get("cursor");
+    const paged = searchParams.get("paged") === "true";
 
+    // Search/category/date/recurring/group all run in the database, over the full history
     const expenses = await prisma.expense.findMany({
-      where: {
-        ...(groupId ? { groupId } : {}),
-        ...visibleToUser(user!.id),
-      },
+      where: { AND: [visibleToUser(user!.id), buildExpenseFilter(searchParams)] },
       include: {
         paidBy: true,
         splits: { include: { user: true } },
@@ -29,11 +28,14 @@ export async function GET(req: NextRequest) {
         group: true,
       },
       orderBy: [{ date: "desc" }, { id: "desc" }],
-      take: limit,
+      take: paged ? limit + 1 : limit, // one extra row tells us whether another page exists
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
-    return ok(expenses);
+    if (!paged) return ok(expenses);
+    const hasMore = expenses.length > limit;
+    const items = hasMore ? expenses.slice(0, limit) : expenses;
+    return ok({ items, nextCursor: hasMore ? items[items.length - 1].id : null });
   } catch (e) {
     return handleError(e);
   }

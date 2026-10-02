@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { RefreshCw, Trash2, Calendar } from "lucide-react";
-import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
+import { useInfiniteExpenses, useDeleteExpense } from "@/hooks/use-expenses";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,16 +26,14 @@ const INTERVAL_LABEL: Record<string, string> = {
 };
 
 export default function RecurringPage() {
-  const { data: expenses, isLoading } = useExpenses();
+  // Server-side filter: finds every recurring expense, not just those among the latest 50
+  const { expenses, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteExpenses({ recurring: true, limit: 100 });
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
   const userCurrency = useUserCurrency();
   const [addOpen, setAddOpen] = useState(false);
 
-  const recurring = useMemo(() => {
-    if (!expenses) return [];
-    return expenses.filter((e) => e.isRecurring);
-  }, [expenses]);
+  const recurring = useMemo(() => expenses.filter((e) => e.isRecurring), [expenses]);
 
   const monthly = useMemo(() => {
     return recurring.reduce((sum, e) => {
@@ -140,6 +138,11 @@ export default function RecurringPage() {
               </m.div>
             );
           })}
+          {hasNextPage && (
+            <Button variant="outline" className="w-full" loading={isFetchingNextPage} onClick={() => fetchNextPage()}>
+              Load more
+            </Button>
+          )}
         </div>
       )}
     </div>

@@ -4,20 +4,21 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
   CartesianGrid, PieChart, Pie, Cell,
 } from "recharts";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatAxisCurrency } from "@/lib/utils";
 
 interface ChartProps<T> { data: T[]; currency: string }
 
 export function MonthlyBarChart({ data: monthlyData, currency }: ChartProps<{ name: string; total: number }>) {
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+      <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
         <YAxis
           tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
           axisLine={false} tickLine={false}
-          tickFormatter={(v) => formatCurrency(v * 100, currency)}
+          width={52}
+          tickFormatter={(v) => formatAxisCurrency(Number(v), currency)}
         />
         <Tooltip
           contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}

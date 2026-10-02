@@ -3,6 +3,7 @@ import {
   cn,
   formatCurrency,
   formatCompactCurrency,
+  formatAxisCurrency,
   toCents,
   fromCents,
   formatDate,
@@ -225,5 +226,21 @@ describe("parseError", () => {
   });
   it("returns fallback for unknown types", () => {
     expect(parseError({ code: 500 })).toBe("An unexpected error occurred");
+  });
+});
+
+describe("formatAxisCurrency", () => {
+  it("keeps chart axis labels short so they never clip", () => {
+    expect(formatAxisCurrency(0, "INR")).toBe("0");
+    expect(formatAxisCurrency(500, "INR")).toBe("₹500");
+    expect(formatAxisCurrency(10000, "INR")).toBe("₹10.0K");
+    expect(formatAxisCurrency(150000, "INR")).toBe("₹1.5L");
+    expect(formatAxisCurrency(25000000, "INR")).toBe("₹2.5Cr");
+    expect(formatAxisCurrency(1500, "USD")).toBe("$1.5K");
+  });
+  it("is never wider than a typical axis (<= 8 characters)", () => {
+    for (const v of [0, 5, 50, 500, 5000, 50000, 500000, 5000000, 50000000]) {
+      expect(formatAxisCurrency(v, "INR").length).toBeLessThanOrEqual(8);
+    }
   });
 });

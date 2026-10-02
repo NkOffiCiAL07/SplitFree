@@ -65,6 +65,12 @@ export function formatCompactCurrency(cents: number, currency: string = DEFAULT_
   return `${sign}${formatCurrency(Math.abs(cents), currency)}`;
 }
 
+/** Short money label for chart axes: ₹0, ₹500, ₹10K, ₹1.5L (never wider than the axis can show). */
+export function formatAxisCurrency(major: number, currency: string = DEFAULT_CURRENCY): string {
+  if (major === 0) return "0";
+  return formatCompactCurrency(Math.round(major * 100), currency).replace(/\.00$/, "");
+}
+
 export function formatAmount(cents: number): string {
   return formatCurrency(cents);
 }

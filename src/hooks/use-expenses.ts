@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
 import { expenseToCreatePayload } from "@/lib/expense-payload";
@@ -164,4 +164,42 @@ export function useExpenseHistory(id: string, enabled = true) {
     queryFn: () => fetchJSON(`/api/expenses/${id}/history`),
     enabled: !!id && enabled,
   });
+}
+
+export interface ExpenseQuery {
+  groupId?: string;
+  q?: string;
+  category?: string;
+  from?: string;
+  to?: string;
+  recurring?: boolean;
+  limit?: number;
+}
+
+/** Query string for the paged expenses API; empty/"ALL" filters are left out. */
+export function expenseQueryString(query: ExpenseQuery, cursor?: string | null): string {
+  const p = new URLSearchParams({ paged: "true" });
+  if (query.groupId) p.set("groupId", query.groupId);
+  if (query.q?.trim()) p.set("q", query.q.trim());
+  if (query.category && query.category !== "ALL") p.set("category", query.category);
+  if (query.from) p.set("from", query.from);
+  if (query.to) p.set("to", query.to);
+  if (query.recurring) p.set("recurring", "true");
+  if (query.limit) p.set("limit", String(query.limit));
+  if (cursor) p.set("cursor", cursor);
+  return p.toString();
+}
+
+/**
+ * Every expense (not just the latest 50), newest first, filtered on the server so search and
+ * filters cover the whole history. Call `fetchNextPage` for more.
+ */
+export function useInfiniteExpenses(query: ExpenseQuery = {}) {
+  const result = useInfiniteQuery<{ items: Expense[]; nextCursor: string | null }>({
+    queryKey: ["expenses", "infinite", query],
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam }) => fetchJSON(`/api/expenses?${expenseQueryString(query, pageParam as string | null)}`),
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+  return { ...result, expenses: result.data?.pages.flatMap((pg) => pg.items) ?? [] };
 }

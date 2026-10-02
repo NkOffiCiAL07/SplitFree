@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { m } from "framer-motion";
 import { netForUser, payersLabel } from "@/lib/expense-display";
 import { ExpenseHistory } from "@/components/expenses/expense-history";
 import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
-import { useExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
+import { useInfiniteExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
+import { useDebounceValue } from "usehooks-ts";
 import { useAuth } from "@/hooks/use-auth";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -36,7 +37,6 @@ const EditExpenseDialog = dynamic(
 );
 
 export default function ExpensesPage() {
-  const { data: expenses, isLoading } = useExpenses();
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
   const duplicateMutation = useDuplicateExpense();
@@ -49,20 +49,20 @@ export default function ExpensesPage() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (!expenses) return [];
-    return expenses.filter((e) => {
-      const matchSearch = !search || e.description.toLowerCase().includes(search.toLowerCase()) || e.paidBy?.name?.toLowerCase().includes(search.toLowerCase());
-      const matchCat = category === "ALL" || e.category === category;
-      const expDate = new Date(e.date);
-      const matchFrom = !dateFrom || expDate >= new Date(dateFrom);
-      const matchTo = !dateTo || expDate <= new Date(dateTo + "T23:59:59");
-      return matchSearch && matchCat && matchFrom && matchTo;
-    });
-  }, [expenses, search, category, dateFrom, dateTo]);
+  // Search and filters run on the server over the full history; typing is debounced
+  const [debouncedSearch] = useDebounceValue(search, 300);
+  const filters = { q: debouncedSearch, category, from: dateFrom, to: dateTo };
+  const hasFilters = !!(debouncedSearch.trim() || category !== "ALL" || dateFrom || dateTo);
+  const { expenses, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteExpenses(filters);
 
   const handleExportCSV = () => {
-    window.location.href = "/api/export";
+    // Export what's on screen: same search/category/date filters
+    const p = new URLSearchParams();
+    if (debouncedSearch.trim()) p.set("q", debouncedSearch.trim());
+    if (category !== "ALL") p.set("category", category);
+    if (dateFrom) p.set("from", dateFrom);
+    if (dateTo) p.set("to", dateTo);
+    window.location.href = `/api/export${p.size ? `?${p}` : ""}`;
   };
 
   const handleExportPDF = () => {
@@ -74,7 +74,7 @@ export default function ExpensesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Expenses</h2>
-          <p className="text-sm text-muted-foreground">{filtered.length} of {expenses?.length ?? 0}</p>
+          <p className="text-sm text-muted-foreground">{expenses.length}{hasNextPage ? "+" : ""} {hasFilters ? "matching " : ""}expense{expenses.length === 1 && !hasNextPage ? "" : "s"}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1">
@@ -151,16 +151,16 @@ export default function ExpensesPage() {
             <Skeleton key={i} className="h-16 w-full rounded-xl" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : expenses.length === 0 ? (
         <EmptyState
           icon={Receipt}
-          title={expenses?.length === 0 ? "No expenses yet" : "No results"}
-          description={expenses?.length === 0 ? "Add your first expense to start tracking shared costs." : "Try a different search, category, or date range."}
-          action={expenses?.length === 0 ? { label: "Add first expense", onClick: () => setAddOpen(true) } : undefined}
+          title={!hasFilters ? "No expenses yet" : "No results"}
+          description={!hasFilters ? "Add your first expense to start tracking shared costs." : "Try a different search, category, or date range."}
+          action={!hasFilters ? { label: "Add first expense", onClick: () => setAddOpen(true) } : undefined}
         />
       ) : (
         <div className="space-y-2">
-          {filtered.map((expense, i) => (
+          {expenses.map((expense, i) => (
             <ExpenseRow
               key={expense.id}
               expense={expense}
@@ -170,6 +170,11 @@ export default function ExpensesPage() {
               userCurrency={userCurrency}
             />
           ))}
+          {hasNextPage && (
+            <Button variant="outline" className="w-full" loading={isFetchingNextPage} onClick={() => fetchNextPage()}>
+              Load more
+            </Button>
+          )}
         </div>
       )}
 

@@ -92,7 +92,7 @@ describe("GET /api/expenses — visibility", () => {
     p.expense.findMany.mockResolvedValue([]);
     await GET(new NextRequest("http://x/api/expenses?limit=abc"));
     const args = p.expense.findMany.mock.calls[0][0];
-    expect(args.where.OR).toEqual([{ splits: { some: { userId: ME } } }, { paidById: ME }, { payers: { some: { userId: ME } } }]);
+    expect(args.where.AND[0].OR).toEqual([{ splits: { some: { userId: ME } } }, { paidById: ME }, { payers: { some: { userId: ME } } }]);
     expect(args.take).toBe(50); // invalid limit falls back to the default
     expect(args.orderBy).toEqual([{ date: "desc" }, { id: "desc" }]); // stable pagination
   });
@@ -153,5 +153,47 @@ describe("POST /api/expenses — multiple payers", () => {
     await post(body({ payers: [{ userId: ME, amount: 200 }, { userId: OTHER, amount: 100 }], participants: [ME, OTHER, THIRD] }));
     const notified = p.notification.createMany.mock.calls[0][0].data.map((n: { userId: string }) => n.userId);
     expect(notified).toEqual([THIRD]); // both payers already know about it
+  });
+});
+
+describe("GET /api/expenses — search, filters and paging", () => {
+  const row = (id: string) => ({ id, description: id, amount: 100, splits: [], payers: [] });
+
+  it("passes search/category/date filters to the database (full history, not just a page)", async () => {
+    p.expense.findMany.mockResolvedValue([]);
+    await GET(new NextRequest("http://x/api/expenses?q=goa&category=FOOD&from=2026-01-01&recurring=true&groupId=" + GROUP));
+    const and = p.expense.findMany.mock.calls[0][0].where.AND;
+    expect(and[1].AND).toEqual(expect.arrayContaining([
+      { groupId: GROUP }, { category: "FOOD" }, { isRecurring: true },
+      expect.objectContaining({ OR: expect.any(Array) }),
+      { date: { gte: new Date("2026-01-01T00:00:00.000Z") } },
+    ]));
+    expect(and[0].OR).toBeDefined(); // visibility is always applied
+  });
+
+  it("still returns a plain array without ?paged", async () => {
+    p.expense.findMany.mockResolvedValue([row("a")]);
+    const { data } = await (await GET(new NextRequest("http://x/api/expenses"))).json();
+    expect(Array.isArray(data)).toBe(true);
+    expect(p.expense.findMany.mock.calls[0][0].take).toBe(50);
+  });
+
+  it("paged: asks for one extra row and returns a cursor only when more exist", async () => {
+    p.expense.findMany.mockResolvedValue([row("a"), row("b"), row("c")]); // limit 2 → 3 rows means more
+    const first = (await (await GET(new NextRequest("http://x/api/expenses?paged=true&limit=2"))).json()).data;
+    expect(p.expense.findMany.mock.calls[0][0].take).toBe(3);
+    expect(first.items.map((e: { id: string }) => e.id)).toEqual(["a", "b"]);
+    expect(first.nextCursor).toBe("b");
+
+    p.expense.findMany.mockResolvedValue([row("c")]);
+    const last = (await (await GET(new NextRequest("http://x/api/expenses?paged=true&limit=2&cursor=b"))).json()).data;
+    expect(last).toEqual({ items: [expect.objectContaining({ id: "c" })], nextCursor: null });
+    expect(p.expense.findMany.mock.calls[1][0]).toMatchObject({ skip: 1, cursor: { id: "b" } });
+  });
+
+  it("an exactly-full last page has no cursor", async () => {
+    p.expense.findMany.mockResolvedValue([row("a"), row("b")]);
+    const { data } = await (await GET(new NextRequest("http://x/api/expenses?paged=true&limit=2"))).json();
+    expect(data.nextCursor).toBeNull();
   });
 });

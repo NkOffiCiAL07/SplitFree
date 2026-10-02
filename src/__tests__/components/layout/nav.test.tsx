@@ -22,11 +22,10 @@ import { TopNav } from "@/components/layout/top-nav";
 beforeEach(() => vi.clearAllMocks());
 
 describe("Sidebar", () => {
-  it("opens the add-expense dialog (not the search palette) from the global button", async () => {
+  it("has no Add expense button (adding is done from pages, the mobile + button and the command palette)", () => {
     render(<Sidebar />);
-    await userEvent.click(screen.getByRole("button", { name: /add expense/i }));
-    expect(setAddExpenseOpen).toHaveBeenCalledWith(true);
-    expect(setCommandPaletteOpen).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /add expense/i })).not.toBeInTheDocument();
+    expect(setAddExpenseOpen).not.toHaveBeenCalled();
   });
 
   it("links to the main sections", () => {

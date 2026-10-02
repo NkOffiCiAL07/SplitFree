@@ -7,7 +7,8 @@ import { m } from "framer-motion";
 import { ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Archive, ArchiveRestore, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership, useArchiveGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
-import { useDeleteExpense } from "@/hooks/use-expenses";
+import { useDeleteExpense, useInfiniteExpenses } from "@/hooks/use-expenses";
+import { useDebounceValue } from "usehooks-ts";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
@@ -60,6 +61,11 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
 
   const deleteExpense = useDeleteExpense();
+  // The group's FULL expense history (not just the latest few), searchable on the server
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const [debouncedExpenseSearch] = useDebounceValue(expenseSearch, 300);
+  const { expenses, isLoading: expensesLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteExpenses({ groupId: id, q: debouncedExpenseSearch });
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
@@ -160,7 +166,6 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!group) return null;
 
-  const expenses = group.expenses ?? [];
   const memberNames: Record<string, string> = Object.fromEntries(
     (group.members ?? []).map((mm) => [mm.userId, mm.user?.name ?? "Member"])
   );
@@ -667,10 +672,26 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Expenses */}
       <div className="space-y-3">
-        <h3 className="font-semibold text-sm">Expenses ({expenses.length})</h3>
-        {expenses.length === 0 ? (
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-semibold text-sm">Expenses ({group._count?.expenses ?? expenses.length})</h3>
+          {(group._count?.expenses ?? 0) > 5 && (
+            <div className="relative w-44 sm:w-56">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+              <Input
+                aria-label="Search this group's expenses"
+                placeholder="Search expenses…"
+                value={expenseSearch}
+                onChange={(e) => setExpenseSearch(e.target.value)}
+                className="pl-8 h-8 text-xs"
+              />
+            </div>
+          )}
+        </div>
+        {expensesLoading ? (
+          <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}</div>
+        ) : expenses.length === 0 ? (
           <div className="text-center py-10 text-sm text-muted-foreground">
-            No expenses yet. Add the first one!
+            {debouncedExpenseSearch.trim() ? "No expenses match your search." : "No expenses yet. Add the first one!"}
           </div>
         ) : (
           <div className="space-y-2">
@@ -686,6 +707,11 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 onClick={() => setViewingExpense(exp as Expense)}
               />
             ))}
+            {hasNextPage && (
+              <Button variant="outline" className="w-full" loading={isFetchingNextPage} onClick={() => fetchNextPage()}>
+                Load more
+              </Button>
+            )}
           </div>
         )}
         {editingExpense && (
