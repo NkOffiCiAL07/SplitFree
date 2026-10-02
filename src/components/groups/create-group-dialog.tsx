@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { createGroupSchema, type CreateGroupInput } from "@/lib/validations/group";
 import { useCreateGroup } from "@/hooks/use-groups";
+import { useFriends } from "@/hooks/use-friends";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 const GROUP_CATEGORIES = [
   { value: "HOME", label: "🏠 Home" },
@@ -36,16 +38,26 @@ export function CreateGroupDialog({
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const { mutateAsync, isPending } = useCreateGroup();
+  const { data: friends } = useFriends();
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CreateGroupInput>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: { category: "OTHER", currency: "USD" },
   });
 
+  const toggleFriend = (id: string) =>
+    setSelectedFriendIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+
   const onSubmit = async (data: CreateGroupInput) => {
-    await mutateAsync(data);
+    const memberEmails = (friends ?? [])
+      .filter((f) => selectedFriendIds.includes(f.friendId))
+      .map((f) => f.friend?.email)
+      .filter(Boolean) as string[];
+    await mutateAsync({ ...data, memberEmails: memberEmails.length ? memberEmails : undefined });
     setOpen(false);
     reset();
+    setSelectedFriendIds([]);
   };
 
   const trigger = controlledOpen !== undefined ? null : (
@@ -97,6 +109,41 @@ export function CreateGroupDialog({
               </Select>
             </div>
           </div>
+          {friends && friends.length > 0 && (
+            <div className="space-y-2">
+              <Label>Add members (optional)</Label>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                {friends.map((f) => {
+                  const selected = selectedFriendIds.includes(f.friendId);
+                  const initials = (f.friend?.name ?? f.friend?.email ?? "?").slice(0, 2).toUpperCase();
+                  return (
+                    <button
+                      key={f.friendId}
+                      type="button"
+                      onClick={() => toggleFriend(f.friendId)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all",
+                        selected
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-input bg-background text-foreground hover:border-primary/50"
+                      )}
+                    >
+                      <span className={cn(
+                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0",
+                        selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}>
+                        {f.friend?.avatarUrl
+                          ? <img src={f.friend.avatarUrl} className="w-5 h-5 rounded-full object-cover" alt="" />
+                          : initials}
+                      </span>
+                      {f.friend?.name ?? f.friend?.email}
+                      {selected && <Check className="size-3 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="brand" loading={isPending}>Create group</Button>

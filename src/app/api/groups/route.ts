@@ -41,6 +41,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createGroupSchema.parse(body);
 
+    // Resolve memberEmails → userIds (skip emails that don't exist)
+    const extraMembers: { userId: string; role: "MEMBER" }[] = [];
+    if (data.memberEmails?.length) {
+      const users = await prisma.user.findMany({
+        where: { email: { in: data.memberEmails }, id: { not: user!.id } },
+        select: { id: true },
+      });
+      extraMembers.push(...users.map((u) => ({ userId: u.id, role: "MEMBER" as const })));
+    }
+
     const group = await prisma.group.create({
       data: {
         name: data.name,
@@ -49,7 +59,7 @@ export async function POST(req: NextRequest) {
         currency: data.currency,
         createdById: user!.id,
         members: {
-          create: { userId: user!.id, role: "ADMIN" },
+          create: [{ userId: user!.id, role: "ADMIN" }, ...extraMembers],
         },
       },
       include: {
