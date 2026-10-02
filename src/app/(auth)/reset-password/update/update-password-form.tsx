@@ -12,15 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { updatePasswordSchema } from "@/lib/validations/auth";
 
-const schema = z.object({
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirm: z.string(),
-}).refine((d) => d.password === d.confirm, {
-  message: "Passwords do not match",
-  path: ["confirm"],
-});
-
+const schema = updatePasswordSchema;
 type FormData = z.infer<typeof schema>;
 
 export function UpdatePasswordContent() {

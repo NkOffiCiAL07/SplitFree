@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function GoogleIcon() {
   return (
@@ -21,6 +22,7 @@ function GoogleIcon() {
   );
 }
 import { toast } from "sonner";
+import { signupSchema } from "@/lib/validations/auth";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -28,19 +30,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const signupSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(80),
-  email: z.string().email("Enter a valid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Must contain at least one number"),
-});
 type SignupValues = z.infer<typeof signupSchema>;
 
-export default function SignupForm() {
+function SignupFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Where to go after sign-up (e.g. back to an invite link) — in-app paths only
+  const redirectParam = searchParams.get("redirect");
+  const redirect = safeRedirectPath(redirectParam);
   const { signUpWithEmail, signInWithGoogle, signInWithEmail } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -57,7 +54,8 @@ export default function SignupForm() {
     const { error, data } = await signUpWithEmail(
       values.email,
       values.password,
-      values.name
+      values.name,
+      redirectParam ? redirect : undefined
     );
     if (error) {
       toast.error(error.message);
@@ -65,7 +63,7 @@ export default function SignupForm() {
     }
     if (data.session) {
       // Auto-confirmed (e.g., dev mode)
-      router.push("/dashboard");
+      router.push(redirect);
     } else {
       setEmailSent(true);
     }
@@ -73,7 +71,7 @@ export default function SignupForm() {
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { error } = await signInWithGoogle(redirect);
     if (error) {
       toast.error(error.message);
       setGoogleLoading(false);
@@ -248,5 +246,13 @@ export default function SignupForm() {
         </div>
       )}
     </m.div>
+  );
+}
+
+export default function SignupForm() {
+  return (
+    <Suspense>
+      <SignupFormContent />
+    </Suspense>
   );
 }

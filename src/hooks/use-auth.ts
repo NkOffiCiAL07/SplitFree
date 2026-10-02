@@ -54,13 +54,14 @@ export function useAuth() {
   );
 
   const signUpWithEmail = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (email: string, password: string, name: string, next?: string) => {
       return supabase.auth.signUp({
         email,
         password,
         options: {
           data: { name },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // `next` carries where the person was heading (e.g. an invite link) through email confirmation
+          emailRedirectTo: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
         },
       });
     },

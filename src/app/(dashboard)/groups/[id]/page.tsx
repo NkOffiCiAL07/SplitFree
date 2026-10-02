@@ -170,7 +170,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     (group.members ?? []).map((mm) => [mm.userId, mm.user?.name ?? "Member"])
   );
   const isArchived = !!group.archivedAt;
-  const myBalance = (group.memberBalances ?? []).find((mb) => mb.userId === user?.id)?.balance ?? 0;
+  // memberBalances lists everyone ELSE (balance > 0 = they owe me), so my net is simply their sum.
+  // (It used to look for my own entry, which never exists, so the banner always said "All settled up!")
+  const myBalance = (group.memberBalances ?? []).reduce((sum, mb) => sum + mb.balance, 0);
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">

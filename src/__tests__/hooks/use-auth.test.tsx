@@ -86,6 +86,12 @@ describe("useAuth — actions", () => {
     });
   });
 
+  it("signUpWithEmail can carry a destination through email confirmation (e.g. an invite link)", async () => {
+    const r = await setup();
+    await r.current.signUpWithEmail("a@x.com", "pw", "Asha", "/join/abc123");
+    expect(auth.signUp.mock.calls[0][0].options.emailRedirectTo).toBe(`${window.location.origin}/auth/callback?next=${encodeURIComponent("/join/abc123")}`);
+  });
+
   it("Google sign-in returns to the callback with a (URL-encoded) destination, defaulting to the dashboard", async () => {
     const r = await setup();
     await r.current.signInWithGoogle();

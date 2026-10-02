@@ -26,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const expense = await prisma.expense.findFirst({
       where: { id, ...visibleToUser(user!.id) },
-      include: { paidBy: true, splits: { include: { user: true } }, group: true },
+      include: { paidBy: true, splits: { include: { user: true } }, payers: { include: { user: true } }, group: true },
     });
     if (!expense) return err("Expense not found", 404);
     return ok(expense);

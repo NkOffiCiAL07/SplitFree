@@ -14,10 +14,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { getInitials, generateAvatarUrl } from "@/lib/utils";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const qc = useQueryClient();
   const metaName: string = user?.user_metadata?.name ?? "";
   const [name, setName] = useState(metaName);
   const [syncedName, setSyncedName] = useState(metaName);
@@ -40,7 +43,12 @@ export default function ProfilePage() {
       if (json.error) throw new Error(json.error.message);
       return json.data;
     },
-    onSuccess: () => toast.success("Profile updated"),
+    onSuccess: async (_data, vars) => {
+      // The greeting and avatar read the auth profile, so keep it in step with the database row
+      try { await createClient().auth.updateUser({ data: { name: vars.name } }); } catch { /* DB row is saved either way */ }
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Profile updated");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -53,6 +61,8 @@ export default function ProfilePage() {
   const handleSave = () => updateProfile.mutate({ name });
 
   const displayName = user?.user_metadata?.name ?? user?.email ?? "User";
+  const createdYear = user?.created_at ? new Date(user.created_at).getFullYear() : NaN;
+  const memberSince = Number.isFinite(createdYear) ? createdYear : null; // never "Member since NaN"
   const avatarUrl = user?.user_metadata?.avatar_url ?? generateAvatarUrl(displayName);
 
   return (
@@ -79,9 +89,7 @@ export default function ProfilePage() {
               <div>
                 <h3 className="font-semibold text-base">{displayName}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Member since {new Date(user?.created_at ?? "").getFullYear()}
-                </p>
+                {memberSince && <p className="text-xs text-muted-foreground mt-1">Member since {memberSince}</p>}
               </div>
             </div>
           </CardContent>

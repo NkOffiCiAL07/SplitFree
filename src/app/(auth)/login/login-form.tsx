@@ -9,6 +9,8 @@ import { z } from "zod";
 import { m } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
+import { safeRedirectPath } from "@/lib/safe-redirect";
+import { loginSchema } from "@/lib/validations/auth";
 
 function GoogleIcon() {
   return (
@@ -28,16 +30,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
 type LoginValues = z.infer<typeof loginSchema>;
 
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/dashboard";
+  // `redirect` comes from the URL: only in-app paths are allowed (blocks //evil.com style open redirects)
+  const redirect = safeRedirectPath(searchParams.get("redirect"));
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);

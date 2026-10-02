@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { RefreshCw, Trash2, Calendar } from "lucide-react";
 import { useInfiniteExpenses, useDeleteExpense } from "@/hooks/use-expenses";
+import { monthlyByCurrency } from "@/lib/recurring";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,16 +36,8 @@ export default function RecurringPage() {
 
   const recurring = useMemo(() => expenses.filter((e) => e.isRecurring), [expenses]);
 
-  const monthly = useMemo(() => {
-    return recurring.reduce((sum, e) => {
-      const amount = e.amount;
-      if (e.recurringInterval === "DAILY") return sum + amount * 30;
-      if (e.recurringInterval === "WEEKLY") return sum + amount * 4.33;
-      if (e.recurringInterval === "MONTHLY") return sum + amount;
-      if (e.recurringInterval === "YEARLY") return sum + amount / 12;
-      return sum + amount;
-    }, 0);
-  }, [recurring]);
+  // Per-currency estimate: rupees and dollars are never added together
+  const monthly = useMemo(() => monthlyByCurrency(recurring), [recurring]);
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
@@ -65,7 +58,7 @@ export default function RecurringPage() {
           className="rounded-2xl p-5 gradient-brand text-white"
         >
           <p className="text-sm text-white/80">Estimated monthly cost</p>
-          <p className="text-3xl font-bold mt-1">{formatCurrency(Math.round(monthly), userCurrency)}</p>
+          <p className="text-3xl font-bold mt-1">{monthly.map((m2) => formatCurrency(m2.amount, m2.currency)).join(" + ")}</p>
           <p className="text-sm text-white/70 mt-1">across {recurring.length} recurring {recurring.length === 1 ? "expense" : "expenses"}</p>
         </m.div>
       )}
@@ -87,7 +80,7 @@ export default function RecurringPage() {
       ) : (
         <div className="space-y-2">
           {recurring.map((expense, i) => {
-            const currency = expense.group?.currency ?? userCurrency;
+            const currency = expense.currency ?? userCurrency; // the expense's own currency
             const isPayer = expense.paidById === user?.id;
             return (
               <m.div

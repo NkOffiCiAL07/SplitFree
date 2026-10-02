@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("@/lib/prisma", () => ({ prisma: {} }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 
-import { safeRedirectPath } from "@/lib/api-helpers";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 describe("safeRedirectPath (open-redirect guard)", () => {
   it("allows in-app paths, including query strings and hashes", () => {
