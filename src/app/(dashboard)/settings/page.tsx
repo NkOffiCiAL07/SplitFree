@@ -1,7 +1,6 @@
 "use client";
 
-"use client";
-
+import Link from "next/link";
 import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useTheme } from "next-themes";
 import { useState } from "react";
@@ -104,6 +103,19 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <NotificationSettings />
+          </CardContent>
+        </Card>
+      </m.div>
+
+      {/* Import */}
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Import</CardTitle>
+            <CardDescription>Moving from Splitwise? Bring your history with you</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Link href="/import" className="text-sm font-medium text-primary hover:underline">Import from Splitwise →</Link>
           </CardContent>
         </Card>
       </m.div>

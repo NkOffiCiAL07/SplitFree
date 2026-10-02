@@ -114,6 +114,11 @@ export function clientIp(req: Request) {
 // Simple in-memory rate limiter per IP (resets on cold start)
 const ipMap = new Map<string, { count: number; reset: number }>();
 
+/** Test hook: forget all rate-limit counters. */
+export function resetRateLimits() {
+  ipMap.clear();
+}
+
 export function rateLimit(ip: string, limit = 30, windowMs = 60_000): boolean {
   const now = Date.now();
   const entry = ipMap.get(ip);
