@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
 import { BudgetCard } from "@/components/groups/budget-card";
 import type { Expense } from "@/types";
+import { GroupDebtsCard } from "@/components/groups/group-debts-card";
+import { GroupStatsCard } from "@/components/groups/group-stats-card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +52,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [friendSearch, setFriendSearch] = useState("");
   const { data: friends } = useFriendContacts();
-  const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number } | null>(null);
+  const [settleTarget, setSettleTarget] = useState<{ userId: string; name: string; balance: number; currency?: string } | null>(null);
   const [settleNote, setSettleNote] = useState("");
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
 
@@ -127,7 +129,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     await settleUp.mutateAsync({
       toUserId: settleTarget.userId,
       amount: amountDollars,
-      currency: group?.currency,
+      currency: settleTarget.currency ?? group?.currency,
       groupId: id,
       note: settleNote || undefined,
     });
@@ -156,6 +158,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   if (!group) return null;
 
   const expenses = group.expenses ?? [];
+  const memberNames: Record<string, string> = Object.fromEntries(
+    (group.members ?? []).map((mm) => [mm.userId, mm.user?.name ?? "Member"])
+  );
   const myBalance = (group.memberBalances ?? []).find((mb) => mb.userId === user?.id)?.balance ?? 0;
 
   return (
@@ -525,6 +530,17 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         );
       })()}
 
+      {/* Group-wide summary: fewest payments to settle everyone + spending totals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <GroupDebtsCard
+          groupId={id}
+          names={memberNames}
+          currentUserId={user?.id}
+          onPay={(d) => setSettleTarget({ userId: d.toUserId, name: memberNames[d.toUserId] ?? "member", balance: -d.amount, currency: d.currency })}
+        />
+        <GroupStatsCard stats={group.stats} names={memberNames} currentUserId={user?.id} />
+      </div>
+
       {/* Quick settle dialog */}
       <Dialog open={!!settleTarget} onOpenChange={(open) => { if (!open) { setSettleTarget(null); setSettleNote(""); } }}>
         <DialogContent className="sm:max-w-sm">
@@ -533,7 +549,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           </DialogHeader>
           <form onSubmit={handleQuickSettle} className="space-y-4 mt-2">
             <div className="rounded-xl bg-muted/50 p-3 text-sm text-center">
-              You owe <span className="font-bold">{settleTarget && formatCurrency(Math.abs(settleTarget.balance), group.currency)}</span> to {settleTarget?.name}
+              You owe <span className="font-bold">{settleTarget && formatCurrency(Math.abs(settleTarget.balance), settleTarget.currency ?? group.currency)}</span> to {settleTarget?.name}
             </div>
             <div className="space-y-1.5">
               <Label>Note (optional)</Label>

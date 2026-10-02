@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo } from "react";
 import { m } from "framer-motion";
 import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal, Receipt, Users } from "lucide-react";
@@ -262,7 +263,7 @@ export default function FriendsPage() {
                 <AvatarFallback>{getInitials(friendship.friend?.name ?? "?")}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{friendship.friend?.name}</p>
+                <Link href={`/friends/${friendship.friendId}`} className="text-sm font-medium truncate block hover:underline">{friendship.friend?.name}</Link>
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
@@ -313,7 +314,7 @@ export default function FriendsPage() {
                 <AvatarFallback>{getInitials(contact.name ?? "?")}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{contact.name ?? "Member"}</p>
+                <Link href={`/friends/${contact.id}`} className="text-sm font-medium truncate block hover:underline">{contact.name ?? "Member"}</Link>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
                 <BalanceLines nets={balances?.byPerson[contact.id]?.all} />
               </div>

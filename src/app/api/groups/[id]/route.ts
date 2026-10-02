@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
 import { updateGroupSchema } from "@/lib/validations/group";
+import { computeGroupStats } from "@/lib/group-stats";
 
 async function assertMember(groupId: string, userId: string) {
   return prisma.groupMember.findUnique({
@@ -85,7 +86,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       }))
       .filter((m) => m.balance !== 0);
 
-    return ok({ ...group, memberBalances });
+    const stats = computeGroupStats(allExpenses, user!.id);
+
+    return ok({ ...group, memberBalances, stats });
   } catch (e) {
     return handleError(e);
   }

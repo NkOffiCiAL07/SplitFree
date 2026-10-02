@@ -2,7 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Friendship, FriendRequest } from "@/types";
+import type { Friendship, FriendRequest, Expense, Settlement } from "@/types";
+import type { CurrencyNet } from "@/lib/pair-balance";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -105,5 +106,25 @@ export function useRemoveFriend() {
       toast.success("Friend removed");
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export interface FriendDetail {
+  friend: { id: string; name: string; email: string; avatarUrl: string | null };
+  /** Net per currency: positive = they owe you, negative = you owe them */
+  balances: CurrencyNet[];
+  expenses: (Pick<Expense, "id" | "description" | "amount" | "currency" | "category" | "date" | "paidById"> & {
+    group: { id: string; name: string } | null;
+    splits: { userId: string; amount: number }[];
+  })[];
+  settlements: Pick<Settlement, "id" | "fromUserId" | "toUserId" | "amount" | "currency" | "note" | "createdAt">[];
+}
+
+/** Shared history and balance with one person. */
+export function useFriendDetail(id: string) {
+  return useQuery<FriendDetail>({
+    queryKey: ["friends", "detail", id],
+    queryFn: () => fetchJSON(`/api/friends/${id}`),
+    enabled: !!id,
   });
 }

@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { SimplifiedDebt } from "@/types";
 
 async function fetchJSON(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -39,6 +40,8 @@ export function useSettleUp() {
       qc.invalidateQueries({ queryKey: ["settlements"] });
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["balances"] }); // friend/group balance chips
+      qc.invalidateQueries({ queryKey: ["friends"] });
       qc.invalidateQueries({ queryKey: ["groups"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
@@ -59,5 +62,14 @@ export function useSendReminder() {
       }),
     onSuccess: () => toast.success("Reminder sent"),
     onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+/** Minimum payments that settle a whole group (every member, each currency netted separately). */
+export function useGroupDebts(groupId: string) {
+  return useQuery<{ simplified: SimplifiedDebt[] }>({
+    queryKey: ["settlements", groupId, "simplified"],
+    queryFn: () => fetchJSON(`/api/settlements?groupId=${groupId}&simplified=true`),
+    enabled: !!groupId,
   });
 }

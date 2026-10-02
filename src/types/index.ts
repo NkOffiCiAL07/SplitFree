@@ -1,4 +1,5 @@
 import type { CurrencyCode } from "@/lib/currencies";
+import type { GroupStats } from "@/lib/group-stats";
 
 export type Currency = CurrencyCode;
 
@@ -95,6 +96,7 @@ export interface MemberBalance {
 export interface GroupDetail extends Group {
   expenses?: Expense[];
   memberBalances?: MemberBalance[];
+  stats?: GroupStats;
 }
 
 /** One payment suggested by the debt-simplification algorithm */

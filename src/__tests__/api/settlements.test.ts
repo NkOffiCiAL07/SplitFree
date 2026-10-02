@@ -45,6 +45,31 @@ describe("GET /api/settlements — group privacy", () => {
   });
 });
 
+describe("GET /api/settlements — group simplification per currency", () => {
+  it("nets each currency separately and tags every payment", async () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.settlement.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    p.expense.findMany.mockResolvedValue([
+      { paidById: ME, currency: "INR", splits: [{ userId: ME, amount: 500, isPaid: false }, { userId: OTHER, amount: 500, isPaid: false }] },
+      { paidById: OTHER, currency: "USD", splits: [{ userId: ME, amount: 300, isPaid: false }, { userId: OTHER, amount: 300, isPaid: false }] },
+    ]);
+    const { data } = await (await GET(req(`/api/settlements?groupId=${GROUP}&simplified=true`))).json();
+    expect(data.simplified).toHaveLength(2);
+    expect(data.simplified).toContainEqual({ fromUserId: OTHER, toUserId: ME, amount: 500, currency: "INR" });
+    expect(data.simplified).toContainEqual({ fromUserId: ME, toUserId: OTHER, amount: 300, currency: "USD" });
+  });
+
+  it("a payment in one currency does not cancel a debt in another", async () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.settlement.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([{ fromUserId: OTHER, toUserId: ME, amount: 500, currency: "USD" }]);
+    p.expense.findMany.mockResolvedValue([
+      { paidById: ME, currency: "INR", splits: [{ userId: OTHER, amount: 500, isPaid: false }] },
+    ]);
+    const { data } = await (await GET(req(`/api/settlements?groupId=${GROUP}&simplified=true`))).json();
+    expect(data.simplified).toContainEqual({ fromUserId: OTHER, toUserId: ME, amount: 500, currency: "INR" });
+  });
+});
+
 describe("POST /api/settlements — validation", () => {
   const valid = { toUserId: OTHER, amount: 100, currency: "INR" };
 

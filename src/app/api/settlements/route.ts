@@ -46,31 +46,39 @@ export async function GET(req: NextRequest) {
     if (simplified && groupId) {
       const expenses = await prisma.expense.findMany({
         where: { groupId },
-        select: { paidById: true, splits: { select: { userId: true, amount: true, isPaid: true } } },
+        select: { paidById: true, currency: true, splits: { select: { userId: true, amount: true, isPaid: true } } },
       });
-
-      const expenseDebts = expenses.flatMap((exp) =>
-        exp.splits
-          .filter((s) => !s.isPaid && s.userId !== exp.paidById)
-          .map((s) => ({ fromUserId: s.userId, toUserId: exp.paidById, amount: s.amount }))
-      );
 
       // Netting needs EVERY settlement in the group (not just mine, not just the latest page),
       // otherwise payments between other members are ignored.
       const allGroupSettlements = await prisma.settlement.findMany({
         where: { groupId },
-        select: { fromUserId: true, toUserId: true, amount: true },
+        select: { fromUserId: true, toUserId: true, amount: true, currency: true },
       });
 
-      // Represent each settlement as a counter-debt so simplifyDebts can net everything correctly.
-      // This handles overpayments and cross-direction payments that settledMap would lose.
-      const settlementCounterDebts = allGroupSettlements.map((s) => ({
-        fromUserId: s.toUserId,
-        toUserId: s.fromUserId,
-        amount: s.amount,
-      }));
+      // Each currency is netted on its own — rupees never cancel dollars.
+      const debtsByCurrency = new Map<string, { fromUserId: string; toUserId: string; amount: number }[]>();
+      const push = (currency: string, debt: { fromUserId: string; toUserId: string; amount: number }) => {
+        const list = debtsByCurrency.get(currency) ?? [];
+        list.push(debt);
+        debtsByCurrency.set(currency, list);
+      };
+      for (const exp of expenses) {
+        for (const sp of exp.splits) {
+          if (!sp.isPaid && sp.userId !== exp.paidById) {
+            push(exp.currency, { fromUserId: sp.userId, toUserId: exp.paidById, amount: sp.amount });
+          }
+        }
+      }
+      // A settlement is a counter-debt, so overpayments and cross-direction payments net correctly.
+      for (const st of allGroupSettlements) {
+        push(st.currency, { fromUserId: st.toUserId, toUserId: st.fromUserId, amount: st.amount });
+      }
 
-      return ok({ settlements, simplified: simplifyDebts([...expenseDebts, ...settlementCounterDebts]) });
+      const simplifiedDebts = [...debtsByCurrency.entries()].flatMap(([currency, debts]) =>
+        simplifyDebts(debts).map((d) => ({ ...d, currency }))
+      );
+      return ok({ settlements, simplified: simplifiedDebts });
     }
 
     const res = ok(settlements);
