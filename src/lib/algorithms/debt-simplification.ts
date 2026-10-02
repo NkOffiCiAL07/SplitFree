@@ -142,10 +142,10 @@ export function computeNetBalance(
     if (myShare) balance -= myShare.amount;
   }
 
-  // Settlements
+  // Settlements: fromUserId = payer/debtor, toUserId = receiver/creditor
   for (const s of settlements) {
-    if (s.fromUserId === userId) balance -= s.amount;
-    if (s.toUserId === userId) balance += s.amount;
+    if (s.fromUserId === userId) balance += s.amount; // I paid someone → my debt reduces
+    if (s.toUserId === userId) balance -= s.amount;   // Someone paid me → I'm owed less
   }
 
   return balance;
