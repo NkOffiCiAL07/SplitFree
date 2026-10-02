@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils";
 import type { SimplifiedDebt } from "@/types";
 
@@ -27,7 +28,7 @@ export function formatSettlePlan(debts: SimplifiedDebt[], currentUserId?: string
   if (debts.length === 0) return `${appName}: everyone is settled up ✅`;
   const name = (id: string, u?: { name: string }) => (id === currentUserId ? "You" : u?.name ?? "Someone");
   const lines = debts.map(
-    (d) => `• ${name(d.fromUserId, d.fromUser)} → ${name(d.toUserId, d.toUser)}: ${formatCurrency(d.amount, d.currency ?? "USD")}`
+    (d) => `• ${name(d.fromUserId, d.fromUser)} → ${name(d.toUserId, d.toUser)}: ${formatCurrency(d.amount, d.currency ?? DEFAULT_CURRENCY)}`
   );
   return [`${appName} — settle plan (${debts.length} payment${debts.length === 1 ? "" : "s"})`, ...lines].join("\n");
 }

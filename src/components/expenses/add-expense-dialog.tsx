@@ -1,5 +1,6 @@
 "use client";
 
+import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useState, useEffect, useMemo } from "react";
 import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,7 +42,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
 };
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"] as const;
 
 const schema = z.object({
   description: z.string().min(1, "Required"),
@@ -67,7 +67,7 @@ interface Props {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function AddExpenseDialog({ groupId, groupCurrency = "USD", members = [], children, open: controlledOpen, onOpenChange }: Props) {
+export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, members = [], children, open: controlledOpen, onOpenChange }: Props) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;

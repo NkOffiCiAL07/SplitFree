@@ -29,31 +29,50 @@ describe("cn", () => {
 });
 
 describe("formatCurrency", () => {
+  it("defaults to INR", () => {
+    expect(formatCurrency(1000)).toBe("₹10.00");
+  });
   it("formats cents to USD", () => {
-    expect(formatCurrency(1000)).toBe("$10.00");
+    expect(formatCurrency(1000, "USD")).toBe("$10.00");
   });
   it("formats 0 cents", () => {
-    expect(formatCurrency(0)).toBe("$0.00");
+    expect(formatCurrency(0, "USD")).toBe("$0.00");
   });
   it("formats negative cents", () => {
-    expect(formatCurrency(-500)).toBe("-$5.00");
+    expect(formatCurrency(-500, "USD")).toBe("-$5.00");
+  });
+  it("uses Indian digit grouping for INR", () => {
+    expect(formatCurrency(1_00_00_000_00, "INR")).toBe("₹1,00,00,000.00");
+    expect(formatCurrency(1_23_456_78, "INR")).toBe("₹1,23,456.78");
+  });
+  it("uses western grouping for other currencies", () => {
+    expect(formatCurrency(123_456_789, "USD")).toBe("$1,234,567.89");
   });
   it("formats INR", () => {
     const result = formatCurrency(10000, "INR");
     expect(result).toContain("100");
   });
   it("formats fractional cents correctly", () => {
-    expect(formatCurrency(999)).toBe("$9.99");
+    expect(formatCurrency(999, "USD")).toBe("$9.99");
   });
 });
 
 describe("formatCompactCurrency", () => {
   it("shows full amount below 1000", () => {
-    expect(formatCompactCurrency(50000)).toBe("$500.00"); // $500 in cents
+    expect(formatCompactCurrency(50000, "USD")).toBe("$500.00"); // $500 in cents
   });
   it("abbreviates thousands with K", () => {
-    const result = formatCompactCurrency(1500000); // $15000
+    const result = formatCompactCurrency(1500000, "USD"); // $15000
     expect(result).toContain("K");
+  });
+  it("uses lakh and crore for INR", () => {
+    expect(formatCompactCurrency(1_50_000_00, "INR")).toBe("₹1.5L");
+    expect(formatCompactCurrency(2_50_00_000_00, "INR")).toBe("₹2.5Cr");
+    expect(formatCompactCurrency(10_100_00, "INR")).toBe("₹10.1K");
+  });
+  it("uses K/M for other currencies instead of lakh", () => {
+    expect(formatCompactCurrency(150_000_00, "USD")).toBe("$150.0K");
+    expect(formatCompactCurrency(2_500_000_00, "USD")).toBe("$2.5M");
   });
   it("uses minus sign for negative amounts", () => {
     const result = formatCompactCurrency(-50000); // -$500

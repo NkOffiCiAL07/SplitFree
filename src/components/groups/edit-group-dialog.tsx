@@ -1,5 +1,6 @@
 "use client";
 
+import { CURRENCY_CODES as CURRENCIES } from "@/lib/currencies";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { Group } from "@/types";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"] as const;
 const CATEGORIES = ["HOME", "TRIP", "COUPLE", "FRIENDS", "WORK", "OTHER"] as const;
 const CATEGORY_LABELS: Record<string, string> = {
   HOME: "🏠 Home", TRIP: "✈️ Trip", COUPLE: "💑 Couple",

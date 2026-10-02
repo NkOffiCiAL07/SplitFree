@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { m } from "framer-motion";
 import { Receipt, Users, ArrowRightLeft, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +50,7 @@ function activityLabel(a: ActivityItem): { text: string; amount?: number } {
   }
 }
 
-export function RecentActivity({ activities = [], currency = "USD", isLoading }: Props) {
+export function RecentActivity({ activities = [], currency = DEFAULT_CURRENCY, isLoading }: Props) {
   return (
     <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
       <Card>

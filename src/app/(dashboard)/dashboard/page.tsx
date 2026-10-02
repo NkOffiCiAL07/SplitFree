@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useQuery } from "@tanstack/react-query";
 import { m } from "framer-motion";
 import { TrendingUp, TrendingDown, Users, Wallet, Plus, ArrowLeftRight } from "lucide-react";
@@ -39,7 +40,7 @@ export default function DashboardPage() {
     staleTime: 30_000,
   });
 
-  const currency = data?.currency ?? "USD";
+  const currency = data?.currency ?? DEFAULT_CURRENCY;
   const netBalance = data?.stats?.netBalance ?? 0;
 
   const stats = [

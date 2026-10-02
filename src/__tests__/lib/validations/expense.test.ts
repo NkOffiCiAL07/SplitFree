@@ -50,9 +50,9 @@ describe("createExpenseSchema", () => {
     ).toThrow();
   });
 
-  it("defaults currency to USD", () => {
+  it("defaults currency to INR", () => {
     const result = createExpenseSchema.parse(validExpense);
-    expect(result.currency).toBe("USD");
+    expect(result.currency).toBe("INR");
   });
 
   it("defaults splitType to EQUAL", () => {

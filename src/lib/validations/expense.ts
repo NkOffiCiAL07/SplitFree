@@ -1,9 +1,10 @@
+import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { z } from "zod";
 
 export const createExpenseSchema = z.object({
   description: z.string().min(1, "Description is required").max(200),
   amount: z.number().positive("Amount must be positive").max(1_000_000),
-  currency: z.enum(["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"]).default("USD"),
+  currency: z.enum(CURRENCY_CODES).default(DEFAULT_CURRENCY),
   category: z.enum([
     "FOOD", "TRANSPORT", "ACCOMMODATION", "ENTERTAINMENT",
     "UTILITIES", "SHOPPING", "HEALTH", "TRAVEL", "EDUCATION", "OTHER",

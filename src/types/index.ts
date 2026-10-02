@@ -1,4 +1,6 @@
-export type Currency = "USD" | "EUR" | "GBP" | "INR" | "CAD" | "AUD" | "JPY";
+import type { CurrencyCode } from "@/lib/currencies";
+
+export type Currency = CurrencyCode;
 
 export type SplitType = "EQUAL" | "EXACT" | "PERCENTAGE" | "SHARES";
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useQuery } from "@tanstack/react-query";
 
 async function fetchProfile() {
@@ -29,7 +30,7 @@ export function useUserCurrency(): string {
   const { data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboard,
-    select: (d: { currency?: string } | undefined) => d?.currency ?? "USD",
+    select: (d: { currency?: string } | undefined) => d?.currency ?? DEFAULT_CURRENCY,
   });
-  return (data as string | undefined) ?? "USD";
+  return (data as string | undefined) ?? DEFAULT_CURRENCY;
 }

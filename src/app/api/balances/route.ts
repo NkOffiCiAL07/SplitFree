@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, handleError } from "@/lib/api-helpers";
 
@@ -82,7 +83,7 @@ export async function GET() {
         .filter(([, net]) => net !== 0)
         .map(([currency, net]) => ({ currency, net }))
         .sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
-      const head = all[0] ?? { currency: [...nets.keys()][0] ?? "USD", net: 0 };
+      const head = all[0] ?? { currency: [...nets.keys()][0] ?? DEFAULT_CURRENCY, net: 0 };
       return { net: head.net, currency: head.currency, all };
     };
 

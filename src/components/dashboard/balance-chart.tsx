@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { m } from "framer-motion";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
@@ -24,14 +25,14 @@ function CustomTooltip({ active, payload, label, currency }: TooltipProps) {
         <div key={p.name} className="flex items-center gap-2 mb-0.5">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
           <span className="text-muted-foreground capitalize">{p.name === "owed" ? "Owed to you" : "You owe"}:</span>
-          <span className="font-semibold ml-auto">{formatCurrency(p.value * 100, currency ?? "USD")}</span>
+          <span className="font-semibold ml-auto">{formatCurrency(p.value * 100, currency ?? DEFAULT_CURRENCY)}</span>
         </div>
       ))}
     </div>
   );
 }
 
-export function BalanceChart({ data = [], isLoading, currency = "USD" }: Props) {
+export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY }: Props) {
   const isEmpty = !isLoading && data.every((d) => d.owed === 0 && d.owing === 0);
 
   return (

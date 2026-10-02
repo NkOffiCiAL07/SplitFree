@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
 import { format, startOfMonth, subMonths } from "date-fns";
@@ -12,7 +12,7 @@ export async function GET() {
 
     const userId = user!.id;
     const profile = await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } });
-    const currency = profile?.currency ?? "USD";
+    const currency = profile?.currency ?? DEFAULT_CURRENCY;
     const [expenses, allExpensesForBalance, allSettlements, groups] = await Promise.all([
       prisma.expense.findMany({
         where: {

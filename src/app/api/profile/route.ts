@@ -1,10 +1,11 @@
+import { CURRENCY_CODES } from "@/lib/currencies";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
 
 const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required").max(100).optional(),
-  currency: z.enum(["USD","EUR","GBP","INR","CAD","AUD","JPY"]).optional(),
+  currency: z.enum(CURRENCY_CODES).optional(),
   avatarUrl: z.string().url().optional().nullable(),
 });
 

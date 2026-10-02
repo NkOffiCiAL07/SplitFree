@@ -1,5 +1,6 @@
 "use client";
 
+import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +24,6 @@ const GROUP_CATEGORIES = [
   { value: "OTHER", label: "📦 Other" },
 ];
 
-const CURRENCIES = ["USD","EUR","GBP","INR","CAD","AUD","JPY"];
 
 export function CreateGroupDialog({
   children,
@@ -43,7 +43,7 @@ export function CreateGroupDialog({
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CreateGroupInput>({
     resolver: zodResolver(createGroupSchema),
-    defaultValues: { category: "OTHER", currency: "USD" },
+    defaultValues: { category: "OTHER", currency: DEFAULT_CURRENCY },
   });
 
   const toggleFriend = (id: string) =>
@@ -101,7 +101,7 @@ export function CreateGroupDialog({
             </div>
             <div className="space-y-1.5">
               <Label>Currency</Label>
-              <Select defaultValue="USD" onValueChange={(v) => setValue("currency", v as CreateGroupInput["currency"])}>
+              <Select defaultValue={DEFAULT_CURRENCY} onValueChange={(v) => setValue("currency", v as CreateGroupInput["currency"])}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}

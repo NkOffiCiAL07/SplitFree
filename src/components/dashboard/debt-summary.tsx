@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { m } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ interface PersonBalance {
 
 interface Props { balances?: PersonBalance[]; netBalance?: number; currency?: string; isLoading?: boolean }
 
-export function DebtSummary({ balances = [], netBalance = 0, currency = "USD", isLoading }: Props) {
+export function DebtSummary({ balances = [], netBalance = 0, currency = DEFAULT_CURRENCY, isLoading }: Props) {
   return (
     <m.div
       initial={{ opacity: 0, y: 16 }}

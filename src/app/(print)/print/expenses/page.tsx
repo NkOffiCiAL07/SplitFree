@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-helpers";
 import { APP_NAME } from "@/lib/app-config";
@@ -9,7 +10,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
 };
 
-function fmt(cents: number, currency = "USD") {
+function fmt(cents: number, currency: string = DEFAULT_CURRENCY) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 2 }).format(cents / 100);
 }
 

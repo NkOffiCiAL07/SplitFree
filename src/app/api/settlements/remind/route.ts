@@ -1,3 +1,4 @@
+import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 const remindSchema = z.object({
   debtorId: z.string().uuid(),
   amount: z.number().int().positive(), // cents
-  currency: z.enum(["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"]).default("USD"),
+  currency: z.enum(CURRENCY_CODES).default(DEFAULT_CURRENCY),
 });
 
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;

@@ -1,5 +1,6 @@
 "use client";
 
+import { CURRENCY_CODES as CURRENCIES } from "@/lib/currencies";
 import { useState } from "react";
 import { m } from "framer-motion";
 import { ArrowRight, CheckCircle2, Zap, CreditCard, Clock, Bell, Share2, Smartphone } from "lucide-react";
@@ -18,7 +19,6 @@ import type { SimplifiedDebt, Settlement } from "@/types";
 import { buildUpiLink, formatSettlePlan } from "@/lib/settle-tools";
 import { APP_NAME } from "@/lib/app-config";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"];
 import { formatCurrency, getInitials, formatDate, cn } from "@/lib/utils";
 
 /** Sum debts per currency and join them ("$10.00 + ₹500.00") — never add across currencies. */

@@ -2,6 +2,7 @@
 
 "use client";
 
+import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { m } from "framer-motion";
@@ -18,13 +19,12 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const qc = useQueryClient();
   const { data: profile } = useProfile();
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [savingCurrency, setSavingCurrency] = useState(false);
   const [notifs, setNotifs] = useState(() => {
     if (typeof window === "undefined") return { expenseAdded: true, settlement: true, reminders: true };

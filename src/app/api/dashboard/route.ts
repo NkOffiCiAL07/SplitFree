@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, handleError } from "@/lib/api-helpers";
 import { subMonths, startOfMonth, format } from "date-fns";
@@ -64,7 +65,7 @@ export async function GET() {
     ]);
 
     // Headline currency: group currency takes priority over the profile default
-    const currency = primaryGroup?.currency ?? profile?.currency ?? "USD";
+    const currency = primaryGroup?.currency ?? profile?.currency ?? DEFAULT_CURRENCY;
 
     // Monthly chart — primary currency only (amounts in different currencies are never summed),
     // bucketed in memory but accumulated in cents, divided once per bucket

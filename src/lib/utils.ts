@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -22,10 +23,15 @@ function _fmt(currency: string, locale: string): Intl.NumberFormat {
   return f;
 }
 
+/** Indian digit grouping (₹10,00,000.00) for rupees; US grouping for everything else. */
+function localeFor(currency: string) {
+  return currency === "INR" ? "en-IN" : "en-US";
+}
+
 export function formatCurrency(
   amount: number,
-  currency = "USD",
-  locale = "en-US"
+  currency: string = DEFAULT_CURRENCY,
+  locale = localeFor(currency)
 ): string {
   return _fmt(currency, locale).format(amount / 100); // amounts stored in cents
 }
@@ -34,9 +40,9 @@ const _symbolCache = new Map<string, string>();
 
 /**
  * Compact currency for tight UI spaces (stat cards on mobile).
- * ₹10,100 → ₹10.1K  |  ₹1,50,000 → ₹1.5L  |  ₹500 → ₹500
+ * INR: ₹10,100 → ₹10.1K  |  ₹1,50,000 → ₹1.5L  |  ₹2,50,00,000 → ₹2.5Cr  |  USD: $1.5M
  */
-export function formatCompactCurrency(cents: number, currency = "USD"): string {
+export function formatCompactCurrency(cents: number, currency: string = DEFAULT_CURRENCY): string {
   const abs = Math.abs(cents) / 100;
   const sign = cents < 0 ? "−" : "";
   let symbol = _symbolCache.get(currency);
@@ -48,10 +54,14 @@ export function formatCompactCurrency(cents: number, currency = "USD"): string {
     _symbolCache.set(currency, symbol);
   }
 
-  if (abs >= 10_00_000) return `${sign}${symbol}${(abs / 10_00_000).toFixed(1)}M`;
-  if (abs >= 1_00_000)  return `${sign}${symbol}${(abs / 1_00_000).toFixed(1)}L`;
-  if (abs >= 10_000)    return `${sign}${symbol}${(abs / 1_000).toFixed(1)}K`;
-  if (abs >= 1_000)     return `${sign}${symbol}${(abs / 1_000).toFixed(1)}K`;
+  // Rupees read in lakh/crore (₹1.5L, ₹2.3Cr); everything else in K/M/B
+  const tiers: [number, string][] =
+    currency === "INR"
+      ? [[1_00_00_000, "Cr"], [1_00_000, "L"], [1_000, "K"]]
+      : [[1_000_000_000, "B"], [1_000_000, "M"], [1_000, "K"]];
+  for (const [size, suffix] of tiers) {
+    if (abs >= size) return `${sign}${symbol}${(abs / size).toFixed(1)}${suffix}`;
+  }
   return `${sign}${formatCurrency(Math.abs(cents), currency)}`;
 }
 

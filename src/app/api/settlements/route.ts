@@ -1,3 +1,4 @@
+import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
@@ -12,7 +13,7 @@ const createSettlementSchema = z.object({
   amount: z.number().positive(),
   groupId: z.string().uuid().optional().nullable(),
   note: z.string().max(200).optional(),
-  currency: z.enum(["USD", "EUR", "GBP", "INR", "CAD", "AUD", "JPY"]).default("USD"),
+  currency: z.enum(CURRENCY_CODES).default(DEFAULT_CURRENCY),
 });
 
 export async function GET(req: NextRequest) {
