@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal } from "lucide-react";
+import { UserPlus, UserMinus, Mail, Check, X, Clock, SendHorizonal, Receipt, Users } from "lucide-react";
 import {
   useFriends, useAddFriend, useRemoveFriend,
   usePendingFriendRequests, useRespondToFriendRequest,
   useSentFriendRequests, useCancelFriendRequest,
 } from "@/hooks/use-friends";
+import { useGroups } from "@/hooks/use-groups";
+import { useAuth } from "@/hooks/use-auth";
+import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -16,9 +19,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getInitials, formatRelativeTime } from "@/lib/utils";
+import type { Friendship, GroupMember } from "@/types";
 
 export default function FriendsPage() {
+  const { user } = useAuth();
   const { data: friendships, isLoading } = useFriends();
+  const { data: groups } = useGroups();
   const { data: pending } = usePendingFriendRequests();
   const { data: sent } = useSentFriendRequests();
   const addFriend = useAddFriend();
@@ -27,6 +33,7 @@ export default function FriendsPage() {
   const cancelRequest = useCancelFriendRequest();
   const [email, setEmail] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [expenseFriend, setExpenseFriend] = useState<{ id: string; name?: string; avatarUrl?: string | null } | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +42,40 @@ export default function FriendsPage() {
     setEmail("");
     setDialogOpen(false);
   };
+
+  // People from your groups who aren't already friends
+  const friendIds = useMemo(() => new Set(friendships?.map((f) => f.friendId) ?? []), [friendships]);
+
+  const groupContacts = useMemo(() => {
+    if (!groups || !user) return [];
+    const seen = new Set<string>();
+    const contacts: { id: string; name?: string; avatarUrl?: string | null; groupName: string }[] = [];
+    for (const group of groups) {
+      for (const member of group.members ?? []) {
+        if (member.userId === user.id) continue;
+        if (friendIds.has(member.userId)) continue;
+        if (seen.has(member.userId)) continue;
+        seen.add(member.userId);
+        contacts.push({
+          id: member.userId,
+          name: member.user?.name,
+          avatarUrl: member.user?.avatarUrl,
+          groupName: group.name,
+        });
+      }
+    }
+    return contacts;
+  }, [groups, user, friendIds]);
+
+  // Build members array for the expense dialog (current user + selected friend)
+  const expenseMembers: GroupMember[] = useMemo(() => {
+    if (!expenseFriend || !user) return [];
+    const placeholder = { avatarUrl: null, currency: "USD" as const, timezone: "UTC", createdAt: new Date() };
+    return [
+      { id: "", groupId: "", userId: user.id, role: "MEMBER" as const, joinedAt: new Date(), user: { ...placeholder, id: user.id, name: user.user_metadata?.name ?? user.email ?? "You", email: user.email ?? "" } },
+      { id: "", groupId: "", userId: expenseFriend.id, role: "MEMBER" as const, joinedAt: new Date(), user: { ...placeholder, id: expenseFriend.id, name: expenseFriend.name ?? "Friend", email: "" } },
+    ];
+  }, [expenseFriend, user]);
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
@@ -167,7 +208,7 @@ export default function FriendsPage() {
 
       {/* Friends list */}
       <div className="space-y-2">
-        {friendships?.length !== 0 && (
+        {(friendships?.length ?? 0) > 0 && (
           <h3 className="text-sm font-semibold">Friends ({friendships?.length ?? 0})</h3>
         )}
         {isLoading ? (
@@ -176,7 +217,7 @@ export default function FriendsPage() {
               <Skeleton key={i} className="h-16 w-full rounded-xl" />
             ))}
           </div>
-        ) : friendships?.length === 0 ? (
+        ) : friendships?.length === 0 && groupContacts.length === 0 ? (
           <EmptyState
             icon={UserPlus}
             title="No friends yet"
@@ -202,13 +243,21 @@ export default function FriendsPage() {
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 {formatRelativeTime(friendship.createdAt)}
               </p>
               <Button
+                size="sm"
+                variant="brand"
+                className="gap-1.5 h-8 px-3 text-xs shrink-0"
+                onClick={() => setExpenseFriend({ id: friendship.friendId, name: friendship.friend?.name, avatarUrl: friendship.friend?.avatarUrl })}
+              >
+                <Receipt className="size-3.5" /> Add expense
+              </Button>
+              <Button
                 variant="ghost"
                 size="icon-sm"
-                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
                 onClick={() => removeFriend.mutate(friendship.friendId)}
               >
                 <UserMinus className="size-4" />
@@ -217,6 +266,50 @@ export default function FriendsPage() {
           ))
         )}
       </div>
+
+      {/* Group contacts — people in your groups who aren't friends yet */}
+      {groupContacts.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            <Users className="size-3.5 text-violet-500" />
+            From your groups
+            <Badge variant="secondary" className="text-[10px] px-1.5">{groupContacts.length}</Badge>
+          </h3>
+          {groupContacts.map((contact, i) => (
+            <motion.div
+              key={contact.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i < 10 ? i * 0.05 : 0, duration: 0.25 }}
+              className="flex items-center gap-3 p-4 rounded-xl border bg-card/60 group hover:shadow-sm transition-all"
+            >
+              <Avatar className="size-10">
+                <AvatarImage src={contact.avatarUrl ?? undefined} />
+                <AvatarFallback>{getInitials(contact.name ?? "?")}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{contact.name ?? "Member"}</p>
+                <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="brand"
+                className="gap-1.5 h-8 px-3 text-xs shrink-0"
+                onClick={() => setExpenseFriend({ id: contact.id, name: contact.name, avatarUrl: contact.avatarUrl })}
+              >
+                <Receipt className="size-3.5" /> Add expense
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Add expense dialog for individual friend */}
+      <AddExpenseDialog
+        open={!!expenseFriend}
+        onOpenChange={(open) => { if (!open) setExpenseFriend(null); }}
+        members={expenseMembers}
+      />
     </div>
   );
 }

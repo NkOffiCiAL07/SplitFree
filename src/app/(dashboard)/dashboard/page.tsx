@@ -2,15 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Users, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Wallet, Plus, ArrowLeftRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { BalanceChart } from "@/components/dashboard/balance-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { DebtSummary } from "@/components/dashboard/debt-summary";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useUIStore } from "@/stores/ui-store";
 import { formatCompactCurrency, cn } from "@/lib/utils";
+import Link from "next/link";
 
 async function fetchDashboard() {
   const res = await fetch("/api/dashboard");
@@ -22,6 +25,7 @@ async function fetchDashboard() {
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.user_metadata?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
+  const { setAddExpenseOpen } = useUIStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
@@ -65,12 +69,26 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
-      {/* Greeting */}
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h2 className="text-xl font-bold">
-          {getTimeOfDay()}, {firstName} 👋
-        </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>
+      {/* Greeting + Quick actions */}
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+        className="flex items-start justify-between gap-3"
+      >
+        <div>
+          <h2 className="text-xl font-bold">
+            {getTimeOfDay()}, {firstName} 👋
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="brand" size="sm" className="gap-1.5" onClick={() => setAddExpenseOpen(true)}>
+            <Plus className="size-4" /> Add expense
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5 hidden sm:flex" asChild>
+            <Link href="/settle">
+              <ArrowLeftRight className="size-4" /> Settle up
+            </Link>
+          </Button>
+        </div>
       </motion.div>
 
       {/* Onboarding */}

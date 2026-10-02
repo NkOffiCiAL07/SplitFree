@@ -17,7 +17,7 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { setCommandPaletteOpen } = useUIStore();
+  const { setAddExpenseOpen } = useUIStore();
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/90 backdrop-blur-xl safe-area-bottom">
@@ -27,7 +27,7 @@ export function MobileNav() {
             return (
               <button
                 key="fab"
-                onClick={() => setCommandPaletteOpen(true)}
+                onClick={() => setAddExpenseOpen(true)}
                 className="flex flex-col items-center gap-1 px-2 relative -mt-5"
                 aria-label="Add expense"
               >
