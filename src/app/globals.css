@@ -209,6 +209,31 @@ body {
   .anim-fade-in {
     animation: fade-in 0.5s ease both;
   }
+  /* ── filling pot (sign-in) ── */
+  .fill-wave { animation: fill-wave 2.6s linear infinite; }
+  .fill-wave-2 { animation: fill-wave 4.2s linear infinite reverse; }
+  @keyframes fill-wave { from { transform: translateX(0); } to { transform: translateX(100px); } }
+  .fill-drip { animation: fill-drip 1.3s ease-in infinite; transform-box: fill-box; }
+  .fill-drip-2 { animation-delay: .45s; animation-duration: 1.6s; }
+  .fill-drip-3 { animation-delay: .9s; animation-duration: 1.45s; }
+  @keyframes fill-drip { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+  .fill-bubble { animation: fill-bubble 3.4s ease-in infinite; }
+  .fill-bubble-2 { animation-delay: 1.1s; animation-duration: 4s; }
+  .fill-bubble-3 { animation-delay: 2s; animation-duration: 3.1s; }
+  @keyframes fill-bubble { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: .8; } 100% { transform: translateY(-110px); opacity: 0; } }
+  .fill-sparkle { animation: fill-sparkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .fill-sparkle-2 { animation-delay: .5s; }
+  .fill-sparkle-3 { animation-delay: 1s; }
+  @keyframes fill-sparkle { 0%, 100% { transform: scale(.4); opacity: .2; } 50% { transform: scale(1.1); opacity: 1; } }
+  .fill-pop { animation: fill-pop .7s cubic-bezier(.34,1.56,.64,1) 1; }
+  @keyframes fill-pop { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  .fill-glow { animation: fill-glow 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes fill-glow { 0%, 100% { transform: scale(.94); opacity: .12; } 50% { transform: scale(1.04); opacity: .28; } }
+  @media (prefers-reduced-motion: reduce) {
+    .fill-wave, .fill-wave-2, .fill-drip, .fill-bubble, .fill-sparkle, .fill-pop, .fill-glow { animation: none; }
+    .fill-level { transition: none !important; }
+  }
+
   .anim-float {
     animation: float-y 6s ease-in-out infinite;
   }

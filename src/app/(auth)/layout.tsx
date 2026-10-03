@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Check, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
+import { FillProvider } from "@/components/auth/fill-context";
+import { FillingPot } from "@/components/auth/filling-pot";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -8,6 +10,7 @@ export const metadata: Metadata = {
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
+    <FillProvider>
     <div className="min-h-screen flex">
       {/* Left — branding panel (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 gradient-brand flex-col justify-between p-12 relative overflow-hidden">
@@ -24,6 +27,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
             <span className="text-white font-semibold text-xl">{APP_NAME}</span>
           </div>
+        </div>
+
+        {/* The water pot: fills as the form is filled in */}
+        <div className="relative z-10 flex flex-1 items-center justify-center py-6">
+          <FillingPot size="lg" />
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -52,6 +60,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </div>
               <span className="text-lg font-semibold">{APP_NAME}</span>
             </div>
+            <div className="float-right -mt-1 ml-3">
+              <FillingPot size="sm" />
+            </div>
             <p className="text-2xl font-bold leading-tight">Split expenses, not friendships.</p>
             <p className="mt-2 text-sm leading-relaxed text-white/80">
               Share costs with friends and groups, settle up by UPI, and keep going even without signal.
@@ -69,5 +80,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="w-full max-w-md">{children}</div>
       </div>
     </div>
+    </FillProvider>
   );
 }

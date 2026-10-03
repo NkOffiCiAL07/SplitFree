@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
@@ -21,6 +21,8 @@ function GoogleIcon() {
   );
 }
 import { toast } from "sonner";
+import { useReportFill } from "@/components/auth/fill-context";
+import { formProgress } from "@/lib/form-fill";
 import { signupSchema } from "@/lib/validations/auth";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -45,8 +47,15 @@ function SignupFormContent() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<SignupValues>({ resolver: zodResolver(signupSchema) });
+
+  // The pot beside the form fills as the form does
+  const name = useWatch({ control, name: "name" });
+  const email = useWatch({ control, name: "email" });
+  const password = useWatch({ control, name: "password" });
+  useReportFill(formProgress([{ kind: "name", value: name }, { kind: "email", value: email }, { kind: "password", value: password, min: 8 }]));
 
   const onSubmit = async (values: SignupValues) => {
     const { error, data } = await signUpWithEmail(

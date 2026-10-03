@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
@@ -22,6 +22,8 @@ function GoogleIcon() {
   );
 }
 import { toast } from "sonner";
+import { useReportFill } from "@/components/auth/fill-context";
+import { formProgress } from "@/lib/form-fill";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -43,8 +45,14 @@ function LoginPageContent() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
+
+  // The pot beside the form fills as the form does
+  const email = useWatch({ control, name: "email" });
+  const password = useWatch({ control, name: "password" });
+  useReportFill(formProgress([{ kind: "email", value: email }, { kind: "password", value: password, min: 6 }]));
 
   const onSubmit = async (values: LoginValues) => {
     const { error } = await signInWithEmail(values.email, values.password);
