@@ -76,6 +76,16 @@ describe("DebtSummary", () => {
     expect(document.body.textContent).not.toMatch(/[−+-]\s?[$₹]/); // no minus sign: colour + "you owe" say it
   });
 
+  it("each person is a link to their page, where the balance can be settled", () => {
+    render(<DebtSummary balances={people} netBalance={-1} currency="INR" />);
+    const links = screen.getAllByRole("link").filter((l) => l.getAttribute("href")?.startsWith("/friends/"));
+    expect(links).toHaveLength(people.length);
+    for (const [i, p] of people.entries()) {
+      expect(links[i]).toHaveAttribute("href", `/friends/${p.id}`);
+      expect(links[i]).toHaveAccessibleName(new RegExp(`${p.name}.*Open to settle up`));
+    }
+  });
+
   it("links to Settle up", () => {
     render(<DebtSummary balances={[]} />);
     expect(screen.getByRole("link", { name: /settle up/i })).toHaveAttribute("href", "/settle");

@@ -2,7 +2,7 @@
 
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { m } from "framer-motion";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -63,8 +63,13 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = DEFAULT_
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.32 + i * 0.07, duration: 0.3 }}
-                className="flex items-center gap-3"
               >
+                {/* The whole row opens that person's page, where each balance can be settled (or reminded) */}
+                <Link
+                  href={`/friends/${b.id}`}
+                  aria-label={`${b.name} — ${b.net > 0 ? "owes you" : "you owe"} ${formatCurrency(Math.abs(b.net), b.currency ?? currency)}. Open to settle up`}
+                  className="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
+                >
                 <Avatar className="size-8">
                   <AvatarImage src={b.avatarUrl ?? undefined} />
                   <AvatarFallback className="text-xs">{getInitials(b.name)}</AvatarFallback>
@@ -78,6 +83,8 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = DEFAULT_
                 )}>
                   {formatCurrency(Math.abs(b.net), b.currency ?? currency)}
                 </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                </Link>
               </m.div>
             ))
           )}
