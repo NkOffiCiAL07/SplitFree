@@ -1,3 +1,4 @@
+import { BrandLogo, BrandMark } from "@/components/shared/brand-logo";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -90,7 +91,7 @@ function PhoneMock() {
                 <p className="text-[9px] text-muted-foreground">Good evening</p>
                 <p className="text-[13px] font-bold leading-tight">Your balances</p>
               </div>
-              <div className="flex size-7 items-center justify-center rounded-lg gradient-brand"><Zap className="size-3.5 text-white" /></div>
+              <BrandMark size={28} />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -177,11 +178,8 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex size-7 items-center justify-center rounded-lg gradient-brand">
-              <Zap className="size-3.5 text-white" />
-            </div>
-            <span className="text-base font-bold">{APP_NAME}</span>
+          <Link href="/">
+            <BrandLogo size={34} />
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex" aria-label="Sections">
             <a href="#features" className="transition-colors hover:text-foreground">Features</a>
@@ -442,14 +440,9 @@ export default function LandingPage() {
       <footer className="border-t bg-muted/20 px-4 py-10">
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex size-7 items-center justify-center rounded-lg gradient-brand">
-                <Zap className="size-3.5 text-white" />
-              </div>
-              <div>
-                <span className="text-sm font-bold">{APP_NAME}</span>
-                <p className="text-[10px] text-muted-foreground">Free expense splitting for everyone</p>
-              </div>
+            <Link href="/" className="flex items-center gap-3">
+              <BrandLogo size={32} />
+              <p className="hidden text-[10px] text-muted-foreground sm:block">Free expense splitting for everyone</p>
             </Link>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <Link href="/login" className="transition-colors hover:text-foreground">Sign in</Link>

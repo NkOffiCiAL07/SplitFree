@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandLogo, BrandMark } from "@/components/shared/brand-logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -7,9 +8,8 @@ import { m } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
   Settings, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Activity, RefreshCw,
+  Activity, RefreshCw,
 } from "lucide-react";
-import { APP_NAME } from "@/lib/app-config";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/hooks/use-auth";
@@ -71,11 +71,8 @@ export function Sidebar() {
         <div className={cn("flex items-center h-14 border-b shrink-0", sidebarOpen ? "justify-between px-3" : "justify-center px-2")}>
           {sidebarOpen ? (
             <>
-              <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center shrink-0">
-                  <Zap className="size-4 text-white" />
-                </div>
-                <span className="font-bold text-base truncate">{APP_NAME}</span>
+              <Link href="/dashboard" className="min-w-0">
+                <BrandLogo size={32} />
               </Link>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -99,8 +96,8 @@ export function Sidebar() {
                   aria-label="Expand sidebar"
                   className="group relative flex size-9 items-center justify-center rounded-lg transition-colors hover:bg-accent focus-visible:bg-accent"
                 >
-                  <span className="flex size-8 items-center justify-center rounded-lg gradient-brand transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0">
-                    <Zap className="size-4 text-white" />
+                  <span className="transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0">
+                    <BrandMark size={32} />
                   </span>
                   <PanelLeftOpen className="absolute size-[18px] text-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
                 </button>

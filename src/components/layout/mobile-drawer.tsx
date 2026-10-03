@@ -1,14 +1,14 @@
 "use client";
 
+import { BrandLogo } from "@/components/shared/brand-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { m, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, Receipt, UserPlus, BarChart3,
-  Settings, LogOut, Zap, Activity, X, RefreshCw,
+  Settings, LogOut, Activity, X, RefreshCw,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
-import { APP_NAME } from "@/lib/app-config";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -66,11 +66,8 @@ export function MobileDrawer() {
           >
             {/* Header */}
             <div className="flex items-center justify-between h-14 px-4 border-b shrink-0">
-              <Link href="/dashboard" onClick={close} className="flex items-center gap-3">
-                <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center">
-                  <Zap className="size-4 text-white" />
-                </div>
-                <span className="font-bold text-base">{APP_NAME}</span>
+              <Link href="/dashboard" onClick={close}>
+                <BrandLogo size={32} />
               </Link>
               <button onClick={close} className="p-1.5 rounded-lg hover:bg-accent transition-colors">
                 <X className="size-4" />

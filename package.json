@@ -18,7 +18,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "prepare": "husky",
-    "apk:update": "node scripts/update-apk.mjs"
+    "apk:update": "node scripts/update-apk.mjs",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

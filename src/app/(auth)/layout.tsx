@@ -1,10 +1,10 @@
+import { BrandLogo } from "@/components/shared/brand-logo";
 import type { Metadata, Viewport } from "next";
-import { Check, Zap } from "lucide-react";
-import { APP_NAME } from "@/lib/app-config";
+import { Check } from "lucide-react";
 import { FillProvider } from "@/components/auth/fill-context";
 import { FillingPot } from "@/components/auth/filling-pot";
 import { RotatingWords } from "@/components/landing/rotating-words";
-import { HEADLINE, HEADLINE_LINE_1, HEADLINE_LINE_2, SUBLINE, OCCASIONS } from "@/lib/brand-copy";
+import { HEADLINE_LINE_1, HEADLINE_LINE_2, SUBLINE, OCCASIONS } from "@/lib/brand-copy";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -40,12 +40,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Backdrop />
 
           <div className="anim-fade-up relative z-10">
-            <div className="lg-glass-dark inline-flex items-center gap-3 rounded-2xl px-4 py-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-white">
-                <Zap className="size-4 text-violet-600" />
-              </div>
-              <span className="text-xl font-semibold">{APP_NAME}</span>
-            </div>
+            <BrandLogo size={48} tone="light" />
           </div>
 
           {/* The glass pot fills as the form is filled in; chips drift around it */}
@@ -106,12 +101,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="mb-3 flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-white">
-                    <Zap className="size-4 text-violet-600" />
-                  </div>
-                  <span className="text-lg font-semibold">{APP_NAME}</span>
-                </div>
+                <BrandLogo size={38} tone="light" className="mb-3" />
                 <p className="text-[1.65rem] font-bold leading-[1.1] tracking-tight">
                   {HEADLINE_LINE_1}{" "}
                   <span className="block bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{HEADLINE_LINE_2}</span>

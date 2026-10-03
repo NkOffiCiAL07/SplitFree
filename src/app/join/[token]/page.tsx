@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
@@ -187,11 +188,8 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   /* ── Invite card ── */
   return (
     <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-4">
-      <Link href="/" className="flex items-center gap-2 mb-10">
-        <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center">
-          <Zap className="size-4 text-white" />
-        </div>
-        <span className="font-bold text-base">{APP_NAME}</span>
+      <Link href="/" className="mb-10">
+        <BrandLogo size={36} />
       </Link>
 
       <m.div
