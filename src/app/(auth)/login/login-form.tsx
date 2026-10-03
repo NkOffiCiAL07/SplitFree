@@ -24,7 +24,7 @@ function GoogleIcon() {
 import { toast } from "sonner";
 import { useReportFill, useFillLevel } from "@/components/auth/fill-context";
 import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
-import { useInAppBrowser } from "@/hooks/use-platform";
+import { useInAppBrowser, useNativeApp } from "@/hooks/use-platform";
 import { formProgress } from "@/lib/form-fill";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -54,6 +54,7 @@ function LoginPageContent() {
   const email = useWatch({ control, name: "email" });
   const password = useWatch({ control, name: "password" });
   const inApp = useInAppBrowser();
+  const native = useNativeApp(); // the iPhone app: email sign-in only (Google blocks embedded web views)
   const ready = useFillLevel() >= 1; // the pot is full: invite the click
   useReportFill(formProgress([{ kind: "email", value: email }, { kind: "password", value: password, min: 6 }]));
 
@@ -94,6 +95,8 @@ function LoginPageContent() {
 
       <InAppBrowserNotice />
 
+      {!native && (
+        <>
       {/* Google */}
       <Button
         variant="outline"
@@ -113,6 +116,8 @@ function LoginPageContent() {
         or
         <span className="h-px flex-1 bg-border" />
       </div>
+        </>
+      )}
 
       {/* Email form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

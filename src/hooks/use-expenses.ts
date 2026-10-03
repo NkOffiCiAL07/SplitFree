@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/lib/api-client";
 import { isQueued, postOrQueue } from "@/lib/offline/queued-write";
+import { haptic } from "@/lib/haptics";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
@@ -38,6 +39,7 @@ export function useCreateExpense() {
     onSuccess: (expense) => {
       if (isQueued(expense)) {
         toast.success("Saved on this device — it will sync when you're back online");
+        haptic("light");
         return;
       }
       qc.invalidateQueries({ queryKey: ["expenses"] });
@@ -46,6 +48,7 @@ export function useCreateExpense() {
       qc.invalidateQueries({ queryKey: ["balance"] });
       if (expense.groupId) qc.invalidateQueries({ queryKey: ["groups", expense.groupId] });
       toast.success("Expense added");
+      haptic("success");
     },
     onError: (e: Error) => toast.error(e.message),
   });

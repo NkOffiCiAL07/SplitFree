@@ -65,7 +65,7 @@ export function MobileDrawer() {
             className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-card border-r flex flex-col lg:hidden shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between h-14 px-4 border-b shrink-0">
+            <div className="safe-top box-content flex items-center justify-between h-14 px-4 border-b shrink-0">
               <Link href="/dashboard" onClick={close}>
                 <BrandLogo size={32} />
               </Link>

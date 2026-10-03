@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/shared/theme-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
 import { MotionProvider } from "@/components/shared/motion-provider";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
+import { NativeBridge } from "@/components/shared/native-bridge";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -101,6 +102,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <ServiceWorkerRegistration />
+            <NativeBridge />
             <MotionProvider>{children}</MotionProvider>
             <Toaster
               position="bottom-right"

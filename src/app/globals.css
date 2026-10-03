@@ -141,6 +141,8 @@ body {
 }
 
 /* ─── Phones ──────────────────────────────────────────────── */
+/* The iPhone app draws under the notch/status bar; screens with their own (non-brand) header pad for it */
+.safe-top { padding-top: env(safe-area-inset-top); }
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;

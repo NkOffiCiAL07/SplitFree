@@ -17,6 +17,7 @@ export function detectPlatform(ua: string, maxTouchPoints = 0): Platform {
  * Screen" or install apps, and Google refuses sign-in inside embedded web views — so people should open the real browser.
  */
 export function isInAppBrowser(ua: string): boolean {
+  if (ua.includes("SplitrProApp")) return false; // our own iPhone app is not "someone else's browser"
   if (/FBAN|FBAV|FB_IAB|Instagram|Snapchat|LinkedInApp|Line\/|Twitter|TikTok|musical_ly|Pinterest|MicroMessenger|GSA\/.*Mobile.*Safari.*Version/i.test(ua)) return true;
   // Android WebView: has "; wv)" in the user agent
   if (/Android/i.test(ua) && /; wv\)/i.test(ua)) return true;
@@ -28,6 +29,7 @@ export function isInAppBrowser(ua: string): boolean {
 /** Running as an installed app: iOS home-screen app, Android PWA, or our Trusted Web Activity APK. */
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
+  if (navigator.userAgent.includes("SplitrProApp")) return true; // the iPhone app
   const nav = navigator as Navigator & { standalone?: boolean };
   return (
     nav.standalone === true ||

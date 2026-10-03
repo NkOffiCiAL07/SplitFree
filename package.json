@@ -19,9 +19,22 @@
     "test:run": "vitest run",
     "prepare": "husky",
     "apk:update": "node scripts/update-apk.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "ios:assets": "node scripts/generate-ios-assets.mjs",
+    "ios:sync": "cap sync ios",
+    "ios:open": "cap open ios",
+    "ios:webkit": "node scripts/ios-webkit-check.mjs",
+    "ios:sim": "cap sync ios && cap run ios",
+    "ios:sim:local": "CAP_SERVER_URL=http://localhost:3000 cap sync ios && cap run ios"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@hookform/resolvers": "^5.4.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -74,6 +87,8 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
@@ -90,6 +105,7 @@
     "eslint-config-next": "16.2.10",
     "husky": "^9.1.7",
     "jsdom": "^30.1.1",
+    "playwright": "^1.63.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5.9.3",

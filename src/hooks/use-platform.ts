@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { detectPlatform, isInAppBrowser, isIosSafari, isStandalone, type Platform } from "@/lib/platform";
+import { isNativeApp, isNativeUserAgent } from "@/lib/native";
 
 const noop = () => () => {};
 
@@ -23,4 +24,9 @@ export function useIosSafari(): boolean {
 /** Running as an installed app (home-screen app, PWA or our Android app). */
 export function useStandalone(): boolean {
   return useSyncExternalStore(noop, () => isStandalone(), () => false);
+}
+
+/** True inside our iPhone app (not a browser). Google sign-in and install prompts are hidden there. */
+export function useNativeApp(): boolean {
+  return useSyncExternalStore(noop, () => isNativeApp() || isNativeUserAgent(navigator.userAgent), () => false);
 }

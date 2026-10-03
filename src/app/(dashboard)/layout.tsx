@@ -21,7 +21,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <div className="safe-top flex flex-1 flex-col min-w-0 overflow-hidden">
         <OfflineStatus />
         <InstallBanner />
         <DemoBanner />

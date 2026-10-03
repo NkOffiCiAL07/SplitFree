@@ -187,7 +187,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
 
   /* ── Invite card ── */
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-4">
+    <div className="safe-top min-h-dvh bg-background flex flex-col items-center justify-center p-4">
       <Link href="/" className="mb-10">
         <BrandLogo size={36} />
       </Link>

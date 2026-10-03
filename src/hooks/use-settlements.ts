@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/lib/api-client";
 import { isQueued, postOrQueue } from "@/lib/offline/queued-write";
+import { haptic } from "@/lib/haptics";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { SimplifiedDebt } from "@/types";
@@ -34,6 +35,7 @@ export function useSettleUp() {
     onSuccess: (result) => {
       if (isQueued(result)) {
         toast.success("Payment saved on this device — it will sync when you're back online");
+        haptic("light");
         return;
       }
       qc.invalidateQueries({ queryKey: ["settlements"] });
@@ -45,6 +47,7 @@ export function useSettleUp() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment recorded!");
+      haptic("success");
     },
     onError: (e: Error) => toast.error(e.message),
   });
