@@ -140,6 +140,22 @@ body {
   outline-offset: 2px;
 }
 
+/* ─── Phones ──────────────────────────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no double-tap-zoom delay */
+@media (pointer: coarse) {
+  /* iOS zooms the whole page when a field with text smaller than 16px is focused */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* ─── Utilities ───────────────────────────────────────────── */
 @layer utilities {
   .glass {
@@ -319,6 +335,15 @@ body {
   .lg-sheen { animation: lg-sheen 7s ease-in-out infinite; }
   @keyframes lg-sheen { 0%, 60% { transform: translateX(-120px); opacity: 0; } 70% { opacity: 1; } 100% { transform: translateX(260px); opacity: 0; } }
 
+  /* Phones (often mid-range Android): keep the colour and gentle drift, drop the costly continuous reshaping and
+     use lighter blurs, so scrolling and typing stay smooth and the battery lasts. */
+  @media (max-width: 1023px), (pointer: coarse) {
+    .lg-blob { filter: blur(34px); animation: lg-drift 26s ease-in-out infinite alternate; }
+    .lg-glass, .lg-glass-dark {
+      -webkit-backdrop-filter: blur(14px) saturate(1.5);
+      backdrop-filter: blur(14px) saturate(1.5);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .lg-blob, .lg-float, .lg-float-2, .lg-float-3, .lg-shine::after, .lg-ready, .lg-marquee, .lg-word, .lg-sheen { animation: none; }
     .reveal-armed { opacity: 1; transform: none; transition: none; }

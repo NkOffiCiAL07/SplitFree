@@ -23,6 +23,8 @@ function GoogleIcon() {
 }
 import { toast } from "sonner";
 import { useReportFill, useFillLevel } from "@/components/auth/fill-context";
+import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
+import { useInAppBrowser } from "@/hooks/use-platform";
 import { formProgress } from "@/lib/form-fill";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -51,6 +53,7 @@ function LoginPageContent() {
   // The pot beside the form fills as the form does
   const email = useWatch({ control, name: "email" });
   const password = useWatch({ control, name: "password" });
+  const inApp = useInAppBrowser();
   const ready = useFillLevel() >= 1; // the pot is full: invite the click
   useReportFill(formProgress([{ kind: "email", value: email }, { kind: "password", value: password, min: 6 }]));
 
@@ -89,12 +92,16 @@ function LoginPageContent() {
         </p>
       </div>
 
+      <InAppBrowserNotice />
+
       {/* Google */}
       <Button
         variant="outline"
         className="w-full gap-2"
         onClick={handleGoogle}
         loading={googleLoading}
+        disabled={inApp}
+        title={inApp ? "Google sign-in isn't available in this browser" : undefined}
       >
         <GoogleIcon />
         Continue with Google

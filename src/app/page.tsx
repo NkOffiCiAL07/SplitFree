@@ -116,7 +116,7 @@ function PhoneMock() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen overflow-x-clip bg-background">
+    <div className="min-h-dvh overflow-x-clip bg-background">
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
@@ -251,7 +251,7 @@ export default function LandingPage() {
             <div className="relative">
               <div className="mb-8 max-w-2xl">
                 <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-                  <Smartphone className="size-3.5" /> Now on Android
+                  <Smartphone className="size-3.5" /> Android app · iPhone coming soon
                 </p>
                 <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Take {APP_NAME} in your pocket</h2>
                 <p className="text-lg leading-relaxed text-white/80">

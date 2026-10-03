@@ -70,6 +70,7 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
                 <Label>Monthly limit ({currency})</Label>
                 <Input
                   type="number"
+                  inputMode="decimal"
                   step="0.01"
                   min="0.01"
                   placeholder="0.00"

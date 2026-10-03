@@ -26,7 +26,7 @@ function Backdrop({ className = "" }: { className?: string }) {
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <FillProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-dvh">
         {/* Left — liquid-glass brand panel (desktop) */}
         <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-violet-800 via-indigo-800 to-fuchsia-800 p-10 lg:flex lg:w-1/2 xl:p-12">
           <Backdrop />

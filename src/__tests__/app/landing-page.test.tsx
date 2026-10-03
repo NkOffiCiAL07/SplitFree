@@ -149,18 +149,64 @@ describe("DownloadPanel — tailored to the visitor", () => {
     expect(screen.queryByTestId("qr")).not.toBeInTheDocument();
   });
 
-  it("on iPhone: says iOS is coming soon and explains Add to Home Screen", () => {
+  it("on iPhone: opens on the iPhone tab with the Add to Home Screen steps and says a native app is coming soon", () => {
     setUserAgent(iphone, 5);
     render(<DownloadPanel />);
-    expect(screen.getByTestId("platform-hint")).toHaveTextContent(/Add to Home Screen/);
-    expect(screen.getByTestId("platform-hint")).toHaveTextContent(/coming soon/i);
+    expect(screen.getByRole("tab", { name: "iPhone" })).toHaveAttribute("aria-selected", "true");
+    const steps = screen.getByTestId("ios-steps");
+    expect(steps).toHaveTextContent(/Safari/);
+    expect(steps).toHaveTextContent(/Share/);
+    expect(steps).toHaveTextContent(/Add to Home Screen/);
+    expect(screen.getByTestId("ios-coming-soon")).toHaveTextContent(/coming soon/i);
     expect(screen.queryByTestId("qr")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("android-download")).not.toBeInTheDocument(); // an iPhone can't install the APK
   });
 
   it("recognises an iPad that pretends to be a Mac", () => {
     setUserAgent(ipadAsMac, 5);
     render(<DownloadPanel />);
-    expect(screen.getByTestId("platform-hint")).toHaveTextContent(/Add to Home Screen/);
+    expect(screen.getByRole("tab", { name: "iPhone" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("Android and desktop open on the Android tab, and anyone can switch tabs", async () => {
+    setUserAgent(android);
+    render(<DownloadPanel />);
+    expect(screen.getByRole("tab", { name: "Android" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("android-download")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "iPhone" }));
+    expect(screen.getByRole("tab", { name: "iPhone" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("ios-steps")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Android" }));
+    expect(screen.getByTestId("android-download")).toBeInTheDocument();
+  });
+
+  it("each tab is a labelled panel (screen readers hear which phone the steps are for)", () => {
+    setUserAgent(android);
+    render(<DownloadPanel />);
+    expect(screen.getByRole("tablist", { name: /choose your phone/i })).toBeInTheDocument();
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", "tab-android");
+  });
+
+  it("on a computer the iPhone tab shows a QR code to the site itself (not the APK)", async () => {
+    render(<DownloadPanel />);
+    await userEvent.click(screen.getByRole("tab", { name: "iPhone" }));
+    expect(screen.getByTestId("qr")).toHaveAttribute("data-value", window.location.origin);
+  });
+
+  it("inside another app's browser (Instagram etc.) the iPhone tab says to open Safari, and offers the link to copy", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    setUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 330.0.0", 5);
+    render(<DownloadPanel />);
+    expect(screen.getByTestId("ios-inapp-warning")).toHaveTextContent(/open it in Safari/i);
+    await userEvent.click(screen.getByRole("button", { name: /copy link/i }));
+    expect(writeText).toHaveBeenCalledWith(window.location.origin);
+  });
+
+  it("no in-app warning in real Safari", () => {
+    setUserAgent(iphone, 5);
+    render(<DownloadPanel />);
+    expect(screen.queryByTestId("ios-inapp-warning")).not.toBeInTheDocument();
   });
 
   it("copies the checksum", async () => {

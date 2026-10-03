@@ -411,7 +411,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Amount</Label>
-              <Input type="number" step={selectedCurrency === "JPY" ? "1" : "0.01"} min={selectedCurrency === "JPY" ? "1" : "0.01"} placeholder={selectedCurrency === "JPY" ? "0" : "0.00"} {...register("amount")} />
+              <Input type="number" inputMode={selectedCurrency === "JPY" ? "numeric" : "decimal"} step={selectedCurrency === "JPY" ? "1" : "0.01"} min={selectedCurrency === "JPY" ? "1" : "0.01"} placeholder={selectedCurrency === "JPY" ? "0" : "0.00"} {...register("amount")} />
               {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
             </div>
             <div className="space-y-1.5">
@@ -562,6 +562,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
                           <span className="text-xs w-24 truncate">{name}</span>
                           <Input
                             type="number"
+                            inputMode={splitType === "SHARES" ? "numeric" : "decimal"}
                             step={splitType === "SHARES" ? "1" : "0.01"}
                             min="0"
                             placeholder={splitType === "PERCENTAGE" ? "%" : splitType === "SHARES" ? "shares" : "0.00"}

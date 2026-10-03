@@ -42,3 +42,22 @@ describe("formatSettlePlan", () => {
     expect(text).toContain("$10.00");
   });
 });
+
+import { buildUpiAppLinks } from "@/lib/settle-tools";
+describe("buildUpiAppLinks (iPhone has no UPI chooser, so each app gets its own link)", () => {
+  const links = buildUpiAppLinks({ vpa: "asha@okhdfc", name: "Asha Rao", amountCents: 123456, note: "Goa trip" })!;
+  it("gives Google Pay, PhonePe, Paytm and a generic fallback in that order", () => {
+    expect(links.map((l) => l.id)).toEqual(["gpay", "phonepe", "paytm", "upi"]);
+    expect(links.map((l) => new URL(l.url).protocol)).toEqual(["gpay:", "phonepe:", "paytmmp:", "upi:"]);
+  });
+  it("carries identical payee, amount, currency and note in every link", () => {
+    for (const l of links) {
+      const q = new URL(l.url).searchParams;
+      expect([q.get("pa"), q.get("pn"), q.get("am"), q.get("cu"), q.get("tn")]).toEqual(["asha@okhdfc", "Asha Rao", "1234.56", "INR", "Goa trip"]);
+    }
+  });
+  it("refuses an invalid ID or a zero amount, like the single link", () => {
+    expect(buildUpiAppLinks({ vpa: "nope", amountCents: 100 })).toBeNull();
+    expect(buildUpiAppLinks({ vpa: "a@okhdfc", amountCents: 0 })).toBeNull();
+  });
+});

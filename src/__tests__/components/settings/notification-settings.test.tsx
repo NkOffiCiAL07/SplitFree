@@ -97,3 +97,35 @@ describe("NotificationSettings — email", () => {
     expect(await screen.findByRole("switch", { name: /email notifications/i })).toBeDisabled();
   });
 });
+
+describe("NotificationSettings — iPhone guidance", () => {
+  const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+  const media = (standalone: boolean) => vi.stubGlobal("matchMedia", (q: string) => ({ matches: standalone && q.includes("standalone"), media: q, addEventListener() {}, removeEventListener() {} }));
+
+  it("in Safari: says exactly how to get notifications (Add to Home Screen, then open it from there)", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(IPHONE);
+    Object.defineProperty(navigator, "maxTouchPoints", { value: 5, configurable: true });
+    media(false);
+    push.isPushSupported.mockReturnValue(false);
+    render(<NotificationSettings />);
+    expect(await screen.findByText(/tap Share → Add to Home Screen, open it from there/i)).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /push notifications/i })).toBeDisabled();
+  });
+
+  it("from the Home Screen app but unsupported: asks for iOS 16.4 or later", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(IPHONE);
+    Object.defineProperty(navigator, "maxTouchPoints", { value: 5, configurable: true });
+    media(true);
+    push.isPushSupported.mockReturnValue(false);
+    render(<NotificationSettings />);
+    expect(await screen.findByText(/iOS 16\.4 or later/)).toBeInTheDocument();
+  });
+
+  it("on other browsers without push, a plain message", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (X11; Linux x86_64) Gecko/20100101 Firefox/120.0");
+    media(false);
+    push.isPushSupported.mockReturnValue(false);
+    render(<NotificationSettings />);
+    expect(await screen.findByText("Not supported in this browser")).toBeInTheDocument();
+  });
+});

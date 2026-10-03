@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "test": "vitest",
     "test:run": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "apk:update": "node scripts/update-apk.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

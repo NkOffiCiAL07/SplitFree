@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -30,6 +30,59 @@ describe("UpiPayLink", () => {
     rerender(<UpiPayLink vpa="not-valid" amountCents={100} currency="INR" />);
     expect(container).toBeEmptyDOMElement();
     rerender(<UpiPayLink vpa="asha@okhdfc" amountCents={0} currency="INR" />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("UpiPayLink — iPhone vs Android", () => {
+  const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+  const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36";
+  const ua = (v: string, touch = 0) => { vi.spyOn(navigator, "userAgent", "get").mockReturnValue(v); Object.defineProperty(navigator, "maxTouchPoints", { value: touch, configurable: true }); };
+  afterEach(() => vi.restoreAllMocks());
+
+  it("Android keeps the single link (the system shows your UPI apps)", () => {
+    ua(ANDROID, 5);
+    render(<UpiPayLink vpa="asha@okhdfc" payeeName="Asha Rao" amountCents={50000} currency="INR" />);
+    expect(screen.getByRole("link", { name: /pay asha rao via upi/i }).getAttribute("href")).toMatch(/^upi:\/\/pay\?/);
+  });
+
+  it("iPhone gets a menu with each app's own link — same payee and exact amount — plus 'Copy UPI ID'", async () => {
+    ua(IPHONE, 5);
+    render(<UpiPayLink vpa="asha@okhdfc" payeeName="Asha Rao" amountCents={123456} currency="INR" note="Goa trip" />);
+    expect(screen.queryByRole("link", { name: /via upi/i })).not.toBeInTheDocument(); // not a bare link that does nothing on iOS
+    await userEvent.click(screen.getByRole("button", { name: /pay asha rao via upi/i }));
+    const hrefOf = (name: string) => screen.getByRole("menuitem", { name }).getAttribute("href")!;
+    const gpay = new URL(hrefOf("Google Pay")), phonepe = new URL(hrefOf("PhonePe")), paytm = new URL(hrefOf("Paytm"));
+    expect([gpay.protocol, phonepe.protocol, paytm.protocol]).toEqual(["gpay:", "phonepe:", "paytmmp:"]);
+    for (const u of [gpay, phonepe, paytm]) {
+      expect(u.searchParams.get("pa")).toBe("asha@okhdfc");
+      expect(u.searchParams.get("am")).toBe("1234.56");
+      expect(u.searchParams.get("cu")).toBe("INR");
+      expect(u.searchParams.get("tn")).toBe("Goa trip");
+    }
+    expect(hrefOf("Other UPI app")).toMatch(/^upi:\/\/pay\?/);
+    expect(screen.getByRole("menuitem", { name: /copy upi id/i })).toBeInTheDocument();
+  });
+
+  it("copying the UPI ID works, and falls back to showing it when the clipboard is blocked", async () => {
+    ua(IPHONE, 5);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    render(<UpiPayLink vpa=" asha@okhdfc " amountCents={100} currency="INR" />);
+    await userEvent.click(screen.getByRole("button", { name: /via upi/i }));
+    await userEvent.click(screen.getByRole("menuitem", { name: /copy upi id/i }));
+    expect(writeText).toHaveBeenCalledWith("asha@okhdfc");
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("UPI ID copied"));
+
+    writeText.mockRejectedValue(new Error("denied"));
+    await userEvent.click(screen.getByRole("button", { name: /via upi/i }));
+    await userEvent.click(screen.getByRole("menuitem", { name: /copy upi id/i }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("UPI ID: asha@okhdfc"));
+  });
+
+  it("iPhone still renders nothing for dollar amounts or invalid IDs", () => {
+    ua(IPHONE, 5);
+    const { container } = render(<UpiPayLink vpa="asha@okhdfc" amountCents={100} currency="USD" />);
     expect(container).toBeEmptyDOMElement();
   });
 });

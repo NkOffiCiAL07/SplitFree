@@ -11,7 +11,7 @@ vi.mock("@/hooks/use-expenses", () => ({
 vi.mock("usehooks-ts", () => ({ useDebounceValue: (v: unknown) => [v] })); // no waiting in tests
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => ({ user: { id: "me" } }) }));
 vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => "INR" }));
-vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: () => <div /> }));
+vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: ({ open }: { open?: boolean }) => (open ? <div data-testid="add-dialog" /> : null) }));
 vi.mock("@/components/expenses/expense-comments", () => ({ ExpenseComments: () => <div /> }));
 vi.mock("@/components/expenses/expense-history", () => ({ ExpenseHistory: () => <div /> }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
@@ -28,6 +28,27 @@ const state = (over = {}) => ({
 });
 
 beforeEach(() => useInfiniteExpenses.mockReset());
+
+describe("ExpensesPage — app-icon shortcut", () => {
+  it("opens the add-expense form when launched from the 'Add Expense' app shortcut (?action=new), and cleans the address", async () => {
+    const nav = await import("next/navigation");
+    const spy = vi.spyOn(nav, "useSearchParams").mockReturnValue(new URLSearchParams("action=new") as never);
+    const replace = vi.spyOn(window.history, "replaceState");
+    useInfiniteExpenses.mockReturnValue(state());
+    render(<ExpensesPage />);
+    expect(screen.getByTestId("add-dialog")).toBeInTheDocument(); // the form is open
+    expect(replace).toHaveBeenCalledWith(null, "", window.location.pathname);
+    spy.mockRestore();
+  });
+
+  it("does nothing special for a normal visit", () => {
+    const replace = vi.spyOn(window.history, "replaceState");
+    useInfiniteExpenses.mockReturnValue(state());
+    render(<ExpensesPage />);
+    expect(screen.queryByTestId("add-dialog")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+  });
+});
 
 describe("ExpensesPage — mixed currencies", () => {
   const usd = { ...exp("9"), description: "Hotel", currency: "USD", amount: 20000, group: { name: "Goa", currency: "INR" }, splits: [{ userId: "me", amount: 10000, user: { name: "Me" } }, { userId: "a", amount: 10000, user: { name: "Asha" } }] };

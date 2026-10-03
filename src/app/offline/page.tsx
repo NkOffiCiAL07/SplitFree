@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "You're offline" };
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background text-foreground">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-6 bg-background text-foreground">
       <div className="max-w-sm w-full text-center space-y-6">
         {/* Icon */}
         <div className="w-20 h-20 mx-auto rounded-2xl gradient-brand flex items-center justify-center">

@@ -11,7 +11,7 @@ const CONTACT_EMAIL = "nishantkumar19041@gmail.com";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
         <Link href="/" className="font-bold text-lg">{APP_NAME}</Link>
         <Link href="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Support</Link>

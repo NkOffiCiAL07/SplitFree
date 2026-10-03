@@ -165,7 +165,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   /* ── Loading ── */
   if (authLoading || status === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4">
         <m.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -186,7 +186,7 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
 
   /* ── Invite card ── */
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-4">
       <Link href="/" className="flex items-center gap-2 mb-10">
         <div className="w-8 h-8 gradient-brand rounded-lg flex items-center justify-center">
           <Zap className="size-4 text-white" />

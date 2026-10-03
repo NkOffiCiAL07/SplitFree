@@ -75,7 +75,7 @@ export function PayersEditor({
               <span className="flex-1 text-sm truncate">{label(m)}</span>
               <Input
                 aria-label={`Amount paid by ${label(m)}`}
-                type="number" step="0.01" min="0" placeholder="0.00"
+                type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00"
                 className="w-28 h-8 text-sm"
                 value={amounts[m.userId] ?? ""}
                 onChange={(e) => onAmountsChange({ ...amounts, [m.userId]: e.target.value })}

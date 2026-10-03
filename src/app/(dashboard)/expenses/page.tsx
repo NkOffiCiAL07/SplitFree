@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { m } from "framer-motion";
 import { netForUser, payersLabel } from "@/lib/expense-display";
 import { ExpenseHistory } from "@/components/expenses/expense-history";
@@ -37,7 +38,7 @@ const EditExpenseDialog = dynamic(
   { ssr: false }
 );
 
-export default function ExpensesPage() {
+function ExpensesPageInner() {
   const { user } = useAuth();
   const deleteMutation = useDeleteExpense();
   const duplicateMutation = useDuplicateExpense();
@@ -48,7 +49,12 @@ export default function ExpensesPage() {
   const [dateTo, setDateTo] = useState("");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
+  // The app icon's "Add Expense" shortcut (manifest) opens /expenses?action=new — open the form for it
+  const searchParams = useSearchParams();
+  const [addOpen, setAddOpen] = useState(() => searchParams.get("action") === "new");
+  useEffect(() => {
+    if (searchParams.get("action") === "new") window.history.replaceState(null, "", window.location.pathname); // so a refresh doesn't reopen it
+  }, [searchParams]);
 
   // Search and filters run on the server over the full history; typing is debounced
   const [debouncedSearch] = useDebounceValue(search, 300);
@@ -354,5 +360,14 @@ function ExpenseRow({
       </div>
       <ChevronRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </m.div>
+  );
+}
+
+/** useSearchParams (for the app-icon shortcut) must sit inside a Suspense boundary. */
+export default function ExpensesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ExpensesPageInner />
+    </Suspense>
   );
 }

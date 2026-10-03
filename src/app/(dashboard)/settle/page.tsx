@@ -156,7 +156,7 @@ export default function SettlePage() {
                   >
                     {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <Input type="number" step="0.01" min="0.01" placeholder="0.00"
+                  <Input type="number" inputMode="decimal" step="0.01" min="0.01" placeholder="0.00"
                     value={amount} onChange={(e) => setAmount(e.target.value)}
                   />
                 </div>

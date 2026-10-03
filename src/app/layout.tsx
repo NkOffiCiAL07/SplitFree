@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { APP_NAME, APP_TAGLINE, APP_DESCRIPTION } from "@/lib/app-config";
+import { iosStartupImages } from "@/lib/ios-splash";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
 import { MotionProvider } from "@/components/shared/motion-provider";
@@ -50,11 +51,13 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description: APP_DESCRIPTION,
   },
-  // iOS PWA meta tags — not exposed by Next.js Metadata API directly
+  // iPhone home-screen app: full-screen, own title, and a launch image instead of a blank white flash
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default", startupImage: iosStartupImages() },
+  // Don't let iOS turn amounts like "1,200.00" into phone-number links
+  formatDetection: { telephone: false, email: false, address: false },
   other: {
+    // Next emits the newer mobile-web-app-capable; older iOS versions still look for the Apple-prefixed one
     "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": APP_NAME,
     "mobile-web-app-capable": "yes",
     "application-name": APP_NAME,
   },
@@ -67,7 +70,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Draw under the notch / home bar (the app pads with safe-area insets). Pinch-zoom stays ON for accessibility:
+  // inputs are 16px on touch devices (globals.css), which is what stops iOS zooming when a field is focused.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

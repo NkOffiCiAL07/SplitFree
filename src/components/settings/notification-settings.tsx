@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useProfile } from "@/hooks/use-profile";
+import { usePlatform, useStandalone } from "@/hooks/use-platform";
 import { disablePush, enablePush, getPushSubscription, isPushSupported } from "@/lib/push-client";
 
 /** Real delivery controls: push on this device, and email (stored on the account). */
@@ -15,6 +16,14 @@ export function NotificationSettings() {
   const [supported, setSupported] = useState(false);
   const [pushOn, setPushOn] = useState(false);
   const [busy, setBusy] = useState(false);
+  const platform = usePlatform();
+  const standalone = useStandalone();
+  // iPhone only delivers web push to apps added to the Home Screen (iOS 16.4+) — say exactly what to do
+  const iosHint = platform === "ios"
+    ? standalone
+      ? "Your iPhone needs iOS 16.4 or later for notifications — please update iOS."
+      : "On iPhone, notifications work from the Home Screen app: tap Share → Add to Home Screen, open it from there, then turn this on."
+    : "Not supported in this browser";
 
   useEffect(() => {
     let cancelled = false;
@@ -77,7 +86,7 @@ export function NotificationSettings() {
           <p className="text-xs text-muted-foreground">
             {supported
               ? "Alerts on this device for new expenses, payments, reminders and invites"
-              : "Not supported in this browser (on iPhone, add the app to your Home Screen first)"}
+              : iosHint}
           </p>
         </div>
         <Switch id="push-toggle" checked={pushOn} disabled={!supported || busy} onCheckedChange={togglePush} />
