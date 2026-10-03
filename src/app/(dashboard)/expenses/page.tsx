@@ -242,7 +242,7 @@ export default function ExpensesPage() {
                         </Avatar>
                         <span className="text-sm flex-1 truncate">{split.user?.name ?? split.userId}</span>
                         <span className={cn("text-sm font-semibold", split.userId === user?.id ? "text-primary" : "")}>
-                          {formatCurrency(split.amount, selectedExpense.group?.currency ?? userCurrency)}
+                          {formatCurrency(split.amount, selectedExpense.currency ?? selectedExpense.group?.currency ?? userCurrency)}
                         </span>
                       </div>
                     ))}

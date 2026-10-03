@@ -59,6 +59,25 @@ describe("FriendsPage — friends list", () => {
     expect(screen.getByText("owes $20.00")).toBeInTheDocument();
   });
 
+  it("with balances in several currencies, adds ONE overall figure in the home currency (≈)", () => {
+    h.friends.data = [friendship("a", "Asha Rao", "asha@x.com")];
+    h.balances.data = { byPerson: { a: { all: [{ currency: "INR", net: 50000 }, { currency: "USD", net: -1000 }], inHome: { currency: "INR", net: -30000, complete: true, approximate: true } } } };
+    render(<FriendsPage />);
+    expect(screen.getByText("lent ₹500.00")).toBeInTheDocument(); // each currency stays exact
+    expect(screen.getByText("owes $10.00")).toBeInTheDocument();
+    expect(screen.getByTestId("balance-overall")).toHaveTextContent("≈ ₹300.00 to pay overall");
+  });
+
+  it("claims no overall figure when a rate is missing, or when there's only one currency", () => {
+    h.friends.data = [friendship("a", "Asha Rao", "asha@x.com"), friendship("b", "Bhanu", "b@x.com")];
+    h.balances.data = { byPerson: {
+      a: { all: [{ currency: "INR", net: 50000 }, { currency: "EUR", net: -1000 }], inHome: { currency: "INR", net: 1, complete: false, approximate: true } },
+      b: { all: [{ currency: "USD", net: 1000 }], inHome: { currency: "INR", net: 80000, complete: true, approximate: true } },
+    } };
+    render(<FriendsPage />);
+    expect(screen.queryByTestId("balance-overall")).not.toBeInTheDocument();
+  });
+
   it("removes a friend", async () => {
     h.friends.data = [friendship("a", "Asha Rao", "asha@x.com")];
     const { container } = render(<FriendsPage />);

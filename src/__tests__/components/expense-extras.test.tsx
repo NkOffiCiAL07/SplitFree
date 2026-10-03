@@ -186,6 +186,27 @@ describe("BudgetCard", () => {
     expect(screen.getByText("Over budget by ₹300.00")).toHaveClass("text-destructive");
   });
 
+  it("says when spending in other currencies was converted into the budget's currency", () => {
+    h.budget.data = { budgets: [budget({ spent: 25000 })], approximate: true, skipped: [] };
+    render(<BudgetCard groupId="g1" currency="INR" />);
+    expect(screen.getByTestId("budget-converted")).toHaveTextContent("converted to INR");
+    expect(screen.queryByTestId("budget-skipped")).not.toBeInTheDocument();
+  });
+
+  it("lists spending that could not be converted (no rate) rather than hiding it", () => {
+    h.budget.data = { budgets: [budget({ spent: 25000 })], approximate: false, skipped: [{ currency: "USD", amount: 2000 }] };
+    render(<BudgetCard groupId="g1" currency="INR" />);
+    expect(screen.getByTestId("budget-skipped")).toHaveTextContent(/no exchange rate/i);
+    expect(screen.getByTestId("budget-skipped")).toHaveTextContent("$20.00");
+  });
+
+  it("shows no conversion notes for a single-currency budget", () => {
+    h.budget.data = { budgets: [budget({ spent: 25000 })], approximate: false, skipped: [] };
+    render(<BudgetCard groupId="g1" currency="INR" />);
+    expect(screen.queryByTestId("budget-converted")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("budget-skipped")).not.toBeInTheDocument();
+  });
+
   it("labels category budgets and their period", () => {
     h.budget.data = { budgets: [budget({ category: "TRAVEL", period: "WEEKLY", spent: 10000 })] };
     render(<BudgetCard groupId="g1" currency="INR" />);

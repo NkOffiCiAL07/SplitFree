@@ -36,13 +36,13 @@ interface ActivityItem {
 
 interface Props { activities?: ActivityItem[]; currency?: string; isLoading?: boolean }
 
-function activityLabel(a: ActivityItem): { text: string; amount?: number } {
+function activityLabel(a: ActivityItem): { text: string; amount?: number; currency?: string } {
   const meta: ActivityMetadata = a.metadata ?? {};
   switch (a.type) {
-    case "EXPENSE_CREATED": return { text: `${a.user.name} added ${meta.description ?? "an expense"}`, amount: meta.amount };
+    case "EXPENSE_CREATED": return { text: `${a.user.name} added ${meta.description ?? "an expense"}`, amount: meta.amount, currency: meta.currency };
     case "EXPENSE_UPDATED": return { text: `${a.user.name} updated ${meta.description ?? "an expense"}` };
     case "EXPENSE_DELETED": return { text: `${a.user.name} deleted ${meta.description ?? "an expense"}` };
-    case "SETTLEMENT_CREATED": return { text: `${a.user.name} recorded a payment`, amount: meta.amount };
+    case "SETTLEMENT_CREATED": return { text: `${a.user.name} recorded a payment`, amount: meta.amount, currency: meta.currency };
     case "GROUP_CREATED": return { text: `${a.user.name} created group ${meta.groupName ?? ""}` };
     case "MEMBER_ADDED": return { text: `${a.user.name} joined ${meta.groupName ?? "a group"}` };
     case "MEMBER_REMOVED": return { text: `${a.user.name} left ${meta.groupName ?? "a group"}` };
@@ -69,7 +69,7 @@ export function RecentActivity({ activities = [], currency = DEFAULT_CURRENCY, i
             activities.map((activity, i) => {
               const Icon = ICONS[activity.type] ?? Receipt;
               const color = COLORS[activity.type] ?? "bg-gray-100 text-gray-600";
-              const { text, amount } = activityLabel(activity);
+              const { text, amount, currency: amountCurrency } = activityLabel(activity);
               return (
                 <m.div
                   key={activity.id}
@@ -90,9 +90,9 @@ export function RecentActivity({ activities = [], currency = DEFAULT_CURRENCY, i
                         </Avatar>
                         <p className="text-xs truncate">{text}</p>
                       </div>
-                      {amount != null && (
+                      {amount != null && amountCurrency && ( // never print an amount in a guessed currency
                         <span className="text-xs font-semibold shrink-0 text-green-600 dark:text-green-400">
-                          {formatCurrency(amount, currency)}
+                          {formatCurrency(amount, amountCurrency)}
                         </span>
                       )}
                     </div>

@@ -41,7 +41,7 @@ async function fetchAnalytics() {
 export default function AnalyticsPage() {
   const { data, isLoading } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics, staleTime: 60_000 });
   const userCurrency = useUserCurrency();
-  // The API only totals expenses in one currency; use the one it reports
+  // The API reports everything in the home currency (other currencies converted); use the one it reports
   const currency: string = data?.currency ?? userCurrency;
 
   const monthlyData = data?.monthly?.map((m: { month: string; total: number }) => ({
@@ -75,6 +75,17 @@ export default function AnalyticsPage() {
       <div>
         <h2 className="text-xl font-bold">Analytics</h2>
         <p className="text-sm text-muted-foreground">Last 6 months overview</p>
+        {!isLoading && data?.approximate && (
+          <p className="text-xs text-muted-foreground mt-1" data-testid="conversion-note">
+            ≈ Amounts in other currencies are converted to {currency} at live rates ({data.rateDate}).
+          </p>
+        )}
+        {!isLoading && data?.skipped?.length > 0 && (
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1" data-testid="skipped-note">
+            Not included (no exchange rate available right now):{" "}
+            {data.skipped.map((x: { currency: string; amount: number }) => formatCompactCurrency(x.amount, x.currency)).join(", ")}
+          </p>
+        )}
       </div>
 
       {/* Stat row */}

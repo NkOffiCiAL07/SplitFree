@@ -313,6 +313,8 @@ export interface ApiNotification {
 export interface ActivityMetadata {
   description?: string;
   amount?: number;
+  /** Currency of `amount` (older records may lack it; the API fills it in) */
+  currency?: string;
   groupName?: string;
   memberName?: string;
   memberId?: string;

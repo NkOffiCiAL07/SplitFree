@@ -741,7 +741,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-3 mt-1">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Total</span>
-                  <span className="font-bold text-lg">{formatCurrency(viewingExpense.amount, group.currency)}</span>
+                  <span className="font-bold text-lg">{formatCurrency(viewingExpense.amount, viewingExpense.currency ?? group.currency)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Paid by</span>
@@ -763,7 +763,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                           <AvatarFallback className="text-[9px]">{getInitials(s.user?.name ?? "?")}</AvatarFallback>
                         </Avatar>
                         <span className="text-sm flex-1 truncate">{s.user?.name ?? s.userId}</span>
-                        <span className="text-sm font-semibold">{formatCurrency(s.amount, group.currency)}</span>
+                        <span className="text-sm font-semibold">{formatCurrency(s.amount, viewingExpense.currency ?? group.currency)}</span>
                       </div>
                     ))}
                   </div>

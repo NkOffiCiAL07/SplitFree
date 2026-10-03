@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
 import { toCents } from "@/lib/utils";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from "date-fns";
-import type { ExpenseCategory } from "@prisma/client";
+import { loadConverter } from "@/lib/convert";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -29,27 +29,49 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         default: return { gte: startOfMonth(now), lte: endOfMonth(now) };
       }
     };
-    const spentFor = async (period: string, category: string | null) => {
-      const agg = await prisma.expenseSplit.aggregate({
-        where: {
-          userId: user!.id,
-          expense: {
-            groupId,
-            date: rangeFor(period),
-            ...(category ? { category: category as ExpenseCategory } : {}),
-          },
+    // A budget is in the group's currency. Spending in other currencies is converted into it (never added as raw
+    // numbers); anything without a usable rate is reported in `skipped` instead of being silently ignored.
+    const group = await prisma.group.findUnique({ where: { id: groupId }, select: { currency: true } });
+    const budgetCurrency = group?.currency ?? "INR";
+    const periods = [...new Set([...budgets.map((b) => b.period), "MONTHLY"])];
+    const ranges = periods.map(rangeFor);
+    const splits = await prisma.expenseSplit.findMany({
+      where: {
+        userId: user!.id,
+        expense: {
+          groupId,
+          date: { gte: new Date(Math.min(...ranges.map((r) => r.gte.getTime()))), lte: new Date(Math.max(...ranges.map((r) => r.lte.getTime()))) },
         },
-        _sum: { amount: true },
+      },
+      select: { amount: true, expense: { select: { currency: true, date: true, category: true } } },
+    });
+    const conv = await loadConverter(budgetCurrency, splits.some((x) => x.expense.currency !== budgetCurrency));
+    const unconverted = new Set<number>(); // splits with no usable rate, each reported once however many budgets cover it
+    const spentFor = (period: string, category: string | null) => {
+      const range = rangeFor(period);
+      let sum = 0;
+      splits.forEach((x, i) => {
+        const d = x.expense.date.getTime();
+        if (d < range.gte.getTime() || d > range.lte.getTime()) return;
+        if (category && x.expense.category !== category) return;
+        const v = conv.toHome(x.amount, x.expense.currency);
+        if (v === null) { unconverted.add(i); return; }
+        sum += v;
       });
-      return agg._sum.amount ?? 0;
+      return sum;
     };
 
-    const withSpent = await Promise.all(
-      budgets.map(async (b) => ({ ...b, spent: await spentFor(b.period, b.category) }))
-    );
-    const totalSpent = await spentFor("MONTHLY", null);
+    const withSpent = budgets.map((b) => ({ ...b, spent: spentFor(b.period, b.category) }));
+    const totalSpent = spentFor("MONTHLY", null);
+    const approximate = splits.some((x) => x.expense.currency !== budgetCurrency);
+    const skippedByCurrency = new Map<string, number>();
+    for (const i of unconverted) {
+      const { amount, expense } = splits[i];
+      skippedByCurrency.set(expense.currency, (skippedByCurrency.get(expense.currency) ?? 0) + amount);
+    }
+    const skipped = Array.from(skippedByCurrency, ([currency, amount]) => ({ currency, amount }));
 
-    return ok({ budgets: withSpent, totalSpentThisMonth: totalSpent });
+    return ok({ budgets: withSpent, totalSpentThisMonth: totalSpent, currency: budgetCurrency, approximate, skipped });
   } catch (e) {
     return handleError(e);
   }

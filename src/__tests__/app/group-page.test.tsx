@@ -69,6 +69,18 @@ beforeEach(() => {
   Object.values(h.hooks).forEach((f) => f.mockResolvedValue({}));
 });
 
+describe("GroupDetailPage — an expense in another currency", () => {
+  it("the details dialog shows the total and each split in the EXPENSE's currency, not the group's", async () => {
+    h.expenses.expenses = [{ ...expense("1"), description: "Hotel", currency: "USD", amount: 20000, splits: [{ userId: "me", amount: 10000, user: { name: "Nishant" } }, { userId: "a", amount: 10000, user: { name: "Asha" } }] }];
+    await renderPage();
+    await userEvent.click(screen.getByText("Hotel"));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("$200.00");
+    expect(dialog).toHaveTextContent("$100.00");
+    expect(dialog).not.toHaveTextContent("₹");
+  });
+});
+
 describe("GroupDetailPage — basics", () => {
   it("shows skeletons while loading and nothing for a missing group", async () => {
     h.group.isLoading = true;

@@ -186,3 +186,28 @@ describe("PATCH — edit history", () => {
     expect(changes.amount).toEqual({ from: 30000, to: 40000 });
   });
 });
+
+describe("PATCH — currency", () => {
+  it("refuses to change an expense's currency (it used to be ignored silently, so edits looked like they worked)", async () => {
+    const cur = existing(); p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
+    const res = await patch({ currency: "USD" });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.message).toMatch(/currency can't be changed/i);
+    expect(p.expense.update).not.toHaveBeenCalled();
+  });
+
+  it("sending the SAME currency back (as an edit form might) is fine", async () => {
+    const cur = existing(); p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
+    expect((await patch({ currency: "INR", description: "Dinner 2" })).status).toBe(200);
+  });
+
+  it("editing a yen expense keeps whole yen: ¥1,001 → ¥501 + ¥500; fractional yen is refused", async () => {
+    const cur = existing({ currency: "JPY", amount: 100000, splits: [split(ME, 50000), split(OTHER, 50000)] });
+    p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
+    expect((await patch({ amount: 1001 })).status).toBe(200);
+    expect(p.expense.update.mock.calls[0][0].data.splits.create.map((s: { amount: number }) => s.amount)).toEqual([50100, 50000]);
+    p.expense.update.mockClear();
+    expect((await patch({ amount: 1000.5 })).status).toBe(400);
+    expect(p.expense.update).not.toHaveBeenCalled();
+  });
+});

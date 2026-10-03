@@ -47,14 +47,14 @@ export default function DashboardPage() {
     {
       title: "Owed to You",
       value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwed ?? 0, currency),
-      sub: "others owe you",
+      sub: data?.stats?.approximate ? "others owe you · ≈" : "others owe you",
       icon: TrendingUp,
       variant: "green" as const,
     },
     {
       title: "You Owe",
       value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwing ?? 0, currency),
-      sub: "settle up soon",
+      sub: data?.stats?.approximate ? "settle up soon · ≈" : "settle up soon",
       icon: TrendingDown,
       variant: "red" as const,
     },
@@ -109,10 +109,14 @@ export default function DashboardPage() {
         }
       </div>
 
-      {/* Balances in other currencies are kept separate, never converted or summed */}
+      {/* Totals above are in your home currency; amounts in other currencies are converted (approximate) */}
       {!isLoading && data?.stats?.otherCurrencies?.length > 0 && (
-        <p className="text-xs text-muted-foreground -mt-2">
-          Also in other currencies:{" "}
+        <p className="text-xs text-muted-foreground -mt-2" data-testid="currency-note">
+          {data.stats.incomplete
+            ? "Not included in the totals (no exchange rate available right now): "
+            : data.stats.approximate
+              ? <span title={`Live exchange rates as of ${data.stats.rateDate}`}>≈ Includes converted amounts (rates of {data.stats.rateDate}): </span>
+              : "Also in other currencies: "}
           {data.stats.otherCurrencies
             .map((c: { currency: string; owed: number; owing: number }) =>
               [
@@ -121,12 +125,7 @@ export default function DashboardPage() {
               ].filter(Boolean).join(", ")
             )
             .join(" · ")}
-          {data.stats.combined && (
-            <span title={`Live exchange rates as of ${data.stats.combined.date}`}>
-              {" "}— ≈ {formatCompactCurrency(Math.abs(data.stats.combined.net), currency)}{" "}
-              {data.stats.combined.net >= 0 ? "in your favour" : "to pay"} overall (approx.)
-            </span>
-          )}
+          {". You settle each debt in its own currency."}
         </p>
       )}
 

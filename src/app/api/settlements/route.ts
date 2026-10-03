@@ -1,5 +1,5 @@
 import { createNotifications } from "@/lib/notify";
-import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
+import { CURRENCY_CODES, DEFAULT_CURRENCY, isLegalAmount } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, ok, err, handleError, isUniqueViolation, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
     const data = createSettlementSchema.parse(body);
 
     if (data.toUserId === user!.id) return err("Cannot settle with yourself", 400);
+    if (!isLegalAmount(toCents(data.amount), data.currency)) return err("This currency has no fractional amounts — use a whole number", 400);
 
     if (data.clientId) {
       const existing = await prisma.settlement.findUnique({
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
           userId: user!.id,
           settlementId: s.id,
           groupId: data.groupId ?? null,
-          metadata: { amount: toCents(data.amount), toUserId: data.toUserId },
+          metadata: { amount: toCents(data.amount), toUserId: data.toUserId, currency: data.currency },
         },
       });
 

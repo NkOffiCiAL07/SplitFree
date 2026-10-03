@@ -1,3 +1,4 @@
+import { storedUnitFor } from "@/lib/currencies";
 import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -108,11 +109,14 @@ export async function POST(req: NextRequest) {
       return err(data.groupId ? "All participants must be members of the group" : "Unknown participant", 403);
     }
 
+    const unit = storedUnitFor(data.currency);
+    if (payersCents.some((p) => p.amount % unit !== 0)) return err("This currency has no fractional amounts — use whole numbers", 400);
     const splitAmounts = calculateSplits(
       totalCents,
       data.participants,
       data.splitType,
-      data.splits
+      data.splits,
+      unit
     );
 
     let expense;
@@ -188,7 +192,7 @@ export async function POST(req: NextRequest) {
         userId: user!.id,
         groupId: data.groupId ?? null,
         expenseId: expense.id,
-        metadata: { description: data.description, amount: totalCents },
+        metadata: { description: data.description, amount: totalCents, currency: data.currency },
       },
     });
 

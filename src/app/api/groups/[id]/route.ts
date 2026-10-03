@@ -5,6 +5,7 @@ import { updateGroupSchema } from "@/lib/validations/group";
 import { computeGroupStats } from "@/lib/group-stats";
 import { loadGroupLedger } from "@/lib/ledger-db";
 import { pairNets } from "@/lib/ledger";
+import { homeCurrencyOf, loadConverter } from "@/lib/convert";
 
 async function assertMember(groupId: string, userId: string) {
   return prisma.groupMember.findUnique({
@@ -58,7 +59,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       })
       .filter((m) => m.balance !== 0 || m.others.length > 0);
 
-    const stats = computeGroupStats(groupLedger.expenses.map((e) => ({ ...e, category: e.category ?? "OTHER" })), user!.id);
+    // Spending is summarised in the viewer's home currency (other currencies converted, flagged approximate)
+    const home = await homeCurrencyOf(user!.id);
+    const conv = await loadConverter(home, groupLedger.expenses.some((e) => e.currency !== home));
+    const stats = computeGroupStats(groupLedger.expenses.map((e) => ({ ...e, category: e.category ?? "OTHER" })), user!.id, conv);
 
     return ok({ ...group, memberBalances, stats });
   } catch (e) {

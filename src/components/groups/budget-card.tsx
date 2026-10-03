@@ -174,6 +174,17 @@ export function BudgetCard({ groupId, currency }: { groupId: string; currency: s
           })}
         </div>
       )}
+      {budgets.length > 0 && data?.approximate && (
+        <p className="text-[10px] text-muted-foreground" data-testid="budget-converted">
+          ≈ Spending in other currencies is converted to {currency} at live rates.
+        </p>
+      )}
+      {budgets.length > 0 && data?.skipped?.length > 0 && (
+        <p className="text-[10px] text-amber-700 dark:text-amber-400" data-testid="budget-skipped">
+          Not counted (no exchange rate available right now):{" "}
+          {data.skipped.map((x: { currency: string; amount: number }) => formatCurrency(x.amount, x.currency)).join(", ")}
+        </p>
+      )}
     </div>
   );
 }

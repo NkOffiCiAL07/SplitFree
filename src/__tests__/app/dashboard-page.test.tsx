@@ -64,17 +64,27 @@ describe("DashboardPage", () => {
     expect(await screen.findByText("you're ahead")).toBeInTheDocument();
   });
 
-  it("reports other currencies separately and the approximate combined total", async () => {
-    mount(data({}, { otherCurrencies: [{ currency: "USD", owed: 0, owing: 20000 }], combined: { owed: 49999, owing: 2800000, net: -2750001, date: "2026-10-01", complete: true } }));
-    const note = await screen.findByText(/also in other currencies/i);
+  it("when amounts were converted, says so (≈), with the rate date and the original amounts", async () => {
+    mount(data({}, { otherCurrencies: [{ currency: "USD", owed: 0, owing: 20000 }], approximate: true, incomplete: false, rateDate: "2026-10-01" }));
+    const note = await screen.findByTestId("currency-note");
+    expect(note).toHaveTextContent("≈ Includes converted amounts");
+    expect(note).toHaveTextContent("2026-10-01");
     expect(note).toHaveTextContent("owe $200.00");
-    expect(note).toHaveTextContent("≈ ₹27.5K to pay overall (approx.)");
+    expect(note).toHaveTextContent("settle each debt in its own currency");
+    expect(screen.getByText("others owe you · ≈")).toBeInTheDocument();
+  });
+
+  it("when a rate is missing, says those amounts are NOT in the totals", async () => {
+    mount(data({}, { otherCurrencies: [{ currency: "EUR", owed: 5000, owing: 0 }], approximate: false, incomplete: true }));
+    const note = await screen.findByTestId("currency-note");
+    expect(note).toHaveTextContent(/not included in the totals/i);
+    expect(note).toHaveTextContent("owed €50.00");
   });
 
   it("omits the other-currency note when everything is in one currency", async () => {
     mount(data());
     await screen.findByText("₹499.99");
-    expect(screen.queryByText(/also in other currencies/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("currency-note")).not.toBeInTheDocument();
   });
 
   it("passes the monthly series and currency to the chart and the activity feed", async () => {

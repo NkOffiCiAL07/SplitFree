@@ -29,6 +29,27 @@ const state = (over = {}) => ({
 
 beforeEach(() => useInfiniteExpenses.mockReset());
 
+describe("ExpensesPage — mixed currencies", () => {
+  const usd = { ...exp("9"), description: "Hotel", currency: "USD", amount: 20000, group: { name: "Goa", currency: "INR" }, splits: [{ userId: "me", amount: 10000, user: { name: "Me" } }, { userId: "a", amount: 10000, user: { name: "Asha" } }] };
+
+  it("every row shows its OWN currency, even when the group's currency differs", () => {
+    useInfiniteExpenses.mockReturnValue(state({ expenses: [exp("1"), usd] }));
+    render(<ExpensesPage />);
+    expect(screen.getByText("$200.00")).toBeInTheDocument();
+    expect(screen.getByText("₹100.00")).toBeInTheDocument();
+  });
+
+  it("the details dialog shows the total AND each person's split in the expense's currency (not the group's)", async () => {
+    useInfiniteExpenses.mockReturnValue(state({ expenses: [usd] }));
+    render(<ExpensesPage />);
+    await userEvent.click(screen.getByText("Hotel"));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("$200.00");
+    expect(dialog).toHaveTextContent("$100.00"); // Asha's split — used to print ₹100.00 (the group's currency)
+    expect(dialog).not.toHaveTextContent("₹");
+  });
+});
+
 describe("ExpensesPage — full history", () => {
   it("shows the expenses with an exact count when everything is loaded", () => {
     useInfiniteExpenses.mockReturnValue(state());

@@ -81,15 +81,21 @@ describe("budgets", () => {
       { id: "b1", period: "MONTHLY", category: "FOOD", amount: 100000 },
       { id: "b2", period: "WEEKLY", category: null, amount: 50000 },
     ]);
-    p.expenseSplit.aggregate.mockResolvedValue({ _sum: { amount: 25000 } });
+    p.group.findUnique.mockResolvedValue({ currency: "INR" });
+    const today = new Date();
+    p.expenseSplit.findMany.mockResolvedValue([
+      { amount: 25000, expense: { currency: "INR", date: today, category: "FOOD" } },
+      { amount: 10000, expense: { currency: "INR", date: today, category: "TRAVEL" } },
+    ]);
     const res = await GET_BUDGET(req("GET"), ctx);
     const { data } = await res.json();
-    expect(data.budgets.map((b: { spent: number }) => b.spent)).toEqual([25000, 25000]);
+    // FOOD budget (monthly) counts only food; the all-categories weekly budget counts everything in its window
+    expect(data.budgets.map((b: { spent: number }) => b.spent)).toEqual([25000, 35000]);
+    expect(data.currency).toBe("INR");
+    expect(data.approximate).toBe(false);
 
-    const wheres = p.expenseSplit.aggregate.mock.calls.map((c: unknown[]) => (c[0] as { where: { userId: string; expense: Record<string, unknown> } }).where);
-    expect(wheres.every((w: { userId: string }) => w.userId === ME)).toBe(true);
-    expect(wheres[0].expense.category).toBe("FOOD"); // category budget filters by category
-    expect(wheres[1].expense).not.toHaveProperty("category"); // overall budget does not
+    // only the caller's own shares are read
+    expect(p.expenseSplit.findMany.mock.calls[0][0].where.userId).toBe(ME);
   });
 
   it("updates an existing all-categories budget instead of creating a duplicate NULL row", async () => {

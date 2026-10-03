@@ -11,7 +11,7 @@ import { GroupDebtsCard } from "@/components/groups/group-debts-card";
 
 const names = { me: "Me", a: "Asha", b: "Bhanu" };
 const stats: GroupStats = {
-  currency: "INR", total: 250000, yourShare: 100000, yourPaid: 150000, expenseCount: 3,
+  currency: "INR", approximate: false, rateDate: "", total: 250000, yourShare: 100000, yourPaid: 150000, expenseCount: 3,
   byCategory: [{ category: "FOOD", total: 150000 }, { category: "TRAVEL", total: 100000 }],
   byMember: [{ userId: "me", paid: 150000, share: 100000 }, { userId: "a", paid: 100000, share: 150000 }],
   otherCurrencies: [{ currency: "USD", total: 5000 }],
@@ -34,9 +34,25 @@ describe("GroupStatsCard", () => {
     expect(screen.getByText(/Asha/)).toBeInTheDocument();
   });
 
-  it("lists other currencies separately instead of adding them", () => {
+  it("says which spending could NOT be converted (no rate) instead of dropping or mis-adding it", () => {
     render(<GroupStatsCard names={names} stats={stats} />);
-    expect(screen.getByText(/other currencies/i)).toHaveTextContent("$50.00");
+    expect(screen.getByTestId("stats-skipped")).toHaveTextContent(/no exchange rate/i);
+    expect(screen.getByTestId("stats-skipped")).toHaveTextContent("$50.00");
+    expect(screen.queryByTestId("stats-converted")).not.toBeInTheDocument();
+  });
+
+  it("marks figures that include converted spending as approximate, with the rate date", () => {
+    render(<GroupStatsCard names={names} stats={{ ...stats, otherCurrencies: [], approximate: true, rateDate: "2026-10-02" }} />);
+    expect(screen.getByTestId("stats-converted")).toHaveTextContent("≈");
+    expect(screen.getByTestId("stats-converted")).toHaveTextContent("INR");
+    expect(screen.getByTestId("stats-converted")).toHaveTextContent("2026-10-02");
+    expect(screen.queryByTestId("stats-skipped")).not.toBeInTheDocument();
+  });
+
+  it("shows neither note when everything is in one currency", () => {
+    render(<GroupStatsCard names={names} stats={{ ...stats, otherCurrencies: [] }} />);
+    expect(screen.queryByTestId("stats-converted")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("stats-skipped")).not.toBeInTheDocument();
   });
 });
 

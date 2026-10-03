@@ -85,14 +85,13 @@ describe("/api/groups/[id]/budget — permissions and validation", () => {
   it("covers weekly and yearly windows too", async () => {
     p.groupMember.findUnique.mockResolvedValue({ userId: ME });
     p.budget.findMany.mockResolvedValue([{ id: "w", period: "WEEKLY", category: null }, { id: "y", period: "YEARLY", category: null }]);
-    p.expenseSplit.aggregate.mockResolvedValue({ _sum: { amount: null } });
+    p.group.findUnique.mockResolvedValue({ currency: "INR" });
+    p.expenseSplit.findMany.mockResolvedValue([]);
     const { data } = await (await GET_BUDGET(req("GET"), gctx)).json();
-    expect(data.budgets.map((b: { spent: number }) => b.spent)).toEqual([0, 0]); // null sums become 0
-    const ranges = p.expenseSplit.aggregate.mock.calls.map((c: unknown[]) => (c[0] as { where: { expense: { date: { gte: Date; lte: Date } } } }).where.expense.date);
-    const weekMs = ranges[0].lte.getTime() - ranges[0].gte.getTime();
-    const yearMs = ranges[1].lte.getTime() - ranges[1].gte.getTime();
-    expect(Math.round(weekMs / 86_400_000)).toBe(7);
-    expect(Math.round(yearMs / 86_400_000)).toBeGreaterThanOrEqual(365);
+    expect(data.budgets.map((b: { spent: number }) => b.spent)).toEqual([0, 0]); // nothing spent → 0
+    // one query covers the widest window (the year), so weekly/monthly/yearly budgets are all measured from it
+    const range = p.expenseSplit.findMany.mock.calls[0][0].where.expense.date as { gte: Date; lte: Date };
+    expect(Math.round((range.lte.getTime() - range.gte.getTime()) / 86_400_000)).toBeGreaterThanOrEqual(365);
   });
 });
 

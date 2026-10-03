@@ -199,3 +199,22 @@ describe("POST /api/settlements — races", () => {
     expect((await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 100 })))).status).toBe(500);
   });
 });
+
+describe("POST /api/settlements — yen has no fractional amounts", () => {
+  const setup = () => {
+    p.friendship.findMany.mockResolvedValue([{ friendId: OTHER }]);
+    p.groupMember.findMany.mockResolvedValue([]);
+    p.expenseSplit.findMany.mockResolvedValue([]);
+    p.settlement.create.mockResolvedValue({ id: "s", fromUser: { name: "Me" }, toUser: { name: "Pal" } });
+  };
+  it("¥500 is fine", async () => {
+    setup();
+    expect((await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 500, currency: "JPY" })))).status).toBe(201);
+    expect(p.settlement.create.mock.calls[0][0].data.amount).toBe(50000);
+  });
+  it("¥500.5 is refused and nothing is recorded", async () => {
+    setup();
+    expect((await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 500.5, currency: "JPY" })))).status).toBe(400);
+    expect(p.settlement.create).not.toHaveBeenCalled();
+  });
+});

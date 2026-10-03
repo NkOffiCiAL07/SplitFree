@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 
 export interface CurrencyNet { currency: string; net: number }
 
+/** One overall figure in the home currency when balances span several currencies (approximate) */
+export interface InHome { currency: string; net: number; complete: boolean; approximate: boolean }
+
 interface PersonBalance {
   name: string;
   avatarUrl: string | null;
@@ -12,12 +15,14 @@ interface PersonBalance {
   currency: string;
   /** Every non-zero balance, one entry per currency */
   all: CurrencyNet[];
+  inHome: InHome | null;
 }
 
 interface GroupBalance {
   net: number;
   currency: string;
   all: CurrencyNet[];
+  inHome: InHome | null;
 }
 
 interface BalancesData {

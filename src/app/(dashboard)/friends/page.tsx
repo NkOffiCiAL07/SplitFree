@@ -25,7 +25,7 @@ import { getInitials, formatRelativeTime, formatCompactCurrency, cn } from "@/li
 import { APP_NAME } from "@/lib/app-config";
 import type { GroupMember, FriendRequest } from "@/types";
 
-function BalanceLines({ nets }: { nets?: { currency: string; net: number }[] }) {
+function BalanceLines({ nets, inHome }: { nets?: { currency: string; net: number }[]; inHome?: { currency: string; net: number; complete: boolean } | null }) {
   if (!nets?.length) return null;
   return (
     <>
@@ -42,6 +42,11 @@ function BalanceLines({ nets }: { nets?: { currency: string; net: number }[] }) 
             : `owes ${formatCompactCurrency(Math.abs(net), currency)}`}
         </p>
       ))}
+      {nets.length > 1 && inHome && inHome.complete && inHome.net !== 0 && (
+        <p className="text-[10px] text-muted-foreground" data-testid="balance-overall">
+          ≈ {formatCompactCurrency(Math.abs(inHome.net), inHome.currency)} {inHome.net > 0 ? "in your favour" : "to pay"} overall
+        </p>
+      )}
     </>
   );
 }
@@ -282,7 +287,7 @@ export default function FriendsPage() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
-                <BalanceLines nets={balances?.byPerson[friendship.friendId]?.all} />
+                <BalanceLines nets={balances?.byPerson[friendship.friendId]?.all} inHome={balances?.byPerson[friendship.friendId]?.inHome} />
               </div>
               <p className="text-xs text-muted-foreground hidden sm:block shrink-0">
                 {formatRelativeTime(friendship.createdAt)}
@@ -331,7 +336,7 @@ export default function FriendsPage() {
               <div className="flex-1 min-w-0">
                 <Link href={`/friends/${contact.id}`} className="text-sm font-medium truncate block hover:underline">{contact.name ?? "Member"}</Link>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
-                <BalanceLines nets={balances?.byPerson[contact.id]?.all} />
+                <BalanceLines nets={balances?.byPerson[contact.id]?.all} inHome={balances?.byPerson[contact.id]?.inHome} />
               </div>
               <Button
                 size="sm"

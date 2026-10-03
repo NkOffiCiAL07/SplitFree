@@ -229,6 +229,11 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
 
   const onSubmit = async (values: FormValues) => {
     if (splitValidationError) return;
+    // Yen has no sub-unit: say so before sending, instead of a server error afterwards
+    if (values.currency === "JPY" && !Number.isInteger(parseFloat(values.amount))) {
+      toast.error("Yen amounts must be whole numbers (no decimals)");
+      return;
+    }
     if (isGlobalMode && splitContext === "group" && !localGroupId) {
       toast.error("Please select a group or change split context");
       return;
@@ -406,7 +411,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Amount</Label>
-              <Input type="number" step="0.01" min="0.01" placeholder="0.00" {...register("amount")} />
+              <Input type="number" step={selectedCurrency === "JPY" ? "1" : "0.01"} min={selectedCurrency === "JPY" ? "1" : "0.01"} placeholder={selectedCurrency === "JPY" ? "0" : "0.00"} {...register("amount")} />
               {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
             </div>
             <div className="space-y-1.5">
@@ -527,7 +532,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
                       return (
                         <span key={uid} className="text-xs">
                           <span className="font-medium">{name}</span>
-                          <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(2)} {selectedCurrency}</span>
+                          <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(selectedCurrency === "JPY" ? 0 : 2)} {selectedCurrency}</span>
                         </span>
                       );
                     })}

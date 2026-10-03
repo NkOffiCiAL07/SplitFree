@@ -45,14 +45,48 @@ beforeEach(() => {
 });
 
 describe("GET /api/dashboard", () => {
-  it("totals only the primary currency in the headline and lists the rest separately", async () => {
+  it("without exchange rates, the headline holds only home-currency money and says the rest is NOT included", async () => {
     seed({ expenses: [owed({ amount: 100000, currency: "INR" }), owed({ amount: 5000, currency: "USD" })] });
     getRates.mockResolvedValue(null);
     const { data } = await (await GET()).json();
     expect(data.currency).toBe("INR");
-    expect(data.stats.totalOwed).toBe(100000);
-    expect(data.stats.otherCurrencies).toEqual([{ currency: "USD", owed: 5000, owing: 0 }]);
+    expect(data.stats.totalOwed).toBe(100000); // the dollars are NOT mixed in as raw numbers
+    expect(data.stats.incomplete).toBe(true);
+    expect(data.stats.approximate).toBe(false);
+    expect(data.stats.otherCurrencies).toEqual([{ currency: "USD", owed: 5000, owing: 0 }]); // still listed, exactly
     expect(data.stats.combined).toBeNull(); // rates unavailable → no estimate, no crash
+  });
+
+  it("with rates, the headline totals are in the home currency (converted, flagged approximate)", async () => {
+    seed({ expenses: [owed({ amount: 100000, currency: "INR" }), owed({ amount: 1000, currency: "USD" }), owing({ amount: 2000, currency: "USD" })] });
+    getRates.mockResolvedValue({ base: "INR", date: "2026-10-01", rates: { USD: 0.0125 } }); // $10 = ₹800, $20 = ₹1,600
+    const { data } = await (await GET()).json();
+    // per person the dollars net out against each other first ($10 owed − $20 owing = $10 owing) — exactness is kept per currency
+    expect(data.stats).toMatchObject({ approximate: true, incomplete: false, rateDate: "2026-10-01" });
+    expect(data.stats.totalOwed).toBe(100000);
+    expect(data.stats.totalOwing).toBe(80000);
+    expect(data.stats.netBalance).toBe(20000);
+    expect(data.stats.homeOnly).toEqual({ owed: 100000, owing: 0 });
+  });
+
+  it("the monthly chart includes other currencies converted into the home currency", async () => {
+    seed({ expenses: [owed({ amount: 100000, currency: "INR" }), owed({ amount: 1000, currency: "USD" })] });
+    getRates.mockResolvedValue({ base: "INR", date: "d", rates: { USD: 0.0125 } });
+    const { data } = await (await GET()).json();
+    expect(data.monthly[data.monthly.length - 1].owed).toBe(1800); // ₹1,000 + $10 (= ₹800)
+  });
+
+  it("recent activity amounts carry their own currency (never printed in the home currency by mistake)", async () => {
+    seed({ expenses: [] });
+    p.activity.findMany.mockResolvedValue([
+      { id: "a1", type: "EXPENSE_CREATED", metadata: { description: "Hotel", amount: 5000 }, createdAt: day, settlementId: null, expense: { currency: "USD" }, user: { name: "Me", avatarUrl: null } },
+      { id: "a2", type: "SETTLEMENT_CREATED", metadata: { amount: 700 }, createdAt: day, settlementId: "s1", expense: null, user: { name: "Me", avatarUrl: null } },
+      { id: "a3", type: "EXPENSE_CREATED", metadata: { description: "Gone", amount: 100 }, createdAt: day, settlementId: null, expense: null, user: { name: "Me", avatarUrl: null } },
+    ]);
+    p.settlement.findMany.mockResolvedValue([{ id: "s1", currency: "EUR" }]);
+    const { data } = await (await GET()).json();
+    const cur = data.recentActivity.map((a: { metadata: { currency?: string } }) => a.metadata.currency);
+    expect(cur).toEqual(["USD", "EUR", undefined]); // unknown stays unknown (the UI then hides the amount)
   });
 
   it("adds an approximate combined total when live rates are available", async () => {
@@ -68,6 +102,7 @@ describe("GET /api/dashboard", () => {
     getRates.mockResolvedValue({ base: "INR", date: "d", rates: { USD: 0.0125 } });
     const { data } = await (await GET()).json();
     expect(data.stats.combined).toMatchObject({ owed: 100000, complete: false });
+    expect(data.stats.incomplete).toBe(true); // the EUR amount is reported as missing, not silently dropped
   });
 
   it("does not call the rate service when everything is in one currency", async () => {
@@ -126,6 +161,7 @@ describe("GET /api/dashboard", () => {
     expect(data.currency).toBe("USD");
     expect(data.stats.totalOwed).toBe(100000);
     expect(data.stats.otherCurrencies).toEqual([]);
+    expect(data.stats.approximate).toBe(false); // nothing needed converting
     expect(p.group.findFirst).not.toHaveBeenCalled(); // the group lookup is gone entirely
   });
 

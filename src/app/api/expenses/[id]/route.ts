@@ -1,3 +1,4 @@
+import { storedUnitFor } from "@/lib/currencies";
 import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
@@ -62,6 +63,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const data = updateExpenseSchema.parse({ ...body, id });
 
+    // The currency is fixed when an expense is created (changing it would silently re-value everyone's balance).
+    // It used to be ignored without a word, so a client that tried would think it had worked.
+    if (data.currency && data.currency !== existing.currency) {
+      return err("An expense's currency can't be changed — delete it and add it again in the right currency", 400);
+    }
+
     const totalCents = data.amount ? toCents(data.amount) : existing.amount;
     const amountChanged = totalCents !== existing.amount;
     const splitType = data.splitType ?? existing.splitType;
@@ -119,7 +126,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         overrides = Object.fromEntries(existing.splits.map((x) => [x.userId, x.amount / 100]));
       }
     }
-    const splitAmounts = rebuildSplits ? calculateSplits(totalCents, participants, splitType, overrides) : {};
+    const unit = storedUnitFor(existing.currency); // yen has no sub-unit: every amount must be whole yen
+    if (unit > 1 && (totalCents % unit !== 0 || payersCents.some((p) => p.amount % unit !== 0))) {
+      return err("This currency has no fractional amounts — use whole numbers", 400);
+    }
+    const splitAmounts = rebuildSplits ? calculateSplits(totalCents, participants, splitType, overrides, unit) : {};
 
     const updated = await prisma.expense.update({
       where: { id },

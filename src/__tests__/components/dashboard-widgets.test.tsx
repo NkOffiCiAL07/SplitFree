@@ -105,6 +105,23 @@ describe("RecentActivity", () => {
     expect(screen.getByText("Activity recorded")).toBeInTheDocument();
   });
 
+  it("prints every amount in ITS OWN currency, whatever the home currency is", () => {
+    render(<RecentActivity currency="INR" activities={[
+      item({ type: "EXPENSE_CREATED", metadata: { description: "Hotel", amount: 5000, currency: "USD" } }),
+      item({ type: "SETTLEMENT_CREATED", metadata: { amount: 70000, currency: "EUR" } }),
+      item({ type: "EXPENSE_CREATED", metadata: { description: "Chai", amount: 5000, currency: "INR" } }),
+    ] as never} />);
+    expect(screen.getByText("$50.00")).toBeInTheDocument();
+    expect(screen.getByText("€700.00")).toBeInTheDocument();
+    expect(screen.getByText("₹50.00")).toBeInTheDocument();
+  });
+
+  it("hides an amount whose currency is unknown instead of guessing one", () => {
+    render(<RecentActivity currency="INR" activities={[item({ type: "EXPENSE_CREATED", metadata: { description: "Old", amount: 5000 } })] as never} />);
+    expect(screen.getByText("Asha added Old")).toBeInTheDocument();
+    expect(screen.queryByText(/50\.00/)).not.toBeInTheDocument();
+  });
+
   it("links to the full feed", () => {
     render(<RecentActivity activities={[]} />);
     expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute("href", "/activity");

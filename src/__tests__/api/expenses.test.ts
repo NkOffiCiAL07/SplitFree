@@ -305,3 +305,43 @@ describe("POST /api/expenses — money safety", () => {
     expect((await post(body())).status).toBe(500);
   });
 });
+
+describe("POST /api/expenses — yen has no fractional amounts", () => {
+  const asMember = () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }]);
+    p.expense.create.mockImplementation(async ({ data }: { data: unknown }) => ({ id: "e", paidBy: { name: "Me" }, saved: data }));
+  };
+
+  it("¥1,000 split two ways saves ¥500 each", async () => {
+    asMember();
+    expect((await post(body({ currency: "JPY", amount: 1000 }))).status).toBe(201);
+    const { data } = p.expense.create.mock.calls[0][0];
+    expect(data.amount).toBe(100000);
+    expect(data.splits.create.map((s: { amount: number }) => s.amount)).toEqual([50000, 50000]);
+  });
+
+  it("an odd yen total is split in whole yen (¥1,001 → ¥501 + ¥500)", async () => {
+    asMember();
+    expect((await post(body({ currency: "JPY", amount: 1001 }))).status).toBe(201);
+    expect(p.expense.create.mock.calls[0][0].data.splits.create.map((s: { amount: number }) => s.amount)).toEqual([50100, 50000]);
+  });
+
+  it("¥100.50 is refused (400) and nothing is saved", async () => {
+    asMember();
+    const res = await post(body({ currency: "JPY", amount: 100.5 }));
+    expect(res.status).toBe(400);
+    expect(p.expense.create).not.toHaveBeenCalled();
+  });
+
+  it("a multi-payer yen expense with fractional payer amounts is refused", async () => {
+    asMember();
+    const res = await post(body({ currency: "JPY", amount: 1000, payers: [{ userId: ME, amount: 500.5 }, { userId: OTHER, amount: 499.5 }] }));
+    expect(res.status).toBe(400);
+  });
+
+  it("the same amount in rupees is fine with paise", async () => {
+    asMember();
+    expect((await post(body({ currency: "INR", amount: 100.5 }))).status).toBe(201);
+  });
+});

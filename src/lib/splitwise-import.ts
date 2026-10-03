@@ -1,4 +1,4 @@
-import { CURRENCY_CODES } from "@/lib/currencies";
+import { CURRENCY_CODES, isLegalAmount } from "@/lib/currencies";
 
 /**
  * Splitwise "Export as CSV" → expenses and settlements.
@@ -115,6 +115,11 @@ export function parseSplitwiseCsv(text: string): ParsedSplitwise {
       const v = toCentsLoose(cells[5 + i] ?? "");
       if (v) nets[name] = v;
     });
+    // Yen has no sub-unit: a fractional yen amount can't be stored consistently, so skip it rather than guess
+    if (!isLegalAmount(cost, currency) || Object.values(nets).some((v) => !isLegalAmount(v, currency))) {
+      warnings.push(`Line ${line}: "${description}" has fractional ${currency} amounts, which that currency doesn't use — skipped.`);
+      return;
+    }
     if (Object.keys(nets).length === 0) { warnings.push(`Line ${line}: "${description}" involves nobody — skipped.`); return; }
 
     const category = (cells[2] ?? "").trim();

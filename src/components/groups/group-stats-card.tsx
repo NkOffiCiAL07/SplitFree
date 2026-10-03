@@ -67,9 +67,14 @@ export function GroupStatsCard({ stats, names, currentUserId }: Props) {
           </div>
         )}
 
+        {stats.approximate && (
+          <p className="text-[11px] text-muted-foreground" data-testid="stats-converted">
+            ≈ Includes spending in other currencies, converted to {currency} at rates of {stats.rateDate}.
+          </p>
+        )}
         {stats.otherCurrencies.length > 0 && (
-          <p className="text-[11px] text-muted-foreground">
-            Also spent in other currencies:{" "}
+          <p className="text-[11px] text-amber-700 dark:text-amber-400" data-testid="stats-skipped">
+            Not included (no exchange rate available right now):{" "}
             {stats.otherCurrencies.map((o) => formatCompactCurrency(o.total, o.currency)).join(", ")}
           </p>
         )}

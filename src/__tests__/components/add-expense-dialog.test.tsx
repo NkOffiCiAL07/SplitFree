@@ -246,3 +246,37 @@ describe("AddExpenseDialog — currency", () => {
     expect(mutateAsync.mock.calls[0][0].currency).toBe("INR");
   });
 });
+
+describe("AddExpenseDialog — yen has no decimals", () => {
+  it("the amount box takes whole numbers only (step 1) and the preview shows no decimals", async () => {
+    renderGroup({ groupCurrency: "JPY" });
+    const amount = screen.getByPlaceholderText("0");
+    expect(amount).toHaveAttribute("step", "1");
+    await userEvent.type(amount, "1000");
+    expect(screen.getAllByText(/333 JPY/).length).toBeGreaterThan(0);
+  });
+
+  it("a fractional yen amount is stopped before it is sent (the browser's own number check flags it)", async () => {
+    renderGroup({ groupCurrency: "JPY" });
+    await userEvent.type(screen.getByPlaceholderText(/dinner, groceries, rent/i), "Ramen");
+    const amount = screen.getByPlaceholderText("0") as HTMLInputElement;
+    await userEvent.type(amount, "100.5");
+    expect(amount.validity.stepMismatch).toBe(true);
+    await submit();
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("a whole-yen amount is sent as usual", async () => {
+    renderGroup({ groupCurrency: "JPY" });
+    await userEvent.type(screen.getByPlaceholderText(/dinner, groceries, rent/i), "Ramen");
+    await userEvent.type(screen.getByPlaceholderText("0"), "1200");
+    await submit();
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledOnce());
+    expect(mutateAsync.mock.calls[0][0]).toMatchObject({ amount: 1200, currency: "JPY" });
+  });
+
+  it("other currencies keep two decimals", () => {
+    renderGroup({ groupCurrency: "USD" });
+    expect(screen.getByPlaceholderText("0.00")).toHaveAttribute("step", "0.01");
+  });
+});

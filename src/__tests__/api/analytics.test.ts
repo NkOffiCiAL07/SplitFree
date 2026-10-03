@@ -12,7 +12,7 @@ import { GET } from "@/app/api/analytics/route";
 
 const p = prismaMock as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 const monthsAgo = (n: number) => { const d = subMonths(new Date(), n); d.setDate(15); return d; };
-const myExpense = (amount: number, category: string, monthsBack = 0) => ({ id: Math.random(), category, date: monthsAgo(monthsBack), splits: [{ userId: ME, amount }] });
+const myExpense = (amount: number, category: string, monthsBack = 0, currency = "INR") => ({ id: Math.random(), category, currency, date: monthsAgo(monthsBack), splits: [{ userId: ME, amount }] });
 
 function seed(over: { expenses?: unknown[]; ledger?: unknown[]; groups?: unknown[]; currency?: string } = {}) {
   p.user.findUnique.mockResolvedValue({ currency: over.currency ?? "INR" });
@@ -70,10 +70,12 @@ describe("GET /api/analytics", () => {
     expect(data.monthly.every((m: { total: number }) => m.total === 0)).toBe(true);
   });
 
-  it("only counts expenses in the user's own currency (never sums rupees and dollars)", async () => {
+  it("reads expenses in EVERY currency (they are converted, not dropped)", async () => {
     seed({ currency: "USD" });
     await GET();
-    expect(p.expense.findMany.mock.calls[0][0].where).toMatchObject({ currency: "USD", splits: { some: { userId: ME } } });
+    const where = p.expense.findMany.mock.calls[0][0].where;
+    expect(where).toMatchObject({ splits: { some: { userId: ME } } });
+    expect(where).not.toHaveProperty("currency");
   });
 
   it("falls back to INR when the profile has no currency", async () => {

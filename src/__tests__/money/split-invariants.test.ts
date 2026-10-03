@@ -85,3 +85,45 @@ describe("toCents", () => {
     for (let c = 1; c <= 100_000_000; c += 9973) expect(toCents(c / 100)).toBe(c);
   });
 });
+
+describe("yen: no sub-unit, so every share must be a whole yen and the shares still add up exactly", () => {
+  const YEN = 100; // stored units per yen
+  const sumOf = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a + b, 0);
+
+  it("EQUAL — ¥1,000 between 3 people: whole yen each, remainder to the first", () => {
+    const s = calculateSplits(1000 * YEN, ["a", "b", "c"], "EQUAL", undefined, YEN);
+    expect(s).toEqual({ a: 334 * YEN, b: 333 * YEN, c: 333 * YEN });
+    expect(sumOf(s)).toBe(1000 * YEN);
+  });
+
+  it("random yen totals and group sizes: every share a whole yen, sum exact (all split types)", () => {
+    const r = rng(11);
+    for (let i = 0; i < 2000; i++) {
+      const n = 2 + Math.floor(r() * 6), total = (1 + Math.floor(r() * 500_000)) * YEN;
+      const ps = ids(n);
+      const shares = Object.fromEntries(ps.map((id) => [id, 1 + Math.floor(r() * 5)]));
+      const outputs = [
+        calculateSplits(total, ps, "EQUAL", undefined, YEN),
+        calculateSplits(total, ps, "SHARES", shares, YEN),
+        calculateSplits(total, ps, "PERCENTAGE", Object.fromEntries(ps.map((id, k) => [id, k === 0 ? 100 - 5 * (n - 1) : 5])), YEN),
+      ];
+      for (const out of outputs) {
+        expect(sumOf(out), `total ${total}`).toBe(total);
+        for (const v of Object.values(out)) { expect(v % YEN).toBe(0); expect(v).toBeGreaterThanOrEqual(0); }
+      }
+    }
+  });
+
+  it("EXACT — whole-yen amounts that add up are accepted", () => {
+    expect(calculateSplits(1000 * YEN, ["a", "b"], "EXACT", { a: 400, b: 600 }, YEN)).toEqual({ a: 400 * YEN, b: 600 * YEN });
+  });
+
+  it("refuses fractional yen anywhere", () => {
+    expect(() => calculateSplits(1000 * YEN + 50, ["a", "b"], "EQUAL", undefined, YEN)).toThrow(/whole number/);
+    expect(() => calculateSplits(1000 * YEN, ["a", "b"], "EXACT", { a: 400.5, b: 599.5 }, YEN)).toThrow(/whole/);
+  });
+
+  it("other currencies keep paise (unit 1 is unchanged)", () => {
+    expect(calculateSplits(1001, ["a", "b"], "EQUAL")).toEqual({ a: 501, b: 500 });
+  });
+});

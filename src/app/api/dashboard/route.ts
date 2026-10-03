@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, ensureUserProfile, handleError } from "@/lib/api-helpers";
 import { subMonths, startOfMonth, format } from "date-fns";
 import { NextResponse } from "next/server";
-import { getRates, convertToBase } from "@/lib/rates";
+import { loadConverter, sumInHome } from "@/lib/convert";
+import { withActivityCurrency } from "@/lib/activity-currency";
 import { loadUserLedger, loadPeople } from "@/lib/ledger-db";
 import { pairNets } from "@/lib/ledger";
 
@@ -24,7 +25,8 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
-          id: true, type: true, metadata: true, createdAt: true,
+          id: true, type: true, metadata: true, createdAt: true, settlementId: true,
+          expense: { select: { currency: true } },
           user: { select: { name: true, avatarUrl: true } },
         },
       }),
@@ -36,8 +38,12 @@ export async function GET() {
     // recently updated group's currency, which made the setting do nothing for most people.)
     const currency = profile?.currency ?? DEFAULT_CURRENCY;
 
-    // Monthly chart — primary currency only (amounts in different currencies are never summed).
-    // Built from expense-created debts (settlements are not "spending"), accumulated in cents.
+    // Everything is summarised in the home currency: other currencies are converted at live rates (approximate,
+    // and flagged as such). Debts themselves stay exact per currency in the balance lists below.
+    const nonHome = edges.some((e) => e.currency !== currency);
+    const conv = await loadConverter(currency, nonHome);
+
+    // Monthly chart, built from expense-created debts (settlements are not "spending"), accumulated in cents.
     const months: { month: string; owed: number; owing: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const start = startOfMonth(subMonths(new Date(), i));
@@ -45,10 +51,12 @@ export async function GET() {
       let owedCents = 0;
       let owingCents = 0;
       for (const e of edges) {
-        if (e.kind !== "expense" || e.currency !== currency || !e.date) continue;
+        if (e.kind !== "expense" || !e.date) continue;
         if (format(new Date(e.date), "yyyy-MM") !== monthKey) continue;
-        if (e.toUserId === userId) owedCents += e.amount;
-        else if (e.fromUserId === userId) owingCents += e.amount;
+        const inHome = conv.toHome(e.amount, e.currency);
+        if (inHome === null) continue; // no rate for this currency: left out (flagged via stats.incomplete)
+        if (e.toUserId === userId) owedCents += inHome;
+        else if (e.fromUserId === userId) owingCents += inHome;
       }
       months.push({ month: format(start, "MMM"), owed: owedCents / 100, owing: owingCents / 100 });
     }
@@ -79,24 +87,14 @@ export async function GET() {
       .filter(([cur, t]) => cur !== currency && (t.owed > 0 || t.owing > 0))
       .map(([cur, t]) => ({ currency: cur, owed: t.owed, owing: t.owing }));
 
-    // Approximate combined total across currencies (live rates, best effort: omitted if unavailable)
-    let combined: { owed: number; owing: number; net: number; date: string; complete: boolean } | null = null;
-    if (otherCurrencies.length > 0) {
-      const rates = await getRates(currency, { timeoutMs: 800 }); // never hold the dashboard up for a slow rate service
-      if (rates) {
-        let owed = main.owed;
-        let owing = main.owing;
-        let complete = true;
-        for (const o of otherCurrencies) {
-          const co = convertToBase(o.owed, o.currency, rates);
-          const cw = convertToBase(o.owing, o.currency, rates);
-          if (co === null || cw === null) { complete = false; continue; }
-          owed += co;
-          owing += cw;
-        }
-        combined = { owed, owing, net: owed - owing, date: rates.date, complete };
-      }
-    }
+    // Headline totals in the home currency (other currencies converted; approximate when any were)
+    const owedTotal = sumInHome([...totalsByCurrency.entries()].map(([c, t]) => ({ amount: t.owed, currency: c })), conv);
+    const owingTotal = sumInHome([...totalsByCurrency.entries()].map(([c, t]) => ({ amount: t.owing, currency: c })), conv);
+    const approximate = owedTotal.approximate || owingTotal.approximate;
+    const incomplete = !owedTotal.complete || !owingTotal.complete;
+    const combined = otherCurrencies.length > 0 && conv.date
+      ? { owed: owedTotal.total, owing: owingTotal.total, net: owedTotal.total - owingTotal.total, date: conv.date, complete: !incomplete }
+      : null;
 
     const personBalances = balanceRows
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
@@ -104,10 +102,15 @@ export async function GET() {
 
     const body = JSON.stringify({
       data: {
-        stats: { totalOwed: main.owed, totalOwing: main.owing, groupCount: groups, netBalance: main.owed - main.owing, otherCurrencies, combined },
+        stats: {
+          totalOwed: owedTotal.total, totalOwing: owingTotal.total, groupCount: groups, netBalance: owedTotal.total - owingTotal.total,
+          approximate, incomplete, rateDate: approximate ? conv.date : "",
+          homeOnly: { owed: main.owed, owing: main.owing },
+          otherCurrencies, combined,
+        },
         monthly: months,
         personBalances,
-        recentActivity,
+        recentActivity: await withActivityCurrency(recentActivity),
         currency,
       },
     });

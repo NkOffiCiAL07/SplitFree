@@ -72,21 +72,27 @@ export function calculateSplits(
   totalCents: number,
   participants: string[],
   splitType: "EQUAL" | "EXACT" | "PERCENTAGE" | "SHARES",
-  overrides?: Record<string, number>
+  overrides?: Record<string, number>,
+  /** Smallest legal step of the currency in stored units (1 normally; 100 for yen, which has no sub-unit) */
+  unit = 1
 ): Record<string, number> {
   if (!Number.isInteger(totalCents) || totalCents <= 0) throw new SplitError("Total must be a positive amount");
   if (participants.length === 0) throw new SplitError("At least one participant required");
   if (new Set(participants).size !== participants.length) throw new SplitError("A participant is listed twice");
+  if (totalCents % unit !== 0) throw new SplitError("This currency has no fractional amounts — use a whole number");
 
+  // Work in whole units of the currency (yen), then scale back: every share is then a legal amount too
+  const total = totalCents / unit;
+  const scale = (r: Record<string, number>) => (unit === 1 ? r : Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v * unit])));
   const result: Record<string, number> = {};
 
   if (splitType === "EQUAL") {
-    const perPerson = Math.floor(totalCents / participants.length);
-    const remainder = totalCents - perPerson * participants.length;
+    const perPerson = Math.floor(total / participants.length);
+    const remainder = total - perPerson * participants.length;
     participants.forEach((id, idx) => {
       result[id] = perPerson + (idx === 0 ? remainder : 0);
     });
-    return result;
+    return scale(result);
   }
 
   if (!overrides) {
@@ -104,15 +110,19 @@ export function calculateSplits(
   const valueOf = (id: string) => overrides[id] ?? 0;
 
   if (splitType === "EXACT") {
-    participants.forEach((id) => { result[id] = toCents(valueOf(id)); });
-    if (Object.values(result).reduce((a, b) => a + b, 0) !== totalCents) throw new SplitError("Exact amounts don't add up to total");
-    return result;
+    for (const id of participants) {
+      const cents = toCents(valueOf(id));
+      if (cents % unit !== 0) throw new SplitError("This currency has no fractional amounts — use whole numbers");
+      result[id] = cents / unit;
+    }
+    if (Object.values(result).reduce((a, b) => a + b, 0) !== total) throw new SplitError("Exact amounts don't add up to total");
+    return scale(result);
   }
 
   const totalWeight = participants.reduce((sum, id) => sum + valueOf(id), 0);
   if (splitType === "PERCENTAGE" && Math.abs(totalWeight - 100) > 0.01) throw new SplitError("Percentages must sum to 100");
   if (splitType === "SHARES" && totalWeight === 0) throw new SplitError("Total shares cannot be zero");
-  return allocateProportionally(totalCents, participants, valueOf, totalWeight);
+  return scale(allocateProportionally(total, participants, valueOf, totalWeight));
 }
 
 /**
