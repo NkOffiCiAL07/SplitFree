@@ -3,7 +3,6 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("@/components/layout/theme-toggle", () => ({ ThemeToggle: () => <div /> }));
-vi.mock("@/components/landing/demo-button", () => ({ DemoButton: () => <button>Try demo — no signup</button> }));
 vi.mock("next/dynamic", () => ({ default: () => (p: { value: string }) => <svg data-testid="qr" data-value={p.value} /> }));
 
 import LandingPage from "@/app/page";
@@ -52,9 +51,18 @@ describe("Landing page — Android app", () => {
     const { container } = render(<LandingPage />);
     for (const id of ["download", "features", "faq"]) expect(container.querySelector(`#${id}`)).not.toBeNull();
     expect(screen.getAllByRole("link", { name: "Android app" }).every((a) => a.getAttribute("href") === "#download")).toBe(true);
-    expect(screen.getAllByRole("link", { name: /get started|start splitting|sign up/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
     expect(screen.getByRole("link", { name: "Support" })).toHaveAttribute("href", "/support");
+  });
+
+  it("has ONE way in — Sign in — and no demo, sign-up or 'get started' buttons competing with it", () => {
+    render(<LandingPage />);
+    const signIn = screen.getAllByRole("link", { name: /^sign in$/i });
+    expect(signIn.length).toBeGreaterThanOrEqual(3); // header, hero, closing call to action (+ footer)
+    for (const a of signIn) expect(a).toHaveAttribute("href", "/login");
+    expect(screen.queryByRole("link", { name: /get started|start splitting|sign up|try demo|demo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /demo|get started|start splitting/i })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/signup"]')).toBeNull();
   });
 
   it("answers the questions people have in an accessible accordion", async () => {

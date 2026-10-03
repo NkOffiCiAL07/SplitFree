@@ -18,7 +18,6 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => h.auth }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: h.supabase }) }));
-vi.mock("@/components/landing/demo-button", () => ({ DemoButton: () => null }));
 
 import LoginForm from "@/app/(auth)/login/login-form";
 import SignupForm from "@/app/(auth)/signup/signup-form";
@@ -108,23 +107,13 @@ describe("LoginForm", () => {
     expect(screen.getByRole("link", { name: /forgot password/i })).toHaveAttribute("href", "/reset-password");
   });
 
-  it("the dev bypass is hidden in production", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    render(<LoginForm />);
-    expect(screen.queryByRole("button", { name: /dev bypass/i })).not.toBeInTheDocument();
-  });
-
-  it("in development the bypass signs in with the dev account, and shows errors", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ email: "dev@splitfree.local", password: "pw" }) }));
-    render(<LoginForm />);
-    await userEvent.click(screen.getByRole("button", { name: /dev bypass/i }));
-    await waitFor(() => expect(h.auth.signInWithEmail).toHaveBeenCalledWith("dev@splitfree.local", "pw"));
-    expect(h.push).toHaveBeenCalledWith("/dashboard");
-
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ error: "Forbidden" }) }));
-    await userEvent.click(screen.getByRole("button", { name: /dev bypass/i }));
-    await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith("Forbidden"));
+  it("has no bypass or demo login — signing in takes real credentials (in every environment)", () => {
+    for (const env of ["production", "development"]) {
+      vi.stubEnv("NODE_ENV", env);
+      const { unmount } = render(<LoginForm />);
+      expect(screen.queryByRole("button", { name: /bypass|skip login|demo/i })).not.toBeInTheDocument();
+      unmount();
+    }
   });
 });
 

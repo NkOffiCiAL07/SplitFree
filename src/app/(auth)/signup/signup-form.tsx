@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, Zap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
@@ -38,11 +38,10 @@ function SignupFormContent() {
   // Where to go after sign-up (e.g. back to an invite link) — in-app paths only
   const redirectParam = searchParams.get("redirect");
   const redirect = safeRedirectPath(redirectParam);
-  const { signUpWithEmail, signInWithGoogle, signInWithEmail } = useAuth();
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [devLoading, setDevLoading] = useState(false);
 
   const {
     register,
@@ -78,20 +77,6 @@ function SignupFormContent() {
     }
   };
 
-  const handleDevBypass = async () => {
-    setDevLoading(true);
-    try {
-      const res = await fetch("/api/dev-login", { method: "POST" });
-      const json = await res.json();
-      if (json.error) { toast.error(json.error); return; }
-      const { error } = await signInWithEmail(json.email, json.password);
-      if (error) { toast.error(error.message); return; }
-      toast.success("Signed in as dev user");
-      router.push("/dashboard");
-    } finally {
-      setDevLoading(false);
-    }
-  };
 
   if (emailSent) {
     return (
@@ -231,20 +216,6 @@ function SignupFormContent() {
         </Link>
       </p>
 
-      {process.env.NODE_ENV === "development" && (
-        <div className="pt-2 border-t border-dashed">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full gap-2 text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-            onClick={handleDevBypass}
-            loading={devLoading}
-          >
-            <Zap className="size-4" /> Dev bypass — skip login
-          </Button>
-          <p className="text-[10px] text-center text-muted-foreground mt-1.5">Only visible in development</p>
-        </div>
-      )}
     </m.div>
   );
 }

@@ -13,8 +13,6 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import { GET as CALLBACK } from "@/app/auth/callback/route";
-import { POST as DEV_LOGIN } from "@/app/api/dev-login/route";
-import { POST as DEMO_LOGIN } from "@/app/api/demo-login/route";
 
 const p = prismaMock as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 const ORIGIN = "https://app.example";
@@ -92,49 +90,5 @@ describe("GET /auth/callback", () => {
     p.groupMember.upsert.mockRejectedValueOnce(new Error("dup")).mockResolvedValueOnce({});
     await callback("?code=x");
     expect(p.groupMember.upsert).toHaveBeenCalledTimes(2);
-  });
-});
-
-describe("POST /api/dev-login", () => {
-  it("is forbidden outside development (never exposes a test account in production)", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    expect((await DEV_LOGIN()).status).toBe(403);
-    vi.stubEnv("NODE_ENV", "test");
-    expect((await DEV_LOGIN()).status).toBe(403);
-    expect(supabase.createUser).not.toHaveBeenCalled();
-  });
-
-  it("in development creates (or reuses) the dev user and returns its credentials", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    supabase.createUser.mockResolvedValue({ error: null });
-    const res = await DEV_LOGIN();
-    expect((await res.json()).email).toBe("dev@splitfree.local");
-    supabase.createUser.mockResolvedValue({ error: { message: "User already registered" } });
-    expect((await DEV_LOGIN()).status).toBe(200);
-  });
-
-  it("surfaces real errors", async () => {
-    vi.stubEnv("NODE_ENV", "development");
-    supabase.createUser.mockResolvedValue({ error: { message: "quota exceeded" } });
-    expect((await DEV_LOGIN()).status).toBe(400);
-    supabase.createUser.mockRejectedValue(new Error("boom"));
-    expect((await DEV_LOGIN()).status).toBe(500);
-  });
-});
-
-describe("POST /api/demo-login", () => {
-  it("is disabled (503) until DEMO_EMAIL and DEMO_PASSWORD are configured", async () => {
-    vi.stubEnv("DEMO_EMAIL", "");
-    vi.stubEnv("DEMO_PASSWORD", "");
-    expect((await DEMO_LOGIN()).status).toBe(503);
-    vi.stubEnv("DEMO_EMAIL", "demo@x.com");
-    vi.stubEnv("DEMO_PASSWORD", "");
-    expect((await DEMO_LOGIN()).status).toBe(503);
-  });
-
-  it("returns the demo credentials once configured", async () => {
-    vi.stubEnv("DEMO_EMAIL", "demo@x.com");
-    vi.stubEnv("DEMO_PASSWORD", "pw");
-    expect(await (await DEMO_LOGIN()).json()).toEqual({ email: "demo@x.com", password: "pw" });
   });
 });

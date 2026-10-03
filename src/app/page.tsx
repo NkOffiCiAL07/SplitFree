@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { DemoButton } from "@/components/landing/demo-button";
 import { DownloadPanel } from "@/components/landing/download-panel";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
@@ -131,14 +130,8 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
-              <Link href="/login">Sign in</Link>
-            </Button>
             <Button variant="brand" size="sm" asChild>
-              <Link href="/signup">
-                <span className="hidden sm:inline">Get started free</span>
-                <span className="sm:hidden">Sign up</span>
-              </Link>
+              <Link href="/login">Sign in</Link>
             </Button>
           </div>
         </div>
@@ -176,13 +169,12 @@ export default function LandingPage() {
             </p>
 
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "180ms" }}>
-              <Button variant="brand" size="xl" className="h-12 w-full px-8 text-base sm:w-auto" asChild>
-                <Link href="/signup">
-                  Start splitting for free
+              <Button variant="brand" size="xl" className="h-12 w-full px-10 text-base sm:w-auto" asChild>
+                <Link href="/login">
+                  Sign in
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <DemoButton />
             </div>
 
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
@@ -368,8 +360,8 @@ export default function LandingPage() {
               <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Set up in under a minute. Free on the web and Android — iOS coming soon.</p>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button variant="secondary" size="xl" className="h-12 border-0 bg-white px-9 text-base font-semibold text-violet-700 hover:bg-white/90" asChild>
-                  <Link href="/signup">
-                    Get started — it&apos;s free
+                  <Link href="/login">
+                    Sign in
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
