@@ -421,3 +421,6 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
     .anim-float, .anim-float-slow { animation: none; }
   }
 }
+
+/* Web-only bits hidden inside the iPhone app from the very first paint (the html tag is classed by an inline script) */
+.native-app [data-hide-in-app] { display: none !important; }

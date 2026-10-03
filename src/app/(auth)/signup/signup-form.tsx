@@ -132,7 +132,7 @@ function SignupFormContent() {
         <>
       <Button
         variant="outline"
-        className="anim-fade-up w-full gap-2 max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base"
+        data-hide-in-app className="anim-fade-up w-full gap-2 max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base"
         style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
@@ -143,7 +143,7 @@ function SignupFormContent() {
         Sign up with Google
       </Button>
 
-      <div className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
+      <div data-hide-in-app className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />

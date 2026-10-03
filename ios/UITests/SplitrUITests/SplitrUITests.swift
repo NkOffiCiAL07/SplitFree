@@ -36,9 +36,10 @@ final class SplitrUITests: XCTestCase {
     func test01_launchShowsSignInEmailOnly() {
         app.terminate(); app.launch()
         waitForSignIn()
-        sleep(2)
+        XCTAssertFalse(web.buttons["Continue with Google"].exists, "Google must be hidden inside the app (even before the page finishes loading)")
+        sleep(4) // let the entrance animation finish
         shot("01-signin")
-        XCTAssertFalse(web.buttons["Continue with Google"].exists, "Google must be hidden inside the app")
+        XCTAssertFalse(web.buttons["Continue with Google"].exists, "Google must stay hidden")
         XCTAssertTrue(web.staticTexts["Welcome back"].exists || web.staticTexts["Welcome back 👋"].exists || web.otherElements.containing(NSPredicate(format: "label CONTAINS 'Welcome back'")).count > 0)
         XCTAssertFalse(web.staticTexts["You're in another app's browser"].exists, "no false in-app-browser warning")
     }
@@ -72,10 +73,12 @@ final class SplitrUITests: XCTestCase {
         let (email, password) = try credentials()
         app.terminate(); app.launch(); waitForSignIn()
         let e = web.textFields.firstMatch; e.tap(); e.typeText(email)
-        let p = web.secureTextFields.firstMatch; p.tap(); p.typeText(password)
-        web.buttons["Sign in"].tap()
+        let p = web.secureTextFields.firstMatch; p.tap(); p.typeText(password + "\n") // the keyboard's Go key submits the form
         let dash = web.staticTexts.containing(NSPredicate(format: "label CONTAINS 'financial snapshot'")).firstMatch
-        XCTAssertTrue(dash.waitForExistence(timeout: 60), "dashboard should load after signing in")
+        let arrived = dash.waitForExistence(timeout: 60)
+        shot("04-after-signin-attempt")
+        if !arrived { print("WEBVIEW TEXTS:", web.staticTexts.allElementsBoundByIndex.prefix(25).map { $0.label }) }
+        XCTAssertTrue(arrived, "dashboard should load after signing in")
         sleep(3)
         shot("04-dashboard")
         // bottom navigation works
@@ -83,5 +86,49 @@ final class SplitrUITests: XCTestCase {
             let link = web.links[tab].firstMatch
             if link.exists { link.tap(); sleep(3); shot("05-tab-\(tab.lowercased())") }
         }
+    }
+
+    private func dashboardLabel() -> XCUIElement {
+        web.staticTexts.containing(NSPredicate(format: "label CONTAINS 'financial snapshot'")).firstMatch
+    }
+
+    func test05_staysSignedInAfterRelaunchAndAddsAnExpense() throws {
+        app.terminate(); app.launch()
+        XCTAssertTrue(web.waitForExistence(timeout: 60))
+        if !dashboardLabel().waitForExistence(timeout: 45) {
+            // session did not persist: sign in again (reported below)
+            XCTFail("the signed-in session should survive closing and reopening the app")
+            return
+        }
+        sleep(2)
+        shot("06-relaunched-still-signed-in")
+
+        web.buttons["Add expense"].firstMatch.tap()
+        let desc = web.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS 'Dinner'")).firstMatch
+        XCTAssertTrue(desc.waitForExistence(timeout: 30), "add-expense form should open")
+        web.buttons.matching(NSPredicate(format: "label CONTAINS 'Just me'")).firstMatch.tap() // new account: no groups yet
+        desc.tap(); desc.typeText("UI test lunch")
+        let amount = web.textFields.matching(NSPredicate(format: "placeholderValue == '0.00'")).firstMatch
+        XCTAssertTrue(amount.waitForExistence(timeout: 10))
+        amount.tap(); amount.typeText("250")
+        sleep(1)
+        shot("07-add-expense-form")
+        let submit = web.buttons.matching(NSPredicate(format: "label == 'Add expense'")).allElementsBoundByIndex.last!
+        submit.tap()
+        let toast = web.staticTexts["Expense added"]
+        XCTAssertTrue(toast.waitForExistence(timeout: 40), "should confirm 'Expense added'")
+        shot("08-expense-added")
+    }
+
+    func test06_dashboardHasNoMarketingPage() throws {
+        // Opening the site root inside the app must land on the dashboard (or sign-in), never the marketing page
+        app.activate()
+        XCUIDevice.shared.system.open(URL(string: "splitrpro://dashboard")!)
+        let spring = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let open = spring.alerts.buttons["Open"]
+        if open.waitForExistence(timeout: 8) { open.tap() }
+        sleep(5)
+        XCTAssertFalse(web.staticTexts["Hisaab saaf."].exists && web.links["Android app"].exists, "the marketing page must not appear in the app")
+        shot("09-no-marketing-page")
     }
 }

@@ -93,3 +93,13 @@ describe("App Store artwork", () => {
     }
   });
 });
+
+describe("the app never flashes web-only controls", () => {
+  it("tags <html> as the app before first paint and hides the Google button + divider with CSS", () => {
+    expect(read("src/app/layout.tsx")).toMatch(/SplitrProApp.*classList\.add\('native-app'\)/);
+    expect(read("src/app/globals.css")).toContain(".native-app [data-hide-in-app]");
+    for (const f of ["src/app/(auth)/login/login-form.tsx", "src/app/(auth)/signup/signup-form.tsx"]) {
+      expect(read(f).match(/data-hide-in-app/g)?.length).toBe(2); // the button and the "or" divider
+    }
+  });
+});

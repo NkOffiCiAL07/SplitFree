@@ -91,7 +91,8 @@ export default function RootLayout({
         {/* Inline SW registration so crawlers (PWABuilder, Lighthouse) detect it */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+            // (also tags the iPhone app before first paint so web-only bits, e.g. the Google button, never flash)
+            __html: `if(/SplitrProApp/.test(navigator.userAgent))document.documentElement.classList.add('native-app');if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
           }}
         />
         <ThemeProvider
