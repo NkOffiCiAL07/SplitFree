@@ -11,7 +11,7 @@ const h = vi.hoisted(() => ({
 }));
 vi.mock("sonner", () => ({ toast: h.toast }));
 vi.mock("@/hooks/use-auth", () => ({ useAuth: () => ({ user: { id: "me" } }) }));
-vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => "INR" }));
+vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => "INR", useProfile: () => ({ data: { upiId: "nishant@okaxis" } }) }));
 vi.mock("@/hooks/use-friends", () => ({ useFriendContacts: () => h.friends }));
 vi.mock("@/hooks/use-settlements", () => ({
   useSettlements: () => h.settlements,
@@ -57,7 +57,7 @@ describe("SettlePage — what you owe and are owed", () => {
     h.balance.data = { simplified: [debt({}), debt({ fromUserId: "b", toUserId: "me", amount: 20000, fromUser: person("b", "Bhanu Pal"), toUser: person("me", "Nishant") })] };
     render(<SettlePage />);
     expect(screen.getAllByRole("button", { name: "Pay" })).toHaveLength(1);
-    expect(screen.getAllByRole("button", { name: /remind/i })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Remind" })).toHaveLength(1);
     const upi = screen.getByRole("link", { name: /pay asha rao via upi/i });
     expect(upi.getAttribute("href")).toContain("pa=asha%40okhdfc");
     expect(upi.getAttribute("href")).toContain("am=500.00");
@@ -72,8 +72,29 @@ describe("SettlePage — what you owe and are owed", () => {
   it("Remind sends the debtor, amount and currency", async () => {
     h.balance.data = { simplified: [debt({ fromUserId: "b", toUserId: "me", amount: 20000, currency: "INR", fromUser: person("b", "Bhanu Pal"), toUser: person("me", "Nishant") })] };
     render(<SettlePage />);
-    await userEvent.click(screen.getByRole("button", { name: /remind/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Remind" }));
     expect(h.remind).toHaveBeenCalledWith({ debtorId: "b", amount: 20000, currency: "INR" });
+  });
+
+  it("Remind on WhatsApp opens a ready-to-send message with the amount and my UPI ID", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    h.balance.data = { simplified: [debt({ fromUserId: "b", toUserId: "me", amount: 20000, currency: "INR", fromUser: person("b", "Bhanu Pal"), toUser: person("me", "Nishant") })] };
+    render(<SettlePage />);
+    await userEvent.click(screen.getByRole("button", { name: /remind bhanu pal on whatsapp/i }));
+    const url = new URL(open.mock.calls[0][0] as string);
+    expect(url.origin + url.pathname).toBe("https://wa.me/");
+    const text = url.searchParams.get("text")!;
+    expect(text).toContain("Hi Bhanu");
+    expect(text).toContain("₹200.00");
+    expect(text).toContain("nishant@okaxis");
+    expect(open.mock.calls[0][1]).toBe("_blank");
+    expect(h.remind).not.toHaveBeenCalled(); // WhatsApp is separate from the in-app reminder
+  });
+
+  it("no WhatsApp reminder on debts I owe", () => {
+    h.balance.data = { simplified: [debt({})] };
+    render(<SettlePage />);
+    expect(screen.queryByRole("button", { name: /on whatsapp/i })).not.toBeInTheDocument();
   });
 
   it("shares the plan via the clipboard when the share sheet isn't available", async () => {

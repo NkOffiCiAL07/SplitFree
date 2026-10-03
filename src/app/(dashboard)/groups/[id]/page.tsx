@@ -1,10 +1,11 @@
 "use client";
 
+import { buildGroupInviteMessage, whatsappShareUrl } from "@/lib/invite";
 import dynamic from "next/dynamic";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
-import { ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Archive, ArchiveRestore, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
+import { MessageCircle, ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Archive, ArchiveRestore, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership, useArchiveGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
 import { useDeleteExpense, useInfiniteExpenses } from "@/hooks/use-expenses";
@@ -123,6 +124,14 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(serialized);
   };
 
+  const shareOnWhatsApp = async () => {
+    const res = await fetch(`/api/groups/${id}/invite-link`);
+    const json = await res.json();
+    if (!json.data?.token) { toast.error("Failed to generate invite link"); return; }
+    const text = buildGroupInviteMessage(group?.name ?? "our group", `${window.location.origin}/join/${json.data.token}`, user?.user_metadata?.name);
+    window.open(whatsappShareUrl(text), "_blank", "noopener,noreferrer");
+  };
+
   const shareQRCode = async () => {
     if (navigator.share) {
       try { await navigator.share({ title: `Join ${group?.name} on ${APP_NAME}`, url: qrUrl }); } catch { /* cancelled */ }
@@ -217,6 +226,13 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
               <Link2 className="size-4" />
             </Button>
             <Button
+              variant="ghost" size="icon-sm" title="Invite on WhatsApp" aria-label="Invite on WhatsApp"
+              className="text-muted-foreground hover:text-green-600"
+              onClick={shareOnWhatsApp}
+            >
+              <MessageCircle className="size-4" />
+            </Button>
+            <Button
               variant="ghost" size="icon-sm" title="QR code invite"
               className="text-muted-foreground hover:text-foreground"
               onClick={async () => {
@@ -274,6 +290,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                     } else toast.error("Failed to generate invite link");
                   }}>
                     <Link2 className="size-4 mr-2" /> Copy invite link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={shareOnWhatsApp}>
+                    <MessageCircle className="size-4 mr-2" /> Invite on WhatsApp
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={async () => {
                     const res = await fetch(`/api/groups/${id}/invite-link`);

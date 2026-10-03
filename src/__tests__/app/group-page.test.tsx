@@ -43,6 +43,7 @@ vi.mock("@/components/groups/group-stats-card", () => ({ GroupStatsCard: () => <
 vi.mock("@/components/expenses/expense-comments", () => ({ ExpenseComments: () => <div /> }));
 vi.mock("@/components/expenses/expense-history", () => ({ ExpenseHistory: () => <div /> }));
 
+import { toast } from "sonner";
 import GroupDetailPage from "@/app/(dashboard)/groups/[id]/page";
 
 const member = (id: string, name: string, role = "MEMBER") => ({ id: `m-${id}`, userId: id, role, user: { id, name, email: `${name.toLowerCase()}@x.com`, avatarUrl: null } });
@@ -78,6 +79,30 @@ describe("GroupDetailPage — an expense in another currency", () => {
     expect(dialog).toHaveTextContent("$200.00");
     expect(dialog).toHaveTextContent("$100.00");
     expect(dialog).not.toHaveTextContent("₹");
+  });
+});
+
+describe("GroupDetailPage — invite on WhatsApp", () => {
+  it("opens WhatsApp with a ready message naming the group and carrying its join link", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ data: { token: "tok123" } }) }));
+    await renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Invite on WhatsApp" }));
+    await waitFor(() => expect(open).toHaveBeenCalled());
+    const url = new URL(open.mock.calls[0][0] as string);
+    expect(url.origin).toBe("https://wa.me");
+    const text = url.searchParams.get("text")!;
+    expect(text).toContain("Goa Trip");
+    expect(text).toContain(`${window.location.origin}/join/tok123`);
+  });
+
+  it("says so (and opens nothing) when the invite link can't be made", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ error: { message: "no" } }) }));
+    await renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Invite on WhatsApp" }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Failed to generate invite link"));
+    expect(open).not.toHaveBeenCalled();
   });
 });
 

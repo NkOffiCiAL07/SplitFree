@@ -12,6 +12,8 @@ vi.mock("@/hooks/use-settlements", () => ({
   useSendReminder: () => ({ mutate: remindMutate, isPending: false }),
 }));
 
+vi.mock("@/hooks/use-profile", () => ({ useProfile: () => ({ data: { upiId: "nishant@okaxis" } }) }));
+
 import FriendDetailPage from "@/app/(dashboard)/friends/[id]/page";
 
 const FRIEND = { id: "f1", name: "Asha Rao", email: "asha@example.com", avatarUrl: null };
@@ -59,9 +61,30 @@ describe("FriendDetailPage", () => {
     useFriendDetail.mockReturnValue({ isLoading: false, data: detail({ balances: [{ currency: "INR", net: 123456 }] }) });
     await renderPage();
     expect(screen.getByText("Asha owes you ₹1,234.56")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /remind/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Remind" }));
     expect(remindMutate).toHaveBeenCalledWith({ debtorId: "f1", amount: 123456, currency: "INR" });
     expect(screen.queryByRole("button", { name: /settle up/i })).not.toBeInTheDocument();
+  });
+
+  it("when they owe you: Remind on WhatsApp opens a message with the amount and your UPI ID", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    useFriendDetail.mockReturnValue({ isLoading: false, data: detail({ balances: [{ currency: "INR", net: 123456 }] }) });
+    await renderPage();
+    await userEvent.click(screen.getByRole("button", { name: /remind asha rao on whatsapp/i }));
+    const text = new URL(open.mock.calls[0][0] as string).searchParams.get("text")!;
+    expect(text).toContain("Hi Asha");
+    expect(text).toContain("₹1,234.56");
+    expect(text).toContain("nishant@okaxis");
+  });
+
+  it("dollar debts get a WhatsApp reminder without a UPI line (UPI is rupees only)", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    useFriendDetail.mockReturnValue({ isLoading: false, data: detail({ balances: [{ currency: "USD", net: 2500 }] }) });
+    await renderPage();
+    await userEvent.click(screen.getByRole("button", { name: /on whatsapp/i }));
+    const text = new URL(open.mock.calls[0][0] as string).searchParams.get("text")!;
+    expect(text).toContain("$25.00");
+    expect(text).not.toMatch(/UPI/);
   });
 
   it("when you owe them: settling needs a confirmation and pays in that currency", async () => {

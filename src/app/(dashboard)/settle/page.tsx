@@ -1,5 +1,6 @@
 "use client";
 
+import { WhatsAppRemindButton } from "@/components/shared/whatsapp-remind-button";
 import { CURRENCY_CODES as CURRENCIES } from "@/lib/currencies";
 import { useState } from "react";
 import { m } from "framer-motion";
@@ -286,6 +287,9 @@ export default function SettlePage() {
                     >
                       <Bell className="size-3" /> Remind
                     </Button>
+                  )}
+                  {!isMyDebt && (
+                    <WhatsAppRemindButton debtorName={debt.fromUser?.name} amount={debt.amount} currency={debt.currency ?? userCurrency} className="text-xs h-7 px-3 gap-1 shrink-0" />
                   )}
                 </m.div>
               );

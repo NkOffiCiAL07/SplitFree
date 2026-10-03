@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFriendDetail } from "@/hooks/use-friends";
 import { useSettleUp, useSendReminder } from "@/hooks/use-settlements";
 import { UpiPayLink } from "@/components/shared/upi-pay-link";
+import { WhatsAppRemindButton } from "@/components/shared/whatsapp-remind-button";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 
 export default function FriendDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -77,10 +78,13 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
                   : `You owe ${firstName} ${formatCurrency(-net, currency)}`}
               </p>
               {net > 0 ? (
-                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={remind.isPending}
-                  onClick={() => remind.mutate({ debtorId: friend.id, amount: net, currency })}>
-                  <Bell className="size-3" /> Remind
-                </Button>
+                <>
+                  <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={remind.isPending}
+                    onClick={() => remind.mutate({ debtorId: friend.id, amount: net, currency })}>
+                    <Bell className="size-3" /> Remind
+                  </Button>
+                  <WhatsAppRemindButton debtorName={friend.name} amount={net} currency={currency} />
+                </>
               ) : confirming === currency ? (
                 <>
                   <Button size="sm" variant="brand" className="h-7 text-xs" loading={settleUp.isPending} onClick={() => settle(currency, net)}>
