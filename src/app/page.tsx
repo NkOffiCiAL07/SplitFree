@@ -1,132 +1,134 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
-  Zap, Users, BarChart3, Shield, Smartphone,
-  ArrowRight, Check, SplitSquareHorizontal, Star,
-  Globe, RefreshCw, Sparkles, Quote,
+  Zap, Users, BarChart3, Shield, ArrowRight, Check, SplitSquareHorizontal, Globe, RefreshCw, Sparkles,
+  WifiOff, QrCode, FileUp, History, Bell, UsersRound, ChevronDown, Smartphone, IndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DemoButton } from "@/components/landing/demo-button";
+import { DownloadPanel } from "@/components/landing/download-panel";
+import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
+import { CURRENCY_CODES } from "@/lib/currencies";
+
+export const metadata: Metadata = {
+  title: { absolute: `${APP_NAME} — Split expenses, not friendships` },
+  description: "Free expense splitting for groups and friends, built for India: UPI, offline mode and smart settle-up. Available on the web and as an Android app — iOS coming soon.",
+};
 
 const features = [
-  {
-    icon: Users,
-    title: "Groups & Friends",
-    description: "Create groups for trips, home, or any occasion. Track debts with anyone — no more awkward money talks.",
-    color: "from-violet-500 to-purple-600",
-  },
-  {
-    icon: SplitSquareHorizontal,
-    title: "Smart Splitting",
-    description: "Split equally, by exact amount, percentage, or custom shares. Every real-world scenario covered.",
-    color: "from-blue-500 to-indigo-600",
-  },
-  {
-    icon: BarChart3,
-    title: "Spending Analytics",
-    description: "Visualize your spending patterns with beautiful charts. Know exactly where your money goes.",
-    color: "from-emerald-500 to-teal-600",
-  },
-  {
-    icon: Zap,
-    title: "Debt Simplification",
-    description: "Our minimum cash-flow algorithm reduces 10 payments to just 3. Fewer transfers, less hassle.",
-    color: "from-amber-500 to-orange-600",
-  },
-  {
-    icon: RefreshCw,
-    title: "Recurring Expenses",
-    description: "Set rent, subscriptions, or EMIs on auto-pilot. Never manually re-enter a monthly expense again.",
-    color: "from-rose-500 to-pink-600",
-  },
-  {
-    icon: Globe,
-    title: "Multi-Currency",
-    description: "Traveling abroad? Switch currencies per group. Your home currency stays the default everywhere else.",
-    color: "from-cyan-500 to-sky-600",
-  },
-  {
-    icon: Smartphone,
-    title: "Works Everywhere",
-    description: "Install on any device like a native app. Fast, lightweight, and works great on mobile.",
-    color: "from-indigo-500 to-violet-600",
-  },
-  {
-    icon: Shield,
-    title: "Secure & Private",
-    description: "Your data is encrypted at rest and never sold. No ads, no upsells — free forever, period.",
-    color: "from-green-500 to-emerald-600",
-  },
+  { icon: Users, title: "Groups & friends", description: "Trips, flats, couples, office lunches — track who owes whom, with anyone.", color: "from-violet-500 to-purple-600" },
+  { icon: SplitSquareHorizontal, title: "Every way to split", description: "Equally, by exact amounts, percentages or shares — and several people can pay one bill.", color: "from-blue-500 to-indigo-600" },
+  { icon: Zap, title: "Smart settle-up", description: "Debts are simplified into the fewest possible payments, so ten transfers become three.", color: "from-amber-500 to-orange-600" },
+  { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
+  { icon: WifiOff, title: "Works offline", description: "No signal on the trip? Add expenses and payments anyway — they sync safely when you're back online.", color: "from-rose-500 to-pink-600" },
+  { icon: Globe, title: `${CURRENCY_CODES.length} currencies`, description: "Each debt stays exact in its own currency, while your totals are shown in your home currency.", color: "from-cyan-500 to-sky-600" },
+  { icon: FileUp, title: "Bring your Splitwise history", description: "Import your Splitwise CSV export and carry on where you left off.", color: "from-indigo-500 to-violet-600" },
+  { icon: History, title: "Nothing is a mystery", description: "Every expense has its edit history, comments and who changed what.", color: "from-fuchsia-500 to-purple-600" },
+  { icon: RefreshCw, title: "Recurring expenses", description: "Rent, Wi-Fi, subscriptions and EMIs added automatically every month.", color: "from-lime-500 to-green-600" },
+  { icon: BarChart3, title: "Spending insights", description: "See where the money goes by month and category, plus group budgets.", color: "from-sky-500 to-blue-600" },
+  { icon: Bell, title: "Gentle reminders", description: "Nudge someone who owes you with a tap — one polite reminder a day, never spam.", color: "from-orange-500 to-red-500" },
+  { icon: Shield, title: "Private by design", description: "No ads and no selling your data. Your account works the same on the web and on Android.", color: "from-green-500 to-emerald-600" },
 ];
 
 const steps = [
-  {
-    number: "01",
-    icon: Users,
-    title: "Create a group",
-    description: "Add your roommates, travel buddies, or friends in seconds. Share an invite link — they join instantly.",
-  },
-  {
-    number: "02",
-    icon: SplitSquareHorizontal,
-    title: "Log expenses",
-    description: "Add any expense and choose how to split — equal, exact amounts, percentages, or weighted shares.",
-  },
-  {
-    number: "03",
-    icon: Zap,
-    title: "Settle up",
-    description: "See exactly who owes what. Our algorithm simplifies debts to the fewest possible transfers.",
-  },
+  { number: "01", icon: UsersRound, title: "Create a group", description: "Add roommates, travel buddies or friends. Share an invite link and they join instantly." },
+  { number: "02", icon: SplitSquareHorizontal, title: "Log expenses", description: "Add a bill and choose how to split it. Type “dinner 900 with Asha” and quick-add does the rest." },
+  { number: "03", icon: Zap, title: "Settle up", description: "See exactly who pays whom. Pay by UPI, record it, and the balance clears." },
 ];
 
-const testimonials = [
-  {
-    text: `Finally ditched Splitwise! ${APP_NAME} has everything I need and the debt simplification saved us 6 extra bank transfers on our Goa trip alone.`,
-    name: "Ananya S.",
-    role: "Product Designer, Bangalore",
-    avatar: "A",
-    color: "bg-violet-500",
-    stars: 5,
-  },
-  {
-    text: "Love that it's genuinely free — no premium popups every time I open the app. The analytics tab helped me realize we were spending ₹8k/month on food delivery.",
-    name: "Rohan M.",
-    role: "Software Engineer, Pune",
-    avatar: "R",
-    color: "bg-emerald-500",
-    stars: 5,
-  },
-  {
-    text: "My flatmates and I use this every month. Setting up recurring expenses for rent and internet took 2 minutes and now it just happens automatically.",
-    name: "Kavya T.",
-    role: "CA Student, Mumbai",
-    avatar: "K",
-    color: "bg-rose-500",
-    stars: 5,
-  },
+const faqs = [
+  { q: "Is it really free?", a: `Yes. ${APP_NAME} has no ads and no paywalls.` },
+  { q: "How do I install the Android app?", a: "Tap Download for Android, open the file, and allow “Install unknown apps” for your browser when Android asks (one-time). It's a direct download for now, so Android may show a standard warning for apps installed outside the Play Store." },
+  { q: "How can I check the file is genuine?", a: "It's a signed release. The download section shows its SHA-256 checksum — compare it with the file on your device (for example with a checksum app) to be sure it's untouched." },
+  { q: "What about iPhone?", a: "A native iOS app is coming soon. Until then, open the site in Safari and tap Share → Add to Home Screen: you get the full app, offline mode included." },
+  { q: "Does it work without internet?", a: "Yes. You can look at your last-seen balances and add expenses or payments offline. They're stored on your device and synced automatically when you reconnect — without ever being duplicated." },
+  { q: "Will my data be the same on web and Android?", a: "Yes — it's one account. Sign in on either and everything is there." },
 ];
 
-const stats = [
-  { value: "5,000+", label: "Expenses tracked" },
-  { value: "500+", label: "Groups created" },
-  { value: "15+", label: "Currencies supported" },
-  { value: "₹0", label: "Cost. Forever." },
-];
+const chips = ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"];
+
+function PhoneMock() {
+  const rows = [
+    { name: "Himanshu", note: "you owe", amount: "₹1,200", tone: "text-red-600 dark:text-red-400", bg: "bg-rose-400" },
+    { name: "Divyansh", note: "owes you", amount: "₹850", tone: "text-green-600 dark:text-green-400", bg: "bg-emerald-500" },
+    { name: "Prakhar", note: "owes you", amount: "₹340", tone: "text-green-600 dark:text-green-400", bg: "bg-indigo-500" },
+  ];
+  return (
+    <div className="relative mx-auto w-[260px] sm:w-[290px]" aria-hidden="true">
+      <div className="absolute -inset-8 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-fuchsia-500/20 blur-3xl" />
+      <div className="rounded-[2.4rem] border-[7px] border-zinc-900 bg-zinc-900 shadow-[0_40px_90px_-20px_rgba(76,29,149,0.55)] dark:border-zinc-700">
+        <div className="overflow-hidden rounded-[1.9rem] bg-background">
+          <div className="mx-auto mt-2 h-4 w-20 rounded-full bg-zinc-900 dark:bg-zinc-700" />
+          <div className="space-y-3 p-4 pt-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] text-muted-foreground">Good evening</p>
+                <p className="text-sm font-bold">Your balances</p>
+              </div>
+              <div className="flex size-7 items-center justify-center rounded-lg gradient-brand"><Zap className="size-3.5 text-white" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2.5">
+                <p className="text-[9px] text-muted-foreground">Owed to you</p>
+                <p className="text-base font-bold text-green-600 dark:text-green-400">₹1,190</p>
+              </div>
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2.5">
+                <p className="text-[9px] text-muted-foreground">You owe</p>
+                <p className="text-base font-bold text-red-600 dark:text-red-400">₹1,200</p>
+              </div>
+            </div>
+            <div className="space-y-1.5 rounded-xl border bg-card p-2.5">
+              {rows.map((r) => (
+                <div key={r.name} className="flex items-center gap-2 py-1">
+                  <div className={`flex size-6 items-center justify-center rounded-full text-[9px] font-bold text-white ${r.bg}`}>{r.name[0]}</div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-medium">{r.name}</p>
+                    <p className="text-[9px] text-muted-foreground">{r.note}</p>
+                  </div>
+                  <p className={`text-[11px] font-semibold ${r.tone}`}>{r.amount}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl gradient-brand py-2 text-center text-[11px] font-semibold text-white">Settle up</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="anim-float absolute -left-[112px] top-20 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold"><Check className="size-3.5 text-green-500" /> Payment received</p>
+        <p className="text-[10px] text-muted-foreground">₹850 · UPI</p>
+      </div>
+      <div className="anim-float-slow absolute -right-[118px] top-52 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold"><WifiOff className="size-3.5 text-violet-500" /> Offline — saved</p>
+        <p className="text-[10px] text-muted-foreground">Syncs when you&apos;re back</p>
+      </div>
+      <div className="anim-float absolute -left-[100px] bottom-16 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+        <p className="text-[11px] font-semibold">10 payments → 3</p>
+        <p className="text-[10px] text-muted-foreground">Debts simplified</p>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-clip bg-background">
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-4">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
+            <div className="flex size-7 items-center justify-center rounded-lg gradient-brand">
               <Zap className="size-3.5 text-white" />
             </div>
-            <span className="font-bold text-base">{APP_NAME}</span>
+            <span className="text-base font-bold">{APP_NAME}</span>
           </Link>
+          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex" aria-label="Sections">
+            <a href="#features" className="transition-colors hover:text-foreground">Features</a>
+            <a href="#download" className="transition-colors hover:text-foreground">Android app</a>
+            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
+          </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
@@ -143,307 +145,264 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-16 pb-28 px-4">
-        {/* Background */}
+      <section className="relative px-4 pb-20 pt-14 sm:pt-20">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-violet-500/10 rounded-full blur-3xl" />
-          <div className="absolute top-24 right-1/4 w-[500px] h-[500px] bg-indigo-500/8 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/4 w-[400px] h-[300px] bg-purple-500/6 rounded-full blur-3xl" />
+          <div className="absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl" />
+          <div className="absolute right-1/4 top-24 h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-3xl" />
           <div
-            className="absolute inset-0 opacity-[0.018] dark:opacity-[0.035]"
+            className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
             style={{ backgroundImage: "radial-gradient(circle, #6d28d9 1px, transparent 1px)", backgroundSize: "32px 32px" }}
           />
         </div>
 
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h1
-            className="anim-fade-up text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance"
-            style={{ animationDelay: "0ms" }}
-          >
-            Split expenses,{" "}
-            <span className="gradient-brand-text">not friendships.</span>
-          </h1>
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="min-w-0 space-y-7 text-center lg:text-left">
+            <a
+              href="#download"
+              className="anim-fade-up inline-flex items-center gap-2 rounded-full border bg-card/70 px-3.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur transition-colors hover:bg-card"
+            >
+              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">NEW</span>
+              Android app is here — iOS coming soon
+              <ArrowRight className="size-3" />
+            </a>
 
-          <p
-            className="anim-fade-up text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed"
-            style={{ animationDelay: "80ms" }}
-          >
-            The free, beautiful alternative to Splitwise. Track shared costs, simplify debts, and settle up — zero ads, zero paywalls, forever.
-          </p>
+            <h1 className="anim-fade-up text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl xl:text-7xl" style={{ animationDelay: "60ms" }}>
+              Split expenses,{" "}
+              <span className="gradient-brand-text">not friendships.</span>
+            </h1>
 
-          <div
-            className="anim-fade-up flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
-            style={{ animationDelay: "160ms" }}
-          >
-            <Button variant="brand" size="xl" className="w-full sm:w-auto px-8 h-12 text-base" asChild>
-              <Link href="/signup">
-                Start splitting for free
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <DemoButton />
+            <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
+              The free, India-first way to share costs. UPI payments, offline mode and smart settle-up — on the web and now on Android.
+            </p>
+
+            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "180ms" }}>
+              <Button variant="brand" size="xl" className="h-12 w-full px-8 text-base sm:w-auto" asChild>
+                <Link href="/signup">
+                  Start splitting for free
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <DemoButton />
+            </div>
+
+            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
+              <AndroidDownloadButton />
+              <IosComingSoon />
+            </div>
+
+            <div className="anim-fade-up flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground lg:justify-start" style={{ animationDelay: "300ms" }}>
+              {["Free, no ads", "No credit card", "Same account on web & Android"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  <Check className="size-3.5 text-green-500" />
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <div
-            className="anim-fade-up flex items-center justify-center gap-8 pt-2 text-xs text-muted-foreground"
-            style={{ animationDelay: "240ms" }}
-          >
-            {["No credit card", "Free forever", "Mobile friendly"].map((t) => (
-              <span key={t} className="flex items-center gap-1.5">
-                <Check className="size-3.5 text-green-500" />
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Dashboard preview */}
-        <div
-          className="anim-fade-up max-w-5xl mx-auto mt-16"
-          style={{ animationDelay: "450ms" }}
-        >
-          <div className="rounded-2xl border bg-card shadow-[0_32px_80px_-16px_rgba(109,40,217,0.18)] dark:shadow-[0_32px_80px_-16px_rgba(109,40,217,0.3)] overflow-hidden">
-            {/* Browser chrome */}
-            <div className="flex items-center gap-1.5 px-4 py-3 border-b bg-muted/40">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-              <div className="flex-1 mx-6 bg-background/80 border rounded-md px-3 py-1 text-[11px] text-muted-foreground text-center max-w-xs mx-auto">
-                splitrpro.app/dashboard
-              </div>
-            </div>
-            {/* Mock dashboard */}
-            <div className="p-5 space-y-4 bg-background/50">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: "Total Owed to You", value: "₹2,400", color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/20" },
-                  { label: "You Owe Others", value: "₹850", color: "text-red-500 dark:text-red-400", bg: "bg-red-500/10 border-red-500/20" },
-                  { label: "Active Groups", value: "4", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
-                  { label: "Net Balance", value: "+₹1,550", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-                ].map(({ label, value, color, bg }) => (
-                  <div key={label} className={`rounded-xl border p-3 sm:p-3.5 space-y-1 ${bg}`}>
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">{label}</p>
-                    <p className={`text-base sm:text-lg font-bold ${color}`}>{value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-xl border bg-card p-4">
-                <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
-                <div className="space-y-2">
-                  {[
-                    { emoji: "🍔", name: "Dinner at Barbeque Nation", amount: "₹1,800", share: "you owe ₹600", color: "text-red-500" },
-                    { emoji: "🏨", name: "Hotel booking — Goa trip", amount: "₹6,500", share: "you lent ₹2,166", color: "text-green-600 dark:text-green-400" },
-                    { emoji: "🚗", name: "Ola cab to airport", amount: "₹340", share: "you owe ₹170", color: "text-red-500" },
-                  ].map(({ emoji, name, amount, share, color }) => (
-                    <div key={name} className="flex items-center gap-2.5 py-1.5 border-b border-border/40 last:border-0">
-                      <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-sm flex-shrink-0">{emoji}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{name}</p>
-                        <p className={`text-[10px] ${color}`}>{share}</p>
-                      </div>
-                      <p className="text-xs font-semibold flex-shrink-0">{amount}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 pt-3 border-t flex items-center justify-between gap-3">
-                  <p className="text-[10px] font-medium text-muted-foreground shrink-0">Balances</p>
-                  <div className="flex items-center gap-2 overflow-x-auto">
-                    {[
-                      { name: "Rahul", amount: "+₹850", color: "bg-emerald-500" },
-                      { name: "Priya", amount: "−₹320", color: "bg-rose-400" },
-                      { name: "Aditya", amount: "+₹700", color: "bg-emerald-500" },
-                    ].map(({ name, amount, color }) => (
-                      <div key={name} className="flex items-center gap-1 shrink-0">
-                        <div className={`w-5 h-5 rounded-full ${color} flex items-center justify-center text-[8px] text-white font-bold`}>{name[0]}</div>
-                        <span className={`text-[10px] font-semibold ${amount.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>{amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="anim-fade-up" style={{ animationDelay: "200ms" }}>
+            <PhoneMock />
           </div>
         </div>
       </section>
 
-      {/* Stats bar */}
-      <section className="border-y bg-muted/30 py-12 px-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map(({ value, label }) => (
-            <div key={label}>
-              <p className="text-3xl font-bold gradient-brand-text">{value}</p>
-              <p className="text-sm text-muted-foreground mt-1">{label}</p>
-            </div>
+      {/* Feature ticker */}
+      <section className="border-y bg-muted/30 py-5" aria-label="Highlights">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 text-sm font-medium text-muted-foreground">
+          {chips.map((c) => (
+            <span key={c} className="flex items-center gap-2">
+              <Sparkles className="size-3.5 text-violet-500" />
+              {c}
+            </span>
           ))}
         </div>
       </section>
 
       {/* How it works */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
-              <span className="w-4 h-px bg-violet-500/50" />
-              How it works
-              <span className="w-4 h-px bg-violet-500/50" />
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-14 text-center">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+              <span className="h-px w-4 bg-violet-500/50" /> How it works <span className="h-px w-4 bg-violet-500/50" />
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold">Up and running in minutes</h2>
-            <p className="text-muted-foreground mt-3 max-w-md mx-auto">No setup, no configuration — just create a group and start splitting.</p>
+            <h2 className="text-3xl font-bold sm:text-4xl">Up and running in minutes</h2>
+            <p className="mx-auto mt-3 max-w-md text-muted-foreground">No setup, no learning curve — create a group and start splitting.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-10 left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="absolute left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] top-10 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" />
             {steps.map(({ number, icon: Icon, title, description }) => (
-              <div key={number} className="text-center relative group">
-                <div className="w-20 h-20 gradient-brand rounded-2xl flex flex-col items-center justify-center mx-auto mb-5 shadow-lg shadow-violet-500/25 relative z-10 transition-transform group-hover:-translate-y-1 duration-200">
-                  <span className="text-[10px] font-bold text-white/70 leading-none">{number}</span>
-                  <Icon className="size-6 text-white mt-1" />
+              <div key={number} className="group relative text-center">
+                <div className="relative z-10 mx-auto mb-5 flex size-20 flex-col items-center justify-center rounded-2xl gradient-brand shadow-lg shadow-violet-500/25 transition-transform duration-200 group-hover:-translate-y-1">
+                  <span className="text-[10px] font-bold leading-none text-white/70">{number}</span>
+                  <Icon className="mt-1 size-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Android download */}
+      <section id="download" className="scroll-mt-16 px-4 pb-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-700 to-purple-800 p-8 text-white shadow-2xl shadow-violet-900/30 sm:p-12">
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute -left-16 -top-16 size-72 rounded-full bg-white/10 blur-3xl" />
+              <div className="absolute -bottom-20 -right-10 size-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+            </div>
+            <div className="relative">
+              <div className="mb-8 max-w-2xl">
+                <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+                  <Smartphone className="size-3.5" /> Now on Android
+                </p>
+                <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">Take {APP_NAME} in your pocket</h2>
+                <p className="text-lg leading-relaxed text-white/80">
+                  Add an expense the moment the bill arrives — even without signal. Same account, same groups, one tap from your home screen.
+                </p>
+              </div>
+              <DownloadPanel />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-24 px-4 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
-              <span className="w-4 h-px bg-violet-500/50" />
-              Features
-              <span className="w-4 h-px bg-violet-500/50" />
+      <section id="features" className="scroll-mt-16 bg-muted/30 px-4 py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-14 text-center">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+              <span className="h-px w-4 bg-violet-500/50" /> Features <span className="h-px w-4 bg-violet-500/50" />
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3">Everything you need, nothing you don&apos;t</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              All the power of expensive expense-tracking apps — completely free, no strings attached.
-            </p>
+            <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
+            <p className="mx-auto max-w-xl text-muted-foreground">Built around how people in India actually share money — and it handles the awkward cases too.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map(({ icon: Icon, title, description, color }) => (
-              <div
-                key={title}
-                className="group rounded-2xl border bg-card p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
-              >
-                <div className={`w-11 h-11 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center mb-4 shadow-sm transition-transform group-hover:scale-110 duration-200`}>
+              <div key={title} className="group rounded-2xl border bg-card p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+                <div className={`mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-sm transition-transform duration-200 group-hover:scale-110`}>
                   <Icon className="size-5 text-white" />
                 </div>
-                <h3 className="font-semibold mb-1.5">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                <h3 className="mb-1.5 font-semibold">{title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 flex items-center justify-center gap-1.5">
-              <span className="w-4 h-px bg-violet-500/50" />
-              Loved by users
-              <span className="w-4 h-px bg-violet-500/50" />
+      {/* Money you can trust */}
+      <section className="px-4 py-24">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
+          <div>
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+              <span className="h-px w-4 bg-violet-500/50" /> Careful with money
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold">Real people, real savings</h2>
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Because it&apos;s your money, the numbers have to be right</h2>
+            <ul className="space-y-3 text-muted-foreground">
+              {[
+                "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
+                "Mixed currencies are never added together by mistake: each debt stays in its own currency.",
+                "Offline entries are saved on your device and can't be duplicated when they sync.",
+                "Green means you're owed, red means you owe — clear at a glance.",
+              ].map((t) => (
+                <li key={t} className="flex gap-3">
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-green-600 dark:text-green-400" /></span>
+                  <span className="text-sm leading-relaxed sm:text-base">{t}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map(({ text, name, role, avatar, color, stars }) => (
-              <div
-                key={name}
-                className="rounded-2xl border bg-card p-6 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: stars }).map((_, j) => (
-                    <Star key={j} className="size-3.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <div className="relative">
-                  <Quote className="absolute -top-1 -left-1 size-5 text-violet-500/20" />
-                  <p className="text-sm text-muted-foreground leading-relaxed pl-3">{text}</p>
-                </div>
-                <div className="flex items-center gap-3 mt-auto pt-2 border-t">
-                  <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-xs text-white font-bold flex-shrink-0`}>
-                    {avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{name}</p>
-                    <p className="text-[11px] text-muted-foreground">{role}</p>
-                  </div>
-                </div>
+          <div className="rounded-3xl border bg-card p-6 shadow-sm">
+            <p className="mb-4 text-xs font-medium text-muted-foreground">Goa trip · simplified</p>
+            {[
+              { from: "Rohan", to: "Ananya", amount: "₹2,400" },
+              { from: "Kavya", to: "Ananya", amount: "₹1,150" },
+              { from: "Aditya", to: "Rohan", amount: "₹600" },
+            ].map((d) => (
+              <div key={d.from} className="flex items-center gap-3 border-b py-3 last:border-0">
+                <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-600 dark:text-violet-300">{d.from[0]}</div>
+                <p className="flex-1 text-sm"><span className="font-medium">{d.from}</span> pays <span className="font-medium">{d.to}</span></p>
+                <p className="text-sm font-semibold text-red-600 dark:text-red-400">{d.amount}</p>
+                <span className="hidden items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium sm:flex"><QrCode className="size-3" /> UPI</span>
               </div>
+            ))}
+            <p className="mt-4 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">Seven payments between four friends became three. <span className="text-foreground">Example for illustration.</span></p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="scroll-mt-16 bg-muted/30 px-4 py-24">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold sm:text-4xl">Questions, answered</h2>
+          </div>
+          <div className="space-y-3">
+            {faqs.map(({ q, a }) => (
+              <details key={q} className="group rounded-2xl border bg-card px-5 py-4 open:shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
+                  {q}
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden">
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-3xl">
+          <div className="relative overflow-hidden rounded-3xl">
             <div className="absolute inset-0 gradient-brand opacity-90" />
             <div className="absolute inset-0">
-              <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-              <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-              <div
-                className="absolute inset-0 opacity-10"
-                style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)", backgroundSize: "24px 24px" }}
-              />
+              <div className="absolute left-0 top-0 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
+              <div className="absolute bottom-0 right-0 size-64 translate-x-1/2 translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
             </div>
-            <div className="relative text-center px-8 py-16 text-white">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium mb-6">
-                <Sparkles className="size-3" />
-                Free forever · No credit card needed
+            <div className="relative px-8 py-16 text-center text-white">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Stop chasing your friends for money.</h2>
+              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Set up in under a minute. Free on the web and Android — iOS coming soon.</p>
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button variant="secondary" size="xl" className="h-12 border-0 bg-white px-9 text-base font-semibold text-violet-700 hover:bg-white/90" asChild>
+                  <Link href="/signup">
+                    Get started — it&apos;s free
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <AndroidDownloadButton tone="light" />
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-                Stop chasing your friends for money.
-              </h2>
-              <p className="text-white/80 text-lg mb-8 max-w-lg mx-auto leading-relaxed">
-                Join thousands of groups already splitting smarter. Takes 30 seconds to set up.
-              </p>
-              <Button
-                variant="secondary"
-                size="xl"
-                className="px-10 h-12 text-base font-semibold bg-white text-violet-700 hover:bg-white/90 border-0"
-                asChild
-              >
-                <Link href="/signup">
-                  Get started — it&apos;s free
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-10 px-4 bg-muted/20">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6">
+      <footer className="border-t bg-muted/20 px-4 py-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
+              <div className="flex size-7 items-center justify-center rounded-lg gradient-brand">
                 <Zap className="size-3.5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-sm">{APP_NAME}</span>
+                <span className="text-sm font-bold">{APP_NAME}</span>
                 <p className="text-[10px] text-muted-foreground">Free expense splitting for everyone</p>
               </div>
             </Link>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
-              <Link href="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
-              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/support" className="hover:text-foreground transition-colors">Support</Link>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <Link href="/login" className="transition-colors hover:text-foreground">Sign in</Link>
+              <a href="#download" className="transition-colors hover:text-foreground">Android app</a>
+              <Link href="/privacy" className="transition-colors hover:text-foreground">Privacy</Link>
+              <Link href="/support" className="transition-colors hover:text-foreground">Support</Link>
             </div>
           </div>
-          <div className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} {APP_NAME}. Built with ❤️ for people who hate awkward money conversations.</p>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span>All systems operational</span>
-            </div>
+          <div className="flex flex-col items-center justify-between gap-2 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
+            <p>© {new Date().getFullYear()} {APP_NAME}. Built for people who hate awkward money conversations.</p>
+            <p>Web · Android · iOS coming soon</p>
           </div>
         </div>
       </footer>

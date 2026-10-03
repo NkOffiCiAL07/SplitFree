@@ -51,7 +51,7 @@ describe("updateSession (page protection)", () => {
       }
     );
 
-    it.each(["/", "/login", "/signup", "/reset-password", "/auth/callback", "/join/abc", "/offline", "/privacy", "/support", "/api/anything"])(
+    it.each(["/", "/login", "/signup", "/reset-password", "/auth/callback", "/join/abc", "/offline", "/privacy", "/support", "/downloads/SplitFree.apk", "/api/anything"])(
       "lets %s through",
       async (path) => {
         const res = await updateSession(req(path));
@@ -116,7 +116,7 @@ describe("proxy", () => {
   it("the matcher skips static assets and the service worker", async () => {
     const { config } = await load("https://real.supabase.co");
     const re = new RegExp(`^${config.matcher[0]}$`);
-    for (const skipped of ["/_next/static/chunk.js", "/_next/image", "/favicon.ico", "/manifest.json", "/sw.js", "/offline", "/logo.png", "/icons/a.svg"]) {
+    for (const skipped of ["/_next/static/chunk.js", "/_next/image", "/favicon.ico", "/manifest.json", "/sw.js", "/offline", "/logo.png", "/icons/a.svg", "/downloads/SplitFree.apk", "/other/app.apk"]) {
       expect(re.test(skipped)).toBe(false);
     }
     for (const matched of ["/", "/dashboard", "/api/expenses", "/groups/abc"]) {
