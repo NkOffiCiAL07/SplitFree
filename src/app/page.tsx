@@ -168,15 +168,6 @@ export default function LandingPage() {
               The free, India-first way to share costs. UPI payments, offline mode and smart settle-up — on the web and now on Android.
             </p>
 
-            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "180ms" }}>
-              <Button variant="brand" size="xl" className="h-12 w-full px-10 text-base sm:w-auto" asChild>
-                <Link href="/login">
-                  Sign in
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            </div>
-
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
               <AndroidDownloadButton />
               <IosComingSoon />
@@ -357,15 +348,10 @@ export default function LandingPage() {
             </div>
             <div className="relative px-8 py-16 text-center text-white">
               <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Stop chasing your friends for money.</h2>
-              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Set up in under a minute. Free on the web and Android — iOS coming soon.</p>
+              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Free on the web and Android — iOS coming soon.</p>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button variant="secondary" size="xl" className="h-12 border-0 bg-white px-9 text-base font-semibold text-violet-700 hover:bg-white/90" asChild>
-                  <Link href="/login">
-                    Sign in
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
                 <AndroidDownloadButton tone="light" />
+                <IosComingSoon tone="light" />
               </div>
             </div>
           </div>

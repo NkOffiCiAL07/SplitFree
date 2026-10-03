@@ -55,11 +55,12 @@ describe("Landing page — Android app", () => {
     expect(screen.getByRole("link", { name: "Support" })).toHaveAttribute("href", "/support");
   });
 
-  it("has ONE way in — Sign in — and no demo, sign-up or 'get started' buttons competing with it", () => {
+  it("has a quiet way in — Sign in in the header (and footer) — and no demo, sign-up or 'get started' buttons", () => {
     render(<LandingPage />);
     const signIn = screen.getAllByRole("link", { name: /^sign in$/i });
-    expect(signIn.length).toBeGreaterThanOrEqual(3); // header, hero, closing call to action (+ footer)
+    expect(signIn).toHaveLength(2); // header + footer only: no sign-in buttons in the hero or closing section
     for (const a of signIn) expect(a).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("banner")).toContainElement(signIn[0]);
     expect(screen.queryByRole("link", { name: /get started|start splitting|sign up|try demo|demo/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /demo|get started|start splitting/i })).not.toBeInTheDocument();
     expect(document.querySelector('a[href="/signup"]')).toBeNull();
