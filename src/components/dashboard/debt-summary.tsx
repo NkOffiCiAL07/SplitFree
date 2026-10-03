@@ -76,7 +76,7 @@ export function DebtSummary({ balances = [], netBalance = 0, currency = DEFAULT_
                 <span className={cn("text-sm font-semibold",
                   b.net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 )}>
-                  {b.net < 0 && "−"}{formatCurrency(Math.abs(b.net), b.currency ?? currency)}
+                  {formatCurrency(Math.abs(b.net), b.currency ?? currency)}
                 </span>
               </m.div>
             ))

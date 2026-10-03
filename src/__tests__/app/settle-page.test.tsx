@@ -168,7 +168,9 @@ describe("SettlePage — history", () => {
       { id: "s2", fromUserId: "a", toUserId: "me", amount: 5000, currency: "INR", note: null, createdAt: "2026-03-02", fromUser: person("a", "Asha Rao"), toUser: person("me", "Nishant") },
     ];
     render(<SettlePage />);
-    expect(screen.getByText("−$50.00")).toBeInTheDocument();
-    expect(screen.getByText("+₹50.00")).toBeInTheDocument();
+    // direction is shown by colour (red = you paid out, green = you received), never by a +/− sign
+    expect(screen.getByText("$50.00")).toHaveClass("text-red-600");
+    expect(screen.getByText("₹50.00")).toHaveClass("text-green-600");
+    expect(screen.queryByText(/[−+-]\s?[$₹]/)).not.toBeInTheDocument();
   });
 });

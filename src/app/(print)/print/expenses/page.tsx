@@ -109,7 +109,7 @@ export default async function PrintExpensesPage() {
                   <td style={{ padding: "8px 12px", fontSize: 12 }}>{exp.paidBy.name}</td>
                   <td style={{ padding: "8px 12px", fontSize: 13, fontWeight: 600 }}>{fmt(exp.amount, exp.currency)}</td>
                   <td style={{ padding: "8px 12px", fontSize: 12, color: net > 0 ? "#16a34a" : net < 0 ? "#dc2626" : "#6b7280", fontWeight: 500 }}>
-                    {net > 0 ? `+${fmt(net, exp.currency)}` : net < 0 ? `-${fmt(-net, exp.currency)}` : "—"}
+                    {net > 0 ? `lent ${fmt(net, exp.currency)}` : net < 0 ? `owe ${fmt(-net, exp.currency)}` : "—"}
                   </td>
                 </tr>
               );

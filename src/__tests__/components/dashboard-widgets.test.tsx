@@ -71,8 +71,9 @@ describe("DebtSummary", () => {
     expect(screen.getByText("owes you")).toBeInTheDocument();
     expect(screen.getAllByText("you owe")).toHaveLength(2);
     expect(screen.getByText("₹499.99")).toHaveClass("text-green-600");
-    expect(screen.getByText(/−₹9,900\.00/)).toBeInTheDocument(); // Indian grouping
-    expect(screen.getByText(/−\$20\.00/)).toBeInTheDocument(); // a USD debt stays in dollars
+    expect(screen.getByText("₹9,900.00")).toHaveClass("text-red-600"); // Indian grouping, red = you owe
+    expect(screen.getByText("$20.00")).toHaveClass("text-red-600"); // a USD debt stays in dollars
+    expect(document.body.textContent).not.toMatch(/[−+-]\s?[$₹]/); // no minus sign: colour + "you owe" say it
   });
 
   it("links to Settle up", () => {

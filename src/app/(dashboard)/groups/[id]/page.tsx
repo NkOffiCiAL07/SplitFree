@@ -828,7 +828,7 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>
         {net !== null && net !== 0 && (
           <p className={cn("text-xs", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-            {net > 0 ? `+${formatCurrency(net, currency)}` : `-${formatCurrency(-net, currency)}`}
+            {net > 0 ? `you lent ${formatCurrency(net, currency)}` : `you owe ${formatCurrency(-net, currency)}`}
           </p>
         )}
       </div>

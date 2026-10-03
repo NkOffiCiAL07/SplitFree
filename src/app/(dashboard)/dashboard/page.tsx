@@ -67,7 +67,7 @@ export default function DashboardPage() {
     },
     {
       title: "Net Balance",
-      value: isLoading ? "—" : formatCompactCurrency(netBalance, currency),
+      value: isLoading ? "—" : formatCompactCurrency(Math.abs(netBalance), currency), // direction is shown by colour + the words below, not a minus sign
       sub: netBalance >= 0 ? "you're ahead" : "you're behind",
       icon: Wallet,
       variant: netBalance >= 0 ? "violet" as const : "red" as const,

@@ -55,8 +55,9 @@ describe("DashboardPage", () => {
     expect(await screen.findByText("₹499.99")).toBeInTheDocument(); // owed to you
     expect(screen.getByText("₹9.9K")).toBeInTheDocument(); // you owe
     expect(screen.getByText("3")).toBeInTheDocument(); // groups
-    expect(screen.getByText(/₹9\.4K/)).toBeInTheDocument(); // net, negative
-    expect(screen.getByText("you're behind")).toBeInTheDocument();
+    expect(screen.getByText("₹9.4K")).toBeInTheDocument(); // net, shown without a minus sign
+    expect(screen.getByText("you're behind")).toBeInTheDocument(); // the words (and the red card) say it
+    expect(document.body.textContent).not.toMatch(/[−-]\s?₹/);
   });
 
   it("says 'you're ahead' when net is positive", async () => {

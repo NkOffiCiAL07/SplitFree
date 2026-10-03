@@ -231,9 +231,9 @@ export default function LandingPage() {
                 <p className="text-xs font-medium mb-3 text-muted-foreground">Recent expenses</p>
                 <div className="space-y-2">
                   {[
-                    { emoji: "🍔", name: "Dinner at Barbeque Nation", amount: "₹1,800", share: "your share −₹600", color: "text-red-500" },
-                    { emoji: "🏨", name: "Hotel booking — Goa trip", amount: "₹6,500", share: "you lent +₹2,166", color: "text-green-600 dark:text-green-400" },
-                    { emoji: "🚗", name: "Ola cab to airport", amount: "₹340", share: "your share −₹170", color: "text-red-500" },
+                    { emoji: "🍔", name: "Dinner at Barbeque Nation", amount: "₹1,800", share: "you owe ₹600", color: "text-red-500" },
+                    { emoji: "🏨", name: "Hotel booking — Goa trip", amount: "₹6,500", share: "you lent ₹2,166", color: "text-green-600 dark:text-green-400" },
+                    { emoji: "🚗", name: "Ola cab to airport", amount: "₹340", share: "you owe ₹170", color: "text-red-500" },
                   ].map(({ emoji, name, amount, share, color }) => (
                     <div key={name} className="flex items-center gap-2.5 py-1.5 border-b border-border/40 last:border-0">
                       <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-sm flex-shrink-0">{emoji}</div>

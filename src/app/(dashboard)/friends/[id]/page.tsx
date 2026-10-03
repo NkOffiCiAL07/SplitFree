@@ -117,7 +117,7 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
                 </p>
               </div>
               <span className={cn("text-xs font-semibold shrink-0", delta > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-                {delta > 0 ? "+" : "−"}{formatCurrency(Math.abs(delta), e.currency)}
+                {delta > 0 ? "you lent " : "you owe "}{formatCurrency(Math.abs(delta), e.currency)}
               </span>
             </div>
           );
