@@ -58,3 +58,29 @@ if (typeof Element !== "undefined") {
   Element.prototype.releasePointerCapture ??= () => {};
   Element.prototype.scrollIntoView ??= () => {};
 }
+
+// A working in-memory localStorage/sessionStorage for every test (Node's own experimental localStorage global
+// conflicts with jsdom's), emptied before each test so storage never leaks between them.
+function memoryStorage(): Storage {
+  const m = new Map<string, string>();
+  return {
+    get length() { return m.size; },
+    clear: () => m.clear(),
+    getItem: (k: string) => (m.has(k) ? m.get(k)! : null),
+    key: (i: number) => [...m.keys()][i] ?? null,
+    removeItem: (k: string) => void m.delete(k),
+    setItem: (k: string, v: string) => void m.set(k, String(v)),
+  };
+}
+if (typeof window !== "undefined") {
+  const local = memoryStorage(), session = memoryStorage();
+  for (const target of [globalThis, window] as object[]) {
+    Object.defineProperty(target, "localStorage", { configurable: true, value: local });
+    Object.defineProperty(target, "sessionStorage", { configurable: true, value: session });
+  }
+  vi.hoisted(() => {});
+}
+import { beforeEach } from "vitest";
+beforeEach(() => {
+  if (typeof window !== "undefined") { window.localStorage.clear(); window.sessionStorage.clear(); }
+});

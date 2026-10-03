@@ -1,4 +1,13 @@
+import { toCents } from "@/lib/utils";
 import type { Debt } from "@/types";
+
+/** The caller sent a split that can't be applied (maps to HTTP 400 — retrying the same request can never succeed). */
+export class SplitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SplitError";
+  }
+}
 
 /**
  * Simplifies a list of debts using the "minimum cash flow" algorithm.
@@ -54,71 +63,77 @@ export function simplifyDebts(debts: Debt[]): Debt[] {
  * Calculates how much each participant owes given a split type.
  * Returns a map of userId -> amount in cents.
  */
+/**
+ * Splits `totalCents` between `participants`. Invariants (enforced here, fuzz-tested): every share is a whole,
+ * non-negative number of cents and the shares add up to `totalCents` EXACTLY — money is never created or lost.
+ * Anything that can't satisfy that (amounts a cent off, negative entries, entries for non-participants) throws.
+ */
 export function calculateSplits(
   totalCents: number,
   participants: string[],
   splitType: "EQUAL" | "EXACT" | "PERCENTAGE" | "SHARES",
   overrides?: Record<string, number>
 ): Record<string, number> {
+  if (!Number.isInteger(totalCents) || totalCents <= 0) throw new SplitError("Total must be a positive amount");
+  if (participants.length === 0) throw new SplitError("At least one participant required");
+  if (new Set(participants).size !== participants.length) throw new SplitError("A participant is listed twice");
+
   const result: Record<string, number> = {};
 
-  switch (splitType) {
-    case "EQUAL": {
-      const perPerson = Math.floor(totalCents / participants.length);
-      const remainder = totalCents - perPerson * participants.length;
-      participants.forEach((id, idx) => {
-        result[id] = perPerson + (idx === 0 ? remainder : 0);
-      });
-      break;
-    }
-
-    case "EXACT": {
-      if (!overrides) throw new Error("EXACT split requires per-user amounts");
-      const total = Object.values(overrides).reduce((a, b) => a + b, 0);
-      // overrides are in dollars, convert to cents
-      if (Math.abs(total * 100 - totalCents) > 1)
-        throw new Error("Exact amounts don't add up to total");
-      participants.forEach((id) => {
-        result[id] = Math.round((overrides[id] ?? 0) * 100);
-      });
-      break;
-    }
-
-    case "PERCENTAGE": {
-      if (!overrides) throw new Error("PERCENTAGE split requires percentages");
-      const totalPct = Object.values(overrides).reduce((a, b) => a + b, 0);
-      if (Math.abs(totalPct - 100) > 0.01)
-        throw new Error("Percentages must sum to 100");
-      let allocatedPct = 0;
-      participants.forEach((id, idx) => {
-        if (idx === participants.length - 1) {
-          result[id] = totalCents - allocatedPct;
-        } else {
-          result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / 100));
-          allocatedPct += result[id];
-        }
-      });
-      break;
-    }
-
-    case "SHARES": {
-      if (!overrides) throw new Error("SHARES split requires share counts");
-      const totalShares = Object.values(overrides).reduce((a, b) => a + b, 0);
-      if (totalShares === 0) throw new Error("Total shares cannot be zero");
-      let allocatedShares = 0;
-      participants.forEach((id, idx) => {
-        if (idx === participants.length - 1) {
-          result[id] = totalCents - allocatedShares;
-        } else {
-          result[id] = Math.round(totalCents * ((overrides[id] ?? 0) / totalShares));
-          allocatedShares += result[id];
-        }
-      });
-      break;
-    }
+  if (splitType === "EQUAL") {
+    const perPerson = Math.floor(totalCents / participants.length);
+    const remainder = totalCents - perPerson * participants.length;
+    participants.forEach((id, idx) => {
+      result[id] = perPerson + (idx === 0 ? remainder : 0);
+    });
+    return result;
   }
 
-  return result;
+  if (!overrides) {
+    throw new SplitError(
+      splitType === "EXACT" ? "EXACT split requires per-user amounts"
+        : splitType === "PERCENTAGE" ? "PERCENTAGE split requires percentages"
+        : "SHARES split requires share counts"
+    );
+  }
+  const allowed = new Set(participants);
+  for (const [id, v] of Object.entries(overrides)) {
+    if (!Number.isFinite(v) || v < 0) throw new SplitError("Split values can't be negative");
+    if (!allowed.has(id) && v !== 0) throw new SplitError("Split includes someone who isn't a participant");
+  }
+  const valueOf = (id: string) => overrides[id] ?? 0;
+
+  if (splitType === "EXACT") {
+    participants.forEach((id) => { result[id] = toCents(valueOf(id)); });
+    if (Object.values(result).reduce((a, b) => a + b, 0) !== totalCents) throw new SplitError("Exact amounts don't add up to total");
+    return result;
+  }
+
+  const totalWeight = participants.reduce((sum, id) => sum + valueOf(id), 0);
+  if (splitType === "PERCENTAGE" && Math.abs(totalWeight - 100) > 0.01) throw new SplitError("Percentages must sum to 100");
+  if (splitType === "SHARES" && totalWeight === 0) throw new SplitError("Total shares cannot be zero");
+  return allocateProportionally(totalCents, participants, valueOf, totalWeight);
+}
+
+/**
+ * Largest-remainder allocation: everyone gets the floor of their exact share, then the leftover cents go to
+ * whoever lost the most to flooring. Always non-negative, always sums to the total, a zero weight always gets zero.
+ */
+function allocateProportionally(
+  totalCents: number,
+  participants: string[],
+  weightOf: (id: string) => number,
+  totalWeight: number
+): Record<string, number> {
+  const rows = participants.map((id, order) => {
+    const exact = (totalCents * weightOf(id)) / totalWeight;
+    const floor = Math.floor(exact + 1e-9); // 1e-9: float noise must not drop a whole cent
+    return { id, order, floor, frac: exact - floor, eligible: weightOf(id) > 0 };
+  });
+  let leftover = totalCents - rows.reduce((sum, r) => sum + r.floor, 0);
+  const byRemainder = rows.filter((r) => r.eligible).sort((x, y) => y.frac - x.frac || x.order - y.order);
+  for (let i = 0; leftover > 0 && byRemainder.length > 0; i++, leftover--) byRemainder[i % byRemainder.length].floor += 1;
+  return Object.fromEntries(rows.map((r) => [r.id, r.floor]));
 }
 
 /** Returns net balance for a user across all expenses and settlements */

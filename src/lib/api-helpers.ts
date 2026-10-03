@@ -1,3 +1,4 @@
+import { SplitError } from "@/lib/algorithms/debt-simplification";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -77,10 +78,18 @@ export function err(message: string, status = 400) {
   return NextResponse.json({ data: null, error: { message } }, { status });
 }
 
+/** Prisma unique-constraint violation (P2002). */
+export function isUniqueViolation(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002";
+}
+
 export function handleError(e: unknown) {
   if (e instanceof ZodError) {
     return err((e as ZodError).issues.map((x) => x.message).join(", "), 422);
   }
+  if (e instanceof SplitError) return err(e.message, 400);
+  // Unique-constraint violation: the same record was created by a concurrent identical request
+  if (isUniqueViolation(e)) return err("This was already saved", 409);
   console.error(e);
   return err(e instanceof Error ? e.message : "Internal server error", 500);
 }

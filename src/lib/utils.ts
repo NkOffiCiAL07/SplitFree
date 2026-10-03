@@ -75,8 +75,15 @@ export function formatAmount(cents: number): string {
   return formatCurrency(cents);
 }
 
+/**
+ * Major units → whole cents without floating-point surprises (1.005 * 100 is 100.49999999999999, which would
+ * round down; shifting the decimal point in the exponent keeps it exact: "1.005e2" → 100.5 → 101).
+ */
 export function toCents(dollars: number): number {
-  return Math.round(dollars * 100);
+  if (!Number.isFinite(dollars)) return NaN;
+  const abs = Math.abs(dollars);
+  const shifted = String(abs).includes("e") ? abs * 100 : Number(`${abs}e2`);
+  return (dollars < 0 ? -1 : 1) * Math.round(shifted);
 }
 
 export function fromCents(cents: number): number {

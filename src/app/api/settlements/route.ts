@@ -2,7 +2,7 @@ import { createNotifications } from "@/lib/notify";
 import { CURRENCY_CODES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, isUniqueViolation, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
 import { z } from "zod";
 import { toCents, formatCurrency } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
@@ -101,7 +101,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Wrap settlement + all notifications in a transaction
-    const settlement = await prisma.$transaction(async (tx) => {
+    let settlement;
+    try {
+    settlement = await prisma.$transaction(async (tx) => {
       const s = await tx.settlement.create({
         data: {
           ...(data.clientId ? { id: data.clientId } : {}),
@@ -155,6 +157,14 @@ export async function POST(req: NextRequest) {
 
       return s;
     });
+    } catch (e) {
+      // Two identical requests raced: the loser returns the winner's row instead of failing
+      if (data.clientId && isUniqueViolation(e)) {
+        const winner = await prisma.settlement.findUnique({ where: { id: data.clientId }, include: { fromUser: userSelect, toUser: userSelect } });
+        if (winner && winner.fromUserId === user!.id) return ok(winner, 200);
+      }
+      throw e;
+    }
 
     return ok(settlement, 201);
   } catch (e) {

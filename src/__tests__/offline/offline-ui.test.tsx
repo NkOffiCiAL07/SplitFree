@@ -2,23 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, act, renderHook } from "@testing-library/react";
 import { createHarness } from "../hooks/harness";
 
-const { toast, store } = vi.hoisted(() => ({
-  toast: { success: vi.fn(), error: vi.fn() },
-  store: new Map<string, string>(),
-}));
-vi.hoisted(() => {
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k), clear: () => store.clear() },
-  });
-});
+const { toast } = vi.hoisted(() => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("sonner", () => ({ toast }));
 
 import { OfflineStatus } from "@/components/layout/offline-status";
 import { PendingSyncList } from "@/components/expenses/pending-sync-list";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useSettleUp } from "@/hooks/use-settlements";
-import { setOutboxUser, enqueue, pendingItems, clearOutbox } from "@/lib/offline/outbox";
+import { setOutboxUser, enqueue, pendingItems, clearOutbox, flushOutbox } from "@/lib/offline/outbox";
+import userEvent from "@testing-library/user-event";
 
 let online = true;
 const goOnline = () => { online = true; window.dispatchEvent(new Event("online")); };
@@ -82,7 +74,7 @@ describe("OfflineStatus banner", () => {
 
   it("opening the app online with unsent changes (e.g. after a crash) syncs them straight away", async () => {
     queued("a"); queued("b");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => ({}) }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => ({ data: {} }) }));
     const { wrapper } = createHarness();
     render(<OfflineStatus />, { wrapper });
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith("2 offline changes synced"));
@@ -93,7 +85,16 @@ describe("OfflineStatus banner", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 409, json: async () => ({ error: { message: "This group is archived" } }) }));
     const { wrapper } = createHarness();
     render(<OfflineStatus />, { wrapper });
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Trip dinner.*₹100.*This group is archived/)));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Trip dinner.*₹100.*This group is archived.*kept/)));
+    expect(pendingItems()).toHaveLength(1); // nothing is thrown away
+  });
+
+  it("once the server has refused something, the banner points the user to it (instead of claiming it's syncing)", async () => {
+    queued("a");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403, json: async () => ({ error: { message: "no" } }) }));
+    const { wrapper } = createHarness();
+    render(<OfflineStatus />, { wrapper });
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("1 offline change needs your attention"));
   });
 });
 
@@ -112,6 +113,32 @@ describe("PendingSyncList", () => {
     expect(section).toHaveTextContent("Dinner");
     expect(section).toHaveTextContent("₹450.00");
     expect(section).toHaveTextContent("payment");
+  });
+
+  it("refused items are listed separately with the reason, and can be retried or discarded", async () => {
+    queued("Dinner", { label: "Dinner", amount: 450 });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 409, json: async () => ({ error: { message: "This group is archived" } }) }));
+    await flushOutbox();
+    render(<PendingSyncList />);
+    const failed = screen.getByRole("region", { name: "Needs attention" });
+    expect(failed).toHaveTextContent("Couldn't be saved (1)");
+    expect(failed).toHaveTextContent("This group is archived");
+    expect(failed).toHaveTextContent("₹450.00");
+    expect(screen.queryByRole("region", { name: "Waiting to sync" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByRole("region", { name: "Waiting to sync" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Needs attention" })).not.toBeInTheDocument();
+  });
+
+  it("Discard removes it for good", async () => {
+    queued("a");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 400, json: async () => ({ error: { message: "bad" } }) }));
+    await flushOutbox();
+    const { container } = render(<PendingSyncList />);
+    await userEvent.click(screen.getByRole("button", { name: "Discard" }));
+    expect(container).toBeEmptyDOMElement();
+    expect(pendingItems()).toEqual([]);
   });
 
   it("updates live as items sync", () => {

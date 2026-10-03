@@ -240,3 +240,68 @@ describe("POST /api/expenses — safe retries (clientId)", () => {
     expect(p.expense.findUnique).not.toHaveBeenCalled();
   });
 });
+
+describe("POST /api/expenses — money safety", () => {
+  const CID = "33333333-3333-4333-8333-333333333333";
+  const asMember = () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }]);
+  };
+
+  it.each([
+    ["exact amounts a cent short", { splitType: "EXACT", amount: 10, splits: { [ME]: 5, [OTHER]: 4.99 } }],
+    ["exact amounts a cent over", { splitType: "EXACT", amount: 10, splits: { [ME]: 5, [OTHER]: 5.01 } }],
+    ["a negative exact amount", { splitType: "EXACT", amount: 10, splits: { [ME]: 15, [OTHER]: -5 } }],
+    ["percentages not adding to 100", { splitType: "PERCENTAGE", splits: { [ME]: 50, [OTHER]: 40 } }],
+    ["a negative share", { splitType: "SHARES", splits: { [ME]: 3, [OTHER]: -1 } }],
+    ["all-zero shares", { splitType: "SHARES", splits: { [ME]: 0, [OTHER]: 0 } }],
+  ])("%s → 400 (a final answer: a queued retry must not loop forever), nothing saved", async (_name, over) => {
+    asMember();
+    const res = await post(body(over));
+    expect(res.status).toBe(400);
+    expect(p.expense.create).not.toHaveBeenCalled();
+  });
+
+  it("whatever the split type, the saved shares add up to the total exactly", async () => {
+    asMember();
+    p.expense.create.mockImplementation(async ({ data }: { data: { splits: { create: { amount: number }[] }; amount: number } }) => ({ id: "e", paidBy: { name: "Me" }, saved: data }));
+    for (const over of [{ amount: 100 }, { amount: 0.1 }, { amount: 99999.99, participants: [ME, OTHER] }, { splitType: "SHARES", amount: 10, splits: { [ME]: 1, [OTHER]: 2 } }, { splitType: "PERCENTAGE", amount: 33.33, splits: { [ME]: 33.33, [OTHER]: 66.67 } }]) {
+      p.expense.create.mockClear();
+      expect((await post(body(over))).status).toBe(201);
+      const { data } = p.expense.create.mock.calls[0][0];
+      expect(data.splits.create.reduce((s: number, x: { amount: number }) => s + x.amount, 0), JSON.stringify(over)).toBe(data.amount);
+    }
+  });
+
+  it("two identical requests racing: the loser gets the winner's expense (200), not an error", async () => {
+    asMember();
+    p.expense.findUnique.mockResolvedValue(null);
+    p.expense.create.mockRejectedValue(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+    p.expense.findFirst.mockResolvedValue({ id: CID, description: "Dinner" });
+    const res = await post(body({ clientId: CID }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.id).toBe(CID);
+  });
+
+  it("a duplicate-key error without a clientId is reported as a conflict, not a crash", async () => {
+    asMember();
+    p.expense.create.mockRejectedValue(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+    expect((await post(body())).status).toBe(409);
+  });
+
+  it("if notifying people fails AFTER the expense was saved, the caller still gets success (so they never re-enter it)", async () => {
+    asMember();
+    p.expense.create.mockResolvedValue({ id: "e1", paidBy: { name: "Me" } });
+    p.notification.createMany.mockRejectedValue(new Error("db hiccup"));
+    p.activity.create.mockRejectedValue(new Error("db hiccup"));
+    const res = await post(body());
+    expect(res.status).toBe(201);
+    expect((await res.json()).data.id).toBe("e1");
+  });
+
+  it("a genuine server failure while saving is a 500 (so the client knows it did not save)", async () => {
+    asMember();
+    p.expense.create.mockRejectedValue(new Error("connection lost"));
+    expect((await post(body())).status).toBe(500);
+  });
+});

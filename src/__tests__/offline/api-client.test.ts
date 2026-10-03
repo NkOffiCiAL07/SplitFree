@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { apiFetch, isNetworkError, OfflineError } from "@/lib/api-client";
+import { apiFetch, isNetworkError, OfflineError, BadResponseError } from "@/lib/api-client";
 
 const setOnline = (v: boolean) => vi.spyOn(navigator, "onLine", "get").mockReturnValue(v);
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
@@ -31,6 +31,12 @@ describe("apiFetch", () => {
     expect(e.message).toMatch(/offline/i);
   });
 
+  it("a non-JSON reply (captive portal, gateway error page) is a BadResponseError, not a raw SyntaxError", async () => {
+    setOnline(true);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => { throw new SyntaxError("Unexpected token <"); } }));
+    await expect(apiFetch("/api/x")).rejects.toBeInstanceOf(BadResponseError);
+  });
+
   it("doesn't disguise other failures", async () => {
     setOnline(true);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new RangeError("weird")));
@@ -42,6 +48,7 @@ describe("isNetworkError", () => {
   it("recognises network failures only", () => {
     expect(isNetworkError(new OfflineError())).toBe(true);
     expect(isNetworkError(new TypeError("Failed to fetch"))).toBe(true);
+    expect(isNetworkError(new BadResponseError())).toBe(true);
     expect(isNetworkError(new Error("Unauthorized"))).toBe(false);
     expect(isNetworkError("x")).toBe(false);
   });

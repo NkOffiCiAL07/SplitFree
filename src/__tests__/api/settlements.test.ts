@@ -167,3 +167,35 @@ describe("POST /api/settlements/remind", () => {
     expect(p.notification.createMany).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("POST /api/settlements — races", () => {
+  const CID = "44444444-4444-4444-8444-444444444444";
+  const setup = () => {
+    p.friendship.findMany.mockResolvedValue([{ friendId: OTHER }]);
+    p.groupMember.findMany.mockResolvedValue([]);
+    p.expenseSplit.findMany.mockResolvedValue([]);
+  };
+
+  it("two identical requests racing: the loser gets the winner's payment (200), not an error", async () => {
+    setup();
+    p.settlement.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: CID, fromUserId: ME });
+    p.settlement.create.mockRejectedValue(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+    const res = await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 100, clientId: CID })));
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.id).toBe(CID);
+  });
+
+  it("a duplicate-key error whose row belongs to someone else is a conflict, never returned", async () => {
+    setup();
+    p.settlement.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: CID, fromUserId: STRANGER });
+    p.settlement.create.mockRejectedValue(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+    expect((await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 100, clientId: CID })))).status).toBe(409);
+  });
+
+  it("a real failure while saving is a 500 — the client must know it did not save", async () => {
+    setup();
+    p.settlement.findUnique.mockResolvedValue(null);
+    p.settlement.create.mockRejectedValue(new Error("connection lost"));
+    expect((await POST(req("/api/settlements", json({ toUserId: OTHER, amount: 100 })))).status).toBe(500);
+  });
+});

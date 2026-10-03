@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { postOrQueue, isQueued } from "@/lib/offline/queued-write";
+import { postOrQueue, isQueued, resetAttempts } from "@/lib/offline/queued-write";
 import { setOutboxUser, pendingItems, clearOutbox } from "@/lib/offline/outbox";
 import { OfflineError } from "@/lib/api-client";
 
 const meta = { kind: "expense" as const, label: "Dinner", amount: 250, currency: "INR" };
 const setOnline = (v: boolean) => vi.spyOn(navigator, "onLine", "get").mockReturnValue(v);
 
-beforeEach(() => { clearOutbox(); setOutboxUser("u1"); setOnline(true); });
+beforeEach(() => { clearOutbox(); setOutboxUser("u1"); setOnline(true); resetAttempts(); });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("postOrQueue", () => {
@@ -45,6 +45,63 @@ describe("postOrQueue", () => {
     setOutboxUser(null);
     setOnline(false);
     await expect(postOrQueue("/api/expenses", {}, meta)).rejects.toBeInstanceOf(OfflineError);
+  });
+});
+
+describe("postOrQueue — a submission keeps ONE id until it is confirmed (no duplicate money)", () => {
+  const sentIds = (f: ReturnType<typeof vi.fn>) => f.mock.calls.map((c) => JSON.parse(c[1].body).clientId);
+
+  it("after a server error, tapping Save again with the same details re-sends the SAME id", async () => {
+    const f = vi.fn()
+      .mockResolvedValueOnce({ json: async () => ({ error: { message: "Internal server error" } }) })
+      .mockResolvedValueOnce({ json: async () => ({ data: { id: "e1" } }) });
+    vi.stubGlobal("fetch", f);
+    await postOrQueue("/api/expenses", { description: "Dinner", amount: 100 }, meta).catch(() => {});
+    await postOrQueue("/api/expenses", { description: "Dinner", amount: 100 }, meta);
+    const [first, second] = sentIds(f);
+    expect(first).toBe(second); // the server can dedupe if the first attempt actually got saved
+  });
+
+  it("a double-tap while the first request is in flight uses the same id", async () => {
+    const f = vi.fn().mockResolvedValue({ json: async () => ({ data: { id: "e1" } }) });
+    vi.stubGlobal("fetch", f);
+    await Promise.all([
+      postOrQueue("/api/expenses", { description: "Dinner", amount: 100 }, meta),
+      postOrQueue("/api/expenses", { description: "Dinner", amount: 100 }, meta),
+    ]);
+    const [a, b] = sentIds(f);
+    expect(a).toBe(b);
+  });
+
+  it("once confirmed, the same details entered again are a genuinely NEW expense (two identical coffees)", async () => {
+    const f = vi.fn().mockResolvedValue({ json: async () => ({ data: { id: "e1" } }) });
+    vi.stubGlobal("fetch", f);
+    await postOrQueue("/api/expenses", { description: "Coffee", amount: 50 }, meta);
+    await postOrQueue("/api/expenses", { description: "Coffee", amount: 50 }, meta);
+    const [a, b] = sentIds(f);
+    expect(a).not.toBe(b);
+  });
+
+  it("different details never share an id", async () => {
+    const f = vi.fn().mockRejectedValue(new Error("x"));
+    vi.stubGlobal("fetch", f);
+    await postOrQueue("/api/expenses", { amount: 1 }, meta).catch(() => {});
+    await postOrQueue("/api/expenses", { amount: 2 }, meta).catch(() => {});
+    const [a, b] = sentIds(f);
+    expect(a).not.toBe(b);
+  });
+
+  it("an answer that isn't an API reply (captive portal) is queued, not shown as a crash", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => { throw new SyntaxError("<html>"); } }));
+    expect(isQueued(await postOrQueue("/api/expenses", { amount: 1 }, meta))).toBe(true);
+  });
+
+  it("if the device refuses to store the write, the user is told it did NOT save", async () => {
+    setOnline(false);
+    const real = localStorage.setItem;
+    localStorage.setItem = () => { throw new DOMException("full", "QuotaExceededError"); };
+    await expect(postOrQueue("/api/expenses", { amount: 1 }, meta)).rejects.toBeInstanceOf(OfflineError);
+    localStorage.setItem = real;
   });
 });
 

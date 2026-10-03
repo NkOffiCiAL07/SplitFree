@@ -6,9 +6,17 @@ export class OfflineError extends Error {
   }
 }
 
+/** The server (or something in between, like a captive portal) answered with something that isn't an API reply. */
+export class BadResponseError extends Error {
+  constructor() {
+    super("Couldn't reach the server — please try again.");
+    this.name = "BadResponseError";
+  }
+}
+
 /** True for failures that mean "the network was unavailable" (worth retrying), not "the server said no". */
 export function isNetworkError(e: unknown): boolean {
-  if (e instanceof OfflineError) return true;
+  if (e instanceof OfflineError || e instanceof BadResponseError) return true;
   // fetch() rejects with a TypeError when there's no connection / DNS / CORS-level failure
   return e instanceof TypeError;
 }
@@ -26,7 +34,12 @@ export async function apiFetch<T = any>(url: string, init?: RequestInit): Promis
     if (isNetworkError(e)) throw new OfflineError();
     throw e;
   }
-  const json = await res.json();
+  let json;
+  try {
+    json = await res.json();
+  } catch {
+    throw new BadResponseError();
+  }
   if (json.error) throw new Error(json.error.message);
   return json.data as T;
 }

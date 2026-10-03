@@ -1,7 +1,7 @@
 import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, isUniqueViolation, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
@@ -115,7 +115,9 @@ export async function POST(req: NextRequest) {
       data.splits
     );
 
-    const expense = await prisma.expense.create({
+    let expense;
+    try {
+      expense = await prisma.expense.create({
       data: {
         ...(data.clientId ? { id: data.clientId } : {}),
         description: data.description,
@@ -141,7 +143,18 @@ export async function POST(req: NextRequest) {
       },
       include: expenseInclude,
     });
+    } catch (e) {
+      // Two identical requests raced (e.g. two tabs replaying the same queued expense): the loser returns the winner's row
+      if (data.clientId && isUniqueViolation(e)) {
+        const winner = await prisma.expense.findFirst({ where: { id: data.clientId, ...visibleToUser(user!.id) }, include: expenseInclude });
+        if (winner) return ok(winner, 200);
+      }
+      throw e;
+    }
 
+    // The expense is saved. Notifications and the activity entry are best-effort: if they fail, the caller must
+    // NOT see an error (they'd retry and double-enter money that is already recorded).
+    try {
     // Notify every group member except the payer
     const payerIds = new Set([primaryPayer, ...payersCents.map((p) => p.userId)]);
     let notifyIds: string[] = data.participants.filter((id) => !payerIds.has(id));
@@ -178,6 +191,10 @@ export async function POST(req: NextRequest) {
         metadata: { description: data.description, amount: totalCents },
       },
     });
+
+    } catch (sideEffectError) {
+      console.error("[expenses] saved, but notifying failed:", sideEffectError);
+    }
 
     return ok(expense, 201);
   } catch (e) {
