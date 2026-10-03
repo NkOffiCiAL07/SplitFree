@@ -24,9 +24,12 @@ describe("capacitor.config.ts", () => {
     expect(cfg).toContain('appendUserAgent: "SplitrProApp/1.0"');
     expect(cfg).toContain("allowNavigation");
   });
+  it("the keyboard shrinks the page body (no black gap behind the keyboard)", () => {
+    expect(cfg).toContain('resize: "body"');
+  });
   it("the launch image can never get stuck: it auto-hides after a timeout as a fallback", () => {
     expect(cfg).toMatch(/launchAutoHide: true/);
-    expect(cfg).toMatch(/launchShowDuration: 2500/);
+    expect(cfg).toMatch(/launchShowDuration: 8000/);
   });
   it("the offline page is bundled with the app", () => {
     expect(existsSync("ios-web/offline.html")).toBe(true);

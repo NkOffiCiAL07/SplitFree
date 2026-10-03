@@ -24,8 +24,8 @@
     "ios:sync": "cap sync ios",
     "ios:open": "cap open ios",
     "ios:webkit": "node scripts/ios-webkit-check.mjs",
-    "ios:sim": "cap sync ios && cap run ios",
-    "ios:sim:local": "CAP_SERVER_URL=http://localhost:3000 cap sync ios && cap run ios"
+    "ios:sim": "scripts/ios-run-sim.sh",
+    "ios:sim:local": "scripts/ios-run-sim.sh \"iPhone 17\" http://localhost:3000"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

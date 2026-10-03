@@ -37,6 +37,17 @@ describe("updateSession (page protection)", () => {
     expect(serverGetUser).not.toHaveBeenCalled();
   });
 
+  it("the iPhone app is sent from the marketing page straight to the dashboard (and from there to sign-in when signed out)", async () => {
+    const appReq = (path: string) => new NextRequestCtor(`https://app.example${path}`, { headers: { "user-agent": "Mozilla/5.0 (iPhone) Mobile/15E148 SplitrProApp/1.0" } });
+    getUser.mockResolvedValue({ data: { user: null } });
+    const res = await updateSession(appReq("/"));
+    expect(res.status).toBe(307);
+    expect(new URL(location(res)!).pathname).toBe("/dashboard");
+    // …only for "/", only for the app: other pages and normal browsers are untouched
+    expect((await updateSession(appReq("/privacy"))).status).toBe(200);
+    expect((await updateSession(req("/"))).status).toBe(200);
+  });
+
   describe("signed out", () => {
     beforeEach(() => getUser.mockResolvedValue({ data: { user: null } }));
 

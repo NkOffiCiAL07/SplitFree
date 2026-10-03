@@ -37,6 +37,12 @@ export async function updateSession(request: NextRequest) {
   const isApiRoute = url.pathname.startsWith("/api");
   const isPublicRoute = url.pathname === "/" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support" || url.pathname.startsWith("/downloads/");
 
+  // The iPhone app never shows the marketing page (its "home" is the dashboard); signed-out people continue on to sign-in
+  if (url.pathname === "/" && (request.headers.get("user-agent") ?? "").includes("SplitrProApp")) {
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
   if (!user && !isAuthRoute && !isApiRoute && !isPublicRoute) {
     url.pathname = "/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);

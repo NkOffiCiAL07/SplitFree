@@ -35,12 +35,13 @@ const config: CapacitorConfig = {
     SplashScreen: {
       // NativeBridge hides it as soon as the page is ready; this timer is the safety net, so the launch image can
       // never get stuck on screen (offline at launch, slow network, page error)
-      launchShowDuration: 2500,
+      launchShowDuration: 8000,
       launchAutoHide: true,
       backgroundColor: "#6d28d9",
       showSpinner: false,
     },
-    Keyboard: { resize: "native", resizeOnFullScreen: true },
+    // "body": the page shrinks above the keyboard (no black gap behind it, fields stay visible)
+    Keyboard: { resize: "body", resizeOnFullScreen: true },
     StatusBar: { style: "DARK", overlaysWebView: true },
   },
 };
