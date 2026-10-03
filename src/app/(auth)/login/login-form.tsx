@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { loginSchema } from "@/lib/validations/auth";
 
@@ -82,13 +82,13 @@ function LoginPageContent() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="space-y-6"
+      className="flex flex-1 flex-col gap-5 lg:gap-6"
     >
       {/* Header */}
-      <div className="space-y-1">
+      <div className="anim-fade-up space-y-1" style={{ animationDelay: "60ms" }}>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back 👋</h1>
         <p className="text-sm text-muted-foreground">
-          Your groups and balances are right where you left them.
+          Your groups and balances are waiting.
         </p>
       </div>
 
@@ -97,7 +97,8 @@ function LoginPageContent() {
       {/* Google */}
       <Button
         variant="outline"
-        className="w-full gap-2 max-lg:h-[52px] max-lg:rounded-xl max-lg:text-base"
+        className="anim-fade-up w-full gap-2 max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base"
+        style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
         disabled={inApp}
@@ -107,7 +108,7 @@ function LoginPageContent() {
         Continue with Google
       </Button>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or">
+      <div className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />
@@ -115,7 +116,7 @@ function LoginPageContent() {
 
       {/* Email form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5">
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "220ms" }}>
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -125,7 +126,7 @@ function LoginPageContent() {
             autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-xl"
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
             {...register("email")}
           />
           {errors.email && (
@@ -133,7 +134,7 @@ function LoginPageContent() {
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "280ms" }}>
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
             <Link
@@ -162,7 +163,7 @@ function LoginPageContent() {
             autoComplete="current-password" enterKeyHint="go"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-xl"
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
             {...register("password")}
           />
           {errors.password && (
@@ -172,21 +173,28 @@ function LoginPageContent() {
 
         <Button
           type="submit"
-          className={`w-full lg-shine max-lg:h-[52px] max-lg:rounded-xl ${ready ? "lg-ready" : ""}`}
+          style={{ animationDelay: "420ms" }}
+          className={`anim-fade-up btn-liquid group w-full lg-shine h-[54px] text-base font-semibold ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}
         >
           Sign in
+          <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
         </Button>
       </form>
 
-      <p className="py-1 text-center text-sm text-muted-foreground">
+      <div className="anim-fade-up mt-auto space-y-3 pt-2" style={{ animationDelay: "480ms" }}>
+      <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="-my-2 inline-block py-2 font-medium text-primary hover:underline">
           Sign up free
         </Link>
       </p>
+      <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/80">
+        <ShieldCheck className="size-3.5" aria-hidden="true" /> Secure sign-in · No ads · Free forever
+      </p>
+      </div>
 
     </m.div>
   );

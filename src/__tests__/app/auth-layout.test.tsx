@@ -3,6 +3,7 @@ import { render, screen, within, act } from "@testing-library/react";
 import { vi, beforeEach, afterEach } from "vitest";
 import AuthLayout, { metadata } from "@/app/(auth)/layout";
 import { OCCASIONS, HEADLINE } from "@/lib/brand-copy";
+import { viewport } from "@/app/(auth)/layout";
 
 describe("Auth layout — welcome for phones (and the Android app when signed out)", () => {
   it("shows what the app is above the form: name, tagline and the key benefits", () => {
@@ -72,5 +73,18 @@ describe("Rotating occasions", () => {
     act(() => { vi.advanceTimersByTime(2600 * OCCASIONS.length); });
     expect(OCCASIONS).toContain(words()[0]);
     expect(screen.getAllByText(OCCASIONS.join(", "), { selector: ".sr-only" }).length).toBeGreaterThan(0);
+  });
+});
+
+describe("Auth layout — phone chrome", () => {
+  it("colours the phone's status bar like the header, so there's no white strip above the purple", () => {
+    expect(viewport.themeColor).toBe("#6d28d9");
+    expect(viewport.viewportFit).toBe("cover");
+  });
+
+  it("the form sheet is a column that fills the screen (so the footer can sit at the bottom)", () => {
+    render(<AuthLayout><form aria-label="login form" /></AuthLayout>);
+    const sheet = screen.getByRole("form", { name: "login form" }).parentElement!;
+    expect(sheet).toHaveClass("flex", "flex-col", "flex-1");
   });
 });

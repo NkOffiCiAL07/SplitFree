@@ -293,9 +293,11 @@ describe("Sign-in / sign-up forms — built for phones (touch targets, keyboards
 
   it("every control is a comfortable thumb target on phones (52px, vs Material's 48–56dp guidance)", () => {
     render(<LoginForm />);
-    for (const el of [screen.getByLabelText("Email"), screen.getByPlaceholderText("••••••••"), screen.getByRole("button", { name: /^sign in$/i }), screen.getByRole("button", { name: /continue with google/i })]) {
+    for (const el of [screen.getByLabelText("Email"), screen.getByPlaceholderText("••••••••"), screen.getByRole("button", { name: /continue with google/i })]) {
       expect(el.className).toMatch(/max-lg:h-\[52px\]/);
+      expect(el.className).toMatch(/max-lg:rounded-2xl/);
     }
+    expect(screen.getByRole("button", { name: /^sign in$/i }).className).toMatch(/h-\[54px\]/); // the main action is the biggest
   });
 
   it("the show/hide password button is labelled, announces its state, and is a 44px target", async () => {
@@ -324,5 +326,41 @@ describe("Sign-in / sign-up forms — built for phones (touch targets, keyboards
     render(<LoginForm />);
     expect(screen.getByRole("link", { name: /forgot password/i }).className).toMatch(/py-2/);
     expect(screen.getByRole("link", { name: /sign up free/i }).className).toMatch(/py-2/);
+  });
+});
+
+describe("Sign-in polish", () => {
+  it("the Sign in button is the glossy primary action with a sliding arrow and a shimmer", () => {
+    render(<LoginForm />);
+    const btn = screen.getByRole("button", { name: /^sign in$/i });
+    expect(btn).toHaveClass("btn-liquid", "lg-shine", "group");
+    expect(btn.querySelector("svg")).toHaveClass("group-hover:translate-x-1"); // the arrow nudges forward on hover
+    expect(btn.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("sign-up gets the same primary button", () => {
+    render(<SignupForm />);
+    expect(screen.getByRole("button", { name: /create account/i })).toHaveClass("btn-liquid");
+  });
+
+  it("the footer (sign-up link + trust line) is pinned to the bottom of the sheet instead of leaving a blank gap", () => {
+    render(<LoginForm />);
+    const footer = screen.getByRole("link", { name: /sign up free/i }).closest("div")!;
+    expect(footer).toHaveClass("mt-auto");
+    expect(footer).toHaveTextContent(/Secure sign-in · No ads · Free forever/);
+    expect(screen.getByRole("link", { name: /sign up free/i })).toHaveAttribute("href", "/signup");
+  });
+
+  it("the form builds up in sequence (staggered entrance), header first and footer last", () => {
+    const { container } = render(<LoginForm />);
+    const delays = [...container.querySelectorAll<HTMLElement>(".anim-fade-up")].map((e) => parseInt(e.style.animationDelay));
+    expect(delays.length).toBeGreaterThanOrEqual(7);
+    expect(delays).toEqual([...delays].sort((a, b) => a - b)); // strictly in DOM order
+    expect(delays[0]).toBeLessThan(delays[delays.length - 1]);
+  });
+
+  it("the subtitle is one short line (it used to wrap and leave 'them.' alone)", () => {
+    render(<LoginForm />);
+    expect(screen.getByText("Your groups and balances are waiting.")).toBeInTheDocument();
   });
 });

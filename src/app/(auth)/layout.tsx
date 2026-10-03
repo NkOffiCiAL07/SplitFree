@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Check, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { FillProvider } from "@/components/auth/fill-context";
@@ -8,6 +8,14 @@ import { HEADLINE, HEADLINE_LINE_1, HEADLINE_LINE_2, SUBLINE, OCCASIONS } from "
 
 export const metadata: Metadata = {
   title: "Sign in",
+};
+
+// The phone status bar takes the header's colour (no white strip above the purple header)
+export const viewport: Viewport = {
+  themeColor: "#6d28d9",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const TRUST = ["Free forever", "No ads", "Works offline"];
@@ -109,7 +117,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                   <span className="block bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{HEADLINE_LINE_2}</span>
                 </p>
               </div>
-              <FillingPot size="sm" className="shrink-0" />
+              <FillingPot size="sm" className="shrink-0 scale-110" />
             </div>
             <p className="mt-2 hidden text-sm leading-relaxed text-white/80 min-[400px]:[@media(min-height:780px)]:block">{SUBLINE}</p>
             <p className="mt-2 text-xs text-white/80 [@media(max-height:640px)]:hidden">
@@ -118,7 +126,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </section>
 
           <div
-            className="lg-glass anim-fade-up relative z-10 w-full flex-1 rounded-t-[2rem] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 max-lg:border-0 max-lg:bg-background! max-lg:bg-none! max-lg:backdrop-filter-none! max-lg:shadow-[0_-18px_50px_-18px_rgba(30,10,80,0.5)]! lg:max-w-md lg:flex-none lg:rounded-3xl lg:p-8"
+            className="lg-glass anim-fade-up relative z-10 flex w-full flex-1 flex-col rounded-t-[2rem] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 max-lg:border-0 max-lg:bg-background! max-lg:bg-none! max-lg:backdrop-filter-none! max-lg:shadow-[0_-18px_50px_-18px_rgba(30,10,80,0.5)]! lg:max-w-md lg:flex-none lg:rounded-3xl lg:p-8"
             style={{ animationDelay: "120ms" }}
           >
             {children}

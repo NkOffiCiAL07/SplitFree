@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User, ShieldCheck } from "lucide-react";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function GoogleIcon() {
@@ -116,9 +116,9 @@ function SignupFormContent() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="space-y-6"
+      className="flex flex-1 flex-col gap-5 lg:gap-6"
     >
-      <div className="space-y-1">
+      <div className="anim-fade-up space-y-1" style={{ animationDelay: "60ms" }}>
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground">
           Free forever — no ads, no card. Takes about 30 seconds.
@@ -129,7 +129,8 @@ function SignupFormContent() {
 
       <Button
         variant="outline"
-        className="w-full gap-2 max-lg:h-[52px] max-lg:rounded-xl max-lg:text-base"
+        className="anim-fade-up w-full gap-2 max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base"
+        style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
         disabled={inApp}
@@ -139,14 +140,14 @@ function SignupFormContent() {
         Sign up with Google
       </Button>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or">
+      <div className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5">
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "220ms" }}>
           <Label htmlFor="name">Full name</Label>
           <Input
             id="name"
@@ -155,7 +156,7 @@ function SignupFormContent() {
             autoComplete="name" autoCapitalize="words" enterKeyHint="next"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? "name-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-xl"
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
             {...register("name")}
           />
           {errors.name && (
@@ -163,7 +164,7 @@ function SignupFormContent() {
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "280ms" }}>
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -173,7 +174,7 @@ function SignupFormContent() {
             autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-xl"
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
             {...register("email")}
           />
           {errors.email && (
@@ -181,7 +182,7 @@ function SignupFormContent() {
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "340ms" }}>
           <Label htmlFor="password">Password</Label>
           <Input
             id="password"
@@ -202,7 +203,7 @@ function SignupFormContent() {
             autoComplete="new-password" enterKeyHint="go"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-xl"
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
             {...register("password")}
           />
           {errors.password && (
@@ -212,12 +213,14 @@ function SignupFormContent() {
 
         <Button
           type="submit"
-          className={`w-full lg-shine max-lg:h-[52px] max-lg:rounded-xl ${ready ? "lg-ready" : ""}`}
+          style={{ animationDelay: "420ms" }}
+          className={`anim-fade-up btn-liquid group w-full lg-shine h-[54px] text-base font-semibold ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}
         >
           Create account
+          <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
         </Button>
 
         <p className="text-center text-xs text-muted-foreground">
@@ -228,12 +231,17 @@ function SignupFormContent() {
         </p>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link href="/login" className="text-primary font-medium hover:underline">
-          Sign in
-        </Link>
-      </p>
+      <div className="anim-fade-up mt-auto space-y-3 pt-2" style={{ animationDelay: "480ms" }}>
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/login" className="-my-2 inline-block py-2 font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </p>
+        <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/80">
+          <ShieldCheck className="size-3.5" aria-hidden="true" /> Secure sign-up · No ads · Free forever
+        </p>
+      </div>
 
     </m.div>
   );
