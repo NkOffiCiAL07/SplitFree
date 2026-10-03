@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { APP_NAME } from "@/lib/app-config";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function GoogleIcon() {
@@ -108,12 +107,6 @@ function SignupFormContent() {
       className="space-y-6"
     >
       <div className="space-y-1">
-        <div className="flex items-center gap-2 lg:hidden mb-6">
-          <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">S</span>
-          </div>
-          <span className="font-semibold">{APP_NAME}</span>
-        </div>
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground">
           Free forever. No credit card required.

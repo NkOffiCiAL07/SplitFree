@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Check, Zap } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 
 export const metadata: Metadata = {
@@ -40,7 +41,31 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right — auth form */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6">
+        {/* Welcome for phones and tablets (also what the Android app shows when signed out) */}
+        <section aria-label="Welcome" data-testid="welcome" className="relative w-full max-w-md overflow-hidden rounded-3xl gradient-brand p-6 text-white shadow-xl shadow-violet-500/20 lg:hidden">
+          <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-white/15 blur-2xl" />
+          <div className="relative">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-white">
+                <Zap className="size-4 text-violet-600" />
+              </div>
+              <span className="text-lg font-semibold">{APP_NAME}</span>
+            </div>
+            <p className="text-2xl font-bold leading-tight">Split expenses, not friendships.</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/80">
+              Share costs with friends and groups, settle up by UPI, and keep going even without signal.
+            </p>
+            <ul className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
+              {["UPI pay links", "Works offline", "Smart settle-up", "No ads"].map((t) => (
+                <li key={t} className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
+                  <Check className="size-3" aria-hidden="true" /> {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <div className="w-full max-w-md">{children}</div>
       </div>
     </div>

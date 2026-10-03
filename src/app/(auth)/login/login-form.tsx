@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { APP_NAME } from "@/lib/app-config";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { loginSchema } from "@/lib/validations/auth";
 
@@ -76,12 +75,6 @@ function LoginPageContent() {
     >
       {/* Header */}
       <div className="space-y-1">
-        <div className="flex items-center gap-2 lg:hidden mb-6">
-          <div className="w-7 h-7 gradient-brand rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">S</span>
-          </div>
-          <span className="font-semibold">{APP_NAME}</span>
-        </div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-sm text-muted-foreground">
           Sign in to your account to continue
