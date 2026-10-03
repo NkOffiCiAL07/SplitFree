@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   Zap, Users, BarChart3, Shield, ArrowRight, Check, SplitSquareHorizontal, Globe, RefreshCw, Sparkles,
   WifiOff, QrCode, FileUp, History, Bell, UsersRound, ChevronDown, Smartphone, IndianRupee,
+  Home, Receipt, UserPlus, Signal, Wifi, BatteryFull,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -52,61 +53,117 @@ const faqs = [
 const chips = ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"];
 
 function PhoneMock() {
-  const rows = [
+  const people = [
     { name: "Himanshu", note: "you owe", amount: "₹1,200", tone: "text-red-600 dark:text-red-400", bg: "bg-rose-400" },
     { name: "Divyansh", note: "owes you", amount: "₹850", tone: "text-green-600 dark:text-green-400", bg: "bg-emerald-500" },
     { name: "Prakhar", note: "owes you", amount: "₹340", tone: "text-green-600 dark:text-green-400", bg: "bg-indigo-500" },
   ];
+  const recent = [
+    { emoji: "🍔", name: "Dinner at Barbeque Nation", share: "you owe ₹600", tone: "text-red-600 dark:text-red-400", amount: "₹1,800" },
+    { emoji: "🏨", name: "Hotel — Goa trip", share: "you lent ₹2,166", tone: "text-green-600 dark:text-green-400", amount: "₹6,500" },
+    { emoji: "🚗", name: "Ola cab to airport", share: "you owe ₹170", tone: "text-red-600 dark:text-red-400", amount: "₹340" },
+    { emoji: "☕", name: "Chai at Pune station", share: "you lent ₹60", tone: "text-green-600 dark:text-green-400", amount: "₹120" },
+  ];
   return (
     <div className="relative mx-auto w-[260px] sm:w-[290px]" aria-hidden="true">
-      <div className="absolute -inset-8 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-fuchsia-500/20 blur-3xl" />
-      <div className="rounded-[2.4rem] border-[7px] border-zinc-900 bg-zinc-900 shadow-[0_40px_90px_-20px_rgba(76,29,149,0.55)] dark:border-zinc-700">
-        <div className="overflow-hidden rounded-[1.9rem] bg-background">
-          <div className="mx-auto mt-2 h-4 w-20 rounded-full bg-zinc-900 dark:bg-zinc-700" />
-          <div className="space-y-3 p-4 pt-3">
+      <div className="absolute -inset-10 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-fuchsia-500/20 blur-3xl" />
+
+      {/* Phone body: titanium-style frame, side buttons, real 9:19.5 proportions */}
+      <div className="relative rounded-[2.9rem] border-[7px] border-zinc-900 bg-zinc-900 shadow-[0_40px_90px_-20px_rgba(76,29,149,0.55)] dark:border-zinc-700 dark:bg-zinc-700">
+        <span className="absolute -left-[10px] top-24 h-9 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
+        <span className="absolute -left-[10px] top-40 h-14 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
+        <span className="absolute -left-[10px] top-[14.5rem] h-14 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
+        <span className="absolute -right-[10px] top-36 h-20 w-[3px] rounded-r bg-zinc-800 dark:bg-zinc-600" />
+
+        <div className="relative flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.3rem] bg-background">
+          {/* status bar + camera island */}
+          <div className="flex items-center justify-between px-6 pb-1 pt-3 text-[10px] font-semibold">
+            <span>9:41</span>
+            <span className="absolute left-1/2 top-2.5 h-[18px] w-[78px] -translate-x-1/2 rounded-full bg-zinc-900 dark:bg-black" />
+            <span className="flex items-center gap-1"><Signal className="size-3" /><Wifi className="size-3" /><BatteryFull className="size-3.5" /></span>
+          </div>
+
+          {/* the app screen */}
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5 px-3.5 pb-2 pt-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] text-muted-foreground">Good evening</p>
-                <p className="text-sm font-bold">Your balances</p>
+                <p className="text-[9px] text-muted-foreground">Good evening</p>
+                <p className="text-[13px] font-bold leading-tight">Your balances</p>
               </div>
               <div className="flex size-7 items-center justify-center rounded-lg gradient-brand"><Zap className="size-3.5 text-white" /></div>
             </div>
+
             <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2.5">
-                <p className="text-[9px] text-muted-foreground">Owed to you</p>
-                <p className="text-base font-bold text-green-600 dark:text-green-400">₹1,190</p>
+              <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2">
+                <p className="text-[8px] text-muted-foreground">Owed to you</p>
+                <p className="text-[15px] font-bold leading-tight text-green-600 dark:text-green-400">₹1,190</p>
               </div>
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2.5">
-                <p className="text-[9px] text-muted-foreground">You owe</p>
-                <p className="text-base font-bold text-red-600 dark:text-red-400">₹1,200</p>
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2">
+                <p className="text-[8px] text-muted-foreground">You owe</p>
+                <p className="text-[15px] font-bold leading-tight text-red-600 dark:text-red-400">₹1,200</p>
               </div>
             </div>
-            <div className="space-y-1.5 rounded-xl border bg-card p-2.5">
-              {rows.map((r) => (
+
+            <div className="rounded-xl border bg-card px-2.5 py-1.5">
+              <p className="mb-0.5 text-[9px] font-semibold text-muted-foreground">Balances</p>
+              {people.map((r) => (
                 <div key={r.name} className="flex items-center gap-2 py-1">
-                  <div className={`flex size-6 items-center justify-center rounded-full text-[9px] font-bold text-white ${r.bg}`}>{r.name[0]}</div>
+                  <div className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white ${r.bg}`}>{r.name[0]}</div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[11px] font-medium">{r.name}</p>
-                    <p className="text-[9px] text-muted-foreground">{r.note}</p>
+                    <p className="truncate text-[11px] font-medium leading-tight">{r.name}</p>
+                    <p className="text-[8.5px] leading-tight text-muted-foreground">{r.note}</p>
                   </div>
                   <p className={`text-[11px] font-semibold ${r.tone}`}>{r.amount}</p>
                 </div>
               ))}
             </div>
-            <div className="rounded-xl gradient-brand py-2 text-center text-[11px] font-semibold text-white">Settle up</div>
+
+            <div className="rounded-xl border bg-card px-2.5 py-1.5">
+              <p className="mb-0.5 text-[9px] font-semibold text-muted-foreground">Recent</p>
+              {recent.map((e) => (
+                <div key={e.name} className="flex items-center gap-2 py-1">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-muted text-[12px]">{e.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[10.5px] font-medium leading-tight">{e.name}</p>
+                    <p className={`text-[8.5px] leading-tight ${e.tone}`}>{e.share}</p>
+                  </div>
+                  <p className="text-[10.5px] font-semibold">{e.amount}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-auto rounded-xl gradient-brand py-2 text-center text-[11px] font-semibold text-white">Settle up</div>
+          </div>
+
+          {/* bottom navigation + home indicator */}
+          <div className="border-t bg-background/95 px-3 pb-1.5 pt-1.5">
+            <div className="flex items-center justify-around text-[8px] text-muted-foreground">
+              {[
+                { icon: Home, label: "Home", active: true },
+                { icon: Users, label: "Groups" },
+                { icon: Receipt, label: "Expenses" },
+                { icon: UserPlus, label: "Friends" },
+              ].map(({ icon: Icon, label, active }) => (
+                <div key={label} className={`flex flex-col items-center gap-0.5 ${active ? "text-violet-600 dark:text-violet-400" : ""}`}>
+                  <Icon className="size-4" />
+                  <span className={active ? "font-semibold" : ""}>{label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mx-auto mt-1.5 h-1 w-20 rounded-full bg-zinc-900/80 dark:bg-zinc-200/80" />
           </div>
         </div>
       </div>
 
-      <div className="anim-float lg-glass absolute -left-[112px] top-20 hidden rounded-2xl px-3 py-2 sm:block">
+      <div className="anim-float lg-glass absolute -left-[132px] top-24 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><Check className="size-3.5 text-green-500" /> Payment received</p>
         <p className="text-[10px] text-muted-foreground">₹850 · UPI</p>
       </div>
-      <div className="anim-float-slow lg-glass absolute -right-[118px] top-52 hidden rounded-2xl px-3 py-2 sm:block">
+      <div className="anim-float-slow lg-glass absolute -right-[130px] top-64 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><WifiOff className="size-3.5 text-violet-500" /> Offline — saved</p>
         <p className="text-[10px] text-muted-foreground">Syncs when you&apos;re back</p>
       </div>
-      <div className="anim-float lg-glass absolute -left-[100px] bottom-16 hidden rounded-2xl px-3 py-2 sm:block">
+      <div className="anim-float lg-glass absolute -left-[118px] bottom-28 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="text-[11px] font-semibold">10 payments → 3</p>
         <p className="text-[10px] text-muted-foreground">Debts simplified</p>
       </div>

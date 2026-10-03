@@ -15,7 +15,11 @@ vi.mock("next/dynamic", async () => {
       // resolve the dynamic chart components from the mocked module
       function Lazy(props: Record<string, unknown>) {
         const [C, setC] = React.useState<null | ((p: Record<string, unknown>) => React.ReactNode)>(null);
-        React.useEffect(() => { (loader() as Promise<(p: Record<string, unknown>) => React.ReactNode>).then((c) => setC(() => c)); }, []);
+        React.useEffect(() => {
+          let cancelled = false; // don't update state after the test (and its environment) is gone
+          (loader() as Promise<(p: Record<string, unknown>) => React.ReactNode>).then((c) => { if (!cancelled) setC(() => c); });
+          return () => { cancelled = true; };
+        }, []);
         return C ? C(props) : null;
       }
       return Lazy;
