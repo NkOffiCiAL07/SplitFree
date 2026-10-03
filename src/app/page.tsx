@@ -7,9 +7,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DownloadPanel } from "@/components/landing/download-panel";
+import { Reveal } from "@/components/landing/reveal";
+import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
 import { CURRENCY_CODES } from "@/lib/currencies";
+import { HEADLINE_LINE_1, HEADLINE_LINE_2, SUBLINE, OCCASIONS } from "@/lib/brand-copy";
 
 export const metadata: Metadata = {
   title: { absolute: `${APP_NAME} — Split expenses, not friendships` },
@@ -95,15 +98,15 @@ function PhoneMock() {
         </div>
       </div>
 
-      <div className="anim-float absolute -left-[112px] top-20 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+      <div className="anim-float lg-glass absolute -left-[112px] top-20 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><Check className="size-3.5 text-green-500" /> Payment received</p>
         <p className="text-[10px] text-muted-foreground">₹850 · UPI</p>
       </div>
-      <div className="anim-float-slow absolute -right-[118px] top-52 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+      <div className="anim-float-slow lg-glass absolute -right-[118px] top-52 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><WifiOff className="size-3.5 text-violet-500" /> Offline — saved</p>
         <p className="text-[10px] text-muted-foreground">Syncs when you&apos;re back</p>
       </div>
-      <div className="anim-float absolute -left-[100px] bottom-16 hidden rounded-2xl border bg-card/95 px-3 py-2 shadow-xl backdrop-blur sm:block">
+      <div className="anim-float lg-glass absolute -left-[100px] bottom-16 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="text-[11px] font-semibold">10 payments → 3</p>
         <p className="text-[10px] text-muted-foreground">Debts simplified</p>
       </div>
@@ -139,9 +142,10 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative px-4 pb-20 pt-14 sm:pt-20">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl" />
-          <div className="absolute right-1/4 top-24 h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-3xl" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="lg-blob left-[8%] top-10 h-[420px] w-[420px] bg-violet-400/35" />
+          <div className="lg-blob lg-blob-2 right-[6%] top-24 h-[480px] w-[480px] bg-sky-300/35" />
+          <div className="lg-blob lg-blob-3 bottom-[-80px] left-1/3 h-[380px] w-[380px] bg-fuchsia-300/30" />
           <div
             className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
             style={{ backgroundImage: "radial-gradient(circle, #6d28d9 1px, transparent 1px)", backgroundSize: "32px 32px" }}
@@ -160,12 +164,16 @@ export default function LandingPage() {
             </a>
 
             <h1 className="anim-fade-up text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl xl:text-7xl" style={{ animationDelay: "60ms" }}>
-              Split expenses,{" "}
-              <span className="gradient-brand-text">not friendships.</span>
+              {HEADLINE_LINE_1}{" "}
+              <span className="gradient-brand-text">{HEADLINE_LINE_2}</span>
             </h1>
 
             <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
-              The free, India-first way to share costs. UPI payments, offline mode and smart settle-up — on the web and now on Android.
+              {SUBLINE}
+            </p>
+            <p className="anim-fade-up text-base text-muted-foreground" style={{ animationDelay: "150ms" }}>
+              Made for{" "}
+              <RotatingWords words={OCCASIONS} className="font-semibold text-foreground" />
             </p>
 
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
@@ -190,13 +198,17 @@ export default function LandingPage() {
       </section>
 
       {/* Feature ticker */}
-      <section className="border-y bg-muted/30 py-5" aria-label="Highlights">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 text-sm font-medium text-muted-foreground">
-          {chips.map((c) => (
-            <span key={c} className="flex items-center gap-2">
-              <Sparkles className="size-3.5 text-violet-500" />
-              {c}
-            </span>
+      <section className="relative overflow-hidden border-y bg-muted/30 py-5" aria-label="Highlights">
+        <div className="flex w-max lg-marquee gap-3 px-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+          {[0, 1].map((copy) => (
+            <ul key={copy} className="flex shrink-0 gap-3" aria-hidden={copy === 1 ? "true" : undefined}>
+              {[...chips, ...chips].map((c, i) => (
+                <li key={`${c}-${i}`} className="lg-glass flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/80">
+                  <Sparkles className="size-3.5 text-violet-500" />
+                  {c}
+                </li>
+              ))}
+            </ul>
           ))}
         </div>
       </section>
@@ -213,15 +225,15 @@ export default function LandingPage() {
           </div>
           <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="absolute left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] top-10 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" />
-            {steps.map(({ number, icon: Icon, title, description }) => (
-              <div key={number} className="group relative text-center">
+            {steps.map(({ number, icon: Icon, title, description }, i) => (
+              <Reveal key={number} delay={i * 120} className="group relative text-center">
                 <div className="relative z-10 mx-auto mb-5 flex size-20 flex-col items-center justify-center rounded-2xl gradient-brand shadow-lg shadow-violet-500/25 transition-transform duration-200 group-hover:-translate-y-1">
                   <span className="text-[10px] font-bold leading-none text-white/70">{number}</span>
                   <Icon className="mt-1 size-6 text-white" />
                 </div>
                 <h3 className="mb-2 text-lg font-semibold">{title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -230,11 +242,11 @@ export default function LandingPage() {
       {/* Android download */}
       <section id="download" className="scroll-mt-16 px-4 pb-24">
         <div className="mx-auto max-w-5xl">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-700 to-purple-800 p-8 text-white shadow-2xl shadow-violet-900/30 sm:p-12">
-            <div className="pointer-events-none absolute inset-0">
-              <div className="absolute -left-16 -top-16 size-72 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute -bottom-20 -right-10 size-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+          <Reveal className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-700 to-purple-800 p-8 text-white shadow-2xl shadow-violet-900/30 sm:p-12">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="lg-blob -left-16 -top-16 h-80 w-80 bg-cyan-400/40" />
+              <div className="lg-blob lg-blob-2 -bottom-24 -right-10 h-80 w-80 bg-fuchsia-400/40" />
+              <div className="lg-blob lg-blob-3 left-1/2 top-1/3 h-60 w-60 bg-indigo-300/30" />
             </div>
             <div className="relative">
               <div className="mb-8 max-w-2xl">
@@ -248,13 +260,18 @@ export default function LandingPage() {
               </div>
               <DownloadPanel />
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="scroll-mt-16 bg-muted/30 px-4 py-24">
-        <div className="mx-auto max-w-6xl">
+      <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="lg-blob -left-20 top-10 h-72 w-72 bg-violet-400/40" />
+          <div className="lg-blob lg-blob-2 -right-16 top-1/2 h-80 w-80 bg-sky-300/45" />
+          <div className="lg-blob lg-blob-3 bottom-0 left-1/3 h-64 w-64 bg-fuchsia-300/35" />
+        </div>
+        <div className="relative mx-auto max-w-6xl">
           <div className="mb-14 text-center">
             <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
               <span className="h-px w-4 bg-violet-500/50" /> Features <span className="h-px w-4 bg-violet-500/50" />
@@ -263,14 +280,16 @@ export default function LandingPage() {
             <p className="mx-auto max-w-xl text-muted-foreground">Built around how people in India actually share money — and it handles the awkward cases too.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map(({ icon: Icon, title, description, color }) => (
-              <div key={title} className="group rounded-2xl border bg-card p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                <div className={`mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-sm transition-transform duration-200 group-hover:scale-110`}>
-                  <Icon className="size-5 text-white" />
+            {features.map(({ icon: Icon, title, description, color }, i) => (
+              <Reveal key={title} delay={(i % 4) * 80}>
+                <div className="lg-glass group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
+                  <div className={`relative mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md shadow-black/10 ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
+                    <Icon className="size-5 text-white" />
+                  </div>
+                  <h3 className="relative mb-1.5 font-semibold">{title}</h3>
+                  <p className="relative text-sm leading-relaxed text-muted-foreground">{description}</p>
                 </div>
-                <h3 className="mb-1.5 font-semibold">{title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -298,7 +317,7 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
-          <div className="rounded-3xl border bg-card p-6 shadow-sm">
+          <div className="lg-glass rounded-3xl p-6">
             <p className="mb-4 text-xs font-medium text-muted-foreground">Goa trip · simplified</p>
             {[
               { from: "Rohan", to: "Ananya", amount: "₹2,400" },
@@ -318,14 +337,18 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="scroll-mt-16 bg-muted/30 px-4 py-24">
-        <div className="mx-auto max-w-3xl">
+      <section id="faq" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-sky-50/60 to-violet-50/60 px-4 py-24 dark:from-transparent dark:to-violet-950/20">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="lg-blob -right-10 top-10 h-64 w-64 bg-violet-300/30" />
+          <div className="lg-blob lg-blob-2 -left-10 bottom-10 h-64 w-64 bg-sky-300/30" />
+        </div>
+        <div className="relative mx-auto max-w-3xl">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">Questions, answered</h2>
           </div>
           <div className="space-y-3">
             {faqs.map(({ q, a }) => (
-              <details key={q} className="group rounded-2xl border bg-card px-5 py-4 open:shadow-sm">
+              <details key={q} className="lg-glass group rounded-2xl px-5 py-4 transition-shadow open:shadow-lg">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
                   {q}
                   <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />

@@ -22,14 +22,13 @@ function GoogleIcon() {
   );
 }
 import { toast } from "sonner";
-import { useReportFill } from "@/components/auth/fill-context";
+import { useReportFill, useFillLevel } from "@/components/auth/fill-context";
 import { formProgress } from "@/lib/form-fill";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 type LoginValues = z.infer<typeof loginSchema>;
 
@@ -52,6 +51,7 @@ function LoginPageContent() {
   // The pot beside the form fills as the form does
   const email = useWatch({ control, name: "email" });
   const password = useWatch({ control, name: "password" });
+  const ready = useFillLevel() >= 1; // the pot is full: invite the click
   useReportFill(formProgress([{ kind: "email", value: email }, { kind: "password", value: password, min: 6 }]));
 
   const onSubmit = async (values: LoginValues) => {
@@ -83,9 +83,9 @@ function LoginPageContent() {
     >
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Welcome back 👋</h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to your account to continue
+          Your groups and balances are right where you left them.
         </p>
       </div>
 
@@ -100,11 +100,10 @@ function LoginPageContent() {
         Continue with Google
       </Button>
 
-      <div className="relative">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
-          or
-        </span>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or">
+        <span className="h-px flex-1 bg-border" />
+        or
+        <span className="h-px flex-1 bg-border" />
       </div>
 
       {/* Email form */}
@@ -158,7 +157,7 @@ function LoginPageContent() {
 
         <Button
           type="submit"
-          className="w-full"
+          className={`w-full lg-shine ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}

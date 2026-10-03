@@ -61,7 +61,7 @@ export function DownloadPanel() {
           ))}
         </ol>
 
-        <div className="rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white/75">
+        <div className="lg-glass-dark rounded-xl p-3 text-xs text-white/80">
           <p className="mb-1.5 flex items-center gap-1.5 font-medium text-white">
             <ShieldCheck className="size-3.5 text-emerald-300" /> Signed release · {androidSizeLabel} · package {ANDROID_APP.packageName}
           </p>
@@ -81,14 +81,14 @@ export function DownloadPanel() {
 
       <div className="flex justify-center">
         {platform === "desktop" && origin ? (
-          <figure className="rounded-3xl bg-white p-5 text-center shadow-2xl" data-testid="download-qr">
+          <figure className="lg-float rounded-3xl bg-white p-5 text-center shadow-2xl ring-8 ring-white/20" data-testid="download-qr">
             <QRCodeSVG value={`${origin}${ANDROID_APP.path}`} size={176} level="M" marginSize={0} />
             <figcaption className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-600">
               <Smartphone className="size-3.5" /> Scan to download on Android
             </figcaption>
           </figure>
         ) : (
-          <div className="rounded-3xl bg-white/10 p-8 text-center text-white backdrop-blur" aria-hidden="true">
+          <div className="lg-glass-dark lg-float rounded-3xl p-8 text-center" aria-hidden="true">
             <Smartphone className="mx-auto size-16 opacity-90" />
           </div>
         )}

@@ -18,6 +18,8 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
   const clip = `pot-clip-${uid}`;
   const water = `pot-water-${uid}`;
   const shine = `pot-shine-${uid}`;
+  const glass = `pot-glass-${uid}`;
+  const glow = `pot-glow-${uid}`;
   const clay = `pot-clay-${uid}`;
   const offset = (1 - level) * TRAVEL;
   const big = size === "lg";
@@ -31,7 +33,7 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
     >
       <svg
         viewBox="0 0 200 250"
-        className={cn("overflow-visible", big ? "w-60 xl:w-72" : "w-20", mood === "full" && "fill-pop")}
+        className={cn("overflow-visible", big ? "h-[min(36vh,310px)] w-auto" : "w-20", mood === "full" && "fill-pop")}
         aria-hidden="true"
       >
         <defs>
@@ -47,6 +49,15 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
             <stop offset="0" stopColor="#f59e6c" />
             <stop offset="1" stopColor="#c2562b" />
           </linearGradient>
+          <linearGradient id={glass} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.4" />
+            <stop offset="0.45" stopColor="#fff" stopOpacity="0.08" />
+            <stop offset="1" stopColor="#c4b5fd" stopOpacity="0.22" />
+          </linearGradient>
+          <linearGradient id={glow} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
+            <stop offset="0.35" stopColor="#fff" stopOpacity="0" />
+          </linearGradient>
           <linearGradient id={shine} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
             <stop offset="1" stopColor="#fff" stopOpacity="0" />
@@ -60,15 +71,17 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
         {/* the glass body */}
         <path
           d="M74 34 L126 34 C126 52 150 62 158 92 C170 134 160 188 138 208 C124 220 76 220 62 208 C40 188 30 134 42 92 C50 62 74 52 74 34 Z"
-          fill="#ffffff" fillOpacity="0.12"
+          fill={`url(#${glass})`}
         />
 
         {/* the water, clipped to the body; the group slides up as the form fills */}
         <g clipPath={`url(#${clip})`}>
           <g style={{ transform: `translateY(${offset}px)`, transition: "transform 900ms cubic-bezier(.34,1.35,.5,1)" }} className="fill-level">
-            <rect x="20" y="52" width="160" height="200" fill={`url(#${water})`} />
+            <rect x="20" y="52" width="160" height="200" fill={`url(#${water})`} opacity="0.92" />
+            <rect x="20" y="52" width="160" height="200" fill={`url(#${glow})`} />
             <path className="fill-wave-2" d="M-200 52 q25 -9 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 V70 H-200 Z" fill="#7dd3fc" opacity="0.55" />
             <path className="fill-wave" d="M-200 54 q25 9 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 V72 H-200 Z" fill="#bae6fd" opacity="0.8" />
+            <path d="M-200 54 q25 9 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" className="fill-wave" fill="none" stroke="#fff" strokeOpacity="0.7" strokeWidth="1.6" />
             {level > 0 && (
               <>
                 <circle className="fill-bubble" cx="84" cy="200" r="3.5" fill="#fff" opacity="0.7" />
@@ -79,7 +92,20 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
           </g>
         </g>
 
-        {/* glass edge + shine */}
+        {/* a light that glides across the glass now and then */}
+        <g clipPath={`url(#${clip})`}>
+          <g transform="skewX(-14)">
+            <rect className="lg-sheen" x="20" y="30" width="22" height="200" fill="#fff" opacity="0.28" />
+          </g>
+        </g>
+
+        {/* glass edge (thick wall) + specular highlights */}
+        <path
+          d="M74 34 L126 34 C126 52 150 62 158 92 C170 134 160 188 138 208 C124 220 76 220 62 208 C40 188 30 134 42 92 C50 62 74 52 74 34 Z"
+          fill="none" stroke="#c4b5fd" strokeOpacity="0.5" strokeWidth="6" transform="translate(0 0)" style={{ mixBlendMode: "screen" }}
+        />
+        <path d="M150 112 C157 138 154 168 142 192" fill="none" stroke="#fff" strokeOpacity="0.4" strokeWidth="3" strokeLinecap="round" />
+        <ellipse cx="92" cy="26" rx="14" ry="2.2" fill="#fff" opacity="0.55" />
         <path
           d="M74 34 L126 34 C126 52 150 62 158 92 C170 134 160 188 138 208 C124 220 76 220 62 208 C40 188 30 134 42 92 C50 62 74 52 74 34 Z"
           fill="none" stroke="#fff" strokeOpacity="0.75" strokeWidth="2.5"
@@ -113,7 +139,7 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
       </svg>
 
       {big && (
-        <figcaption role="status" aria-live="polite" className="mt-4 text-center text-sm font-medium text-white/85" data-testid="fill-caption">
+        <figcaption role="status" aria-live="polite" className="mt-3 text-center text-sm font-medium text-white/85" data-testid="fill-caption">
           {fillCaption(level)}
         </figcaption>
       )}

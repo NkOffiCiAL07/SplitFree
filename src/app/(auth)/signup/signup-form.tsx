@@ -21,7 +21,7 @@ function GoogleIcon() {
   );
 }
 import { toast } from "sonner";
-import { useReportFill } from "@/components/auth/fill-context";
+import { useReportFill, useFillLevel } from "@/components/auth/fill-context";
 import { formProgress } from "@/lib/form-fill";
 import { signupSchema } from "@/lib/validations/auth";
 
@@ -29,7 +29,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 type SignupValues = z.infer<typeof signupSchema>;
 
@@ -55,6 +54,7 @@ function SignupFormContent() {
   const name = useWatch({ control, name: "name" });
   const email = useWatch({ control, name: "email" });
   const password = useWatch({ control, name: "password" });
+  const ready = useFillLevel() >= 1; // the pot is full: invite the click
   useReportFill(formProgress([{ kind: "name", value: name }, { kind: "email", value: email }, { kind: "password", value: password, min: 8 }]));
 
   const onSubmit = async (values: SignupValues) => {
@@ -118,7 +118,7 @@ function SignupFormContent() {
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground">
-          Free forever. No credit card required.
+          Free forever — no ads, no card. Takes about 30 seconds.
         </p>
       </div>
 
@@ -132,11 +132,10 @@ function SignupFormContent() {
         Sign up with Google
       </Button>
 
-      <div className="relative">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
-          or
-        </span>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or">
+        <span className="h-px flex-1 bg-border" />
+        or
+        <span className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -195,7 +194,7 @@ function SignupFormContent() {
 
         <Button
           type="submit"
-          className="w-full"
+          className={`w-full lg-shine ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}

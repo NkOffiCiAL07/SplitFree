@@ -89,6 +89,44 @@ describe("Landing page — Android app", () => {
   });
 });
 
+describe("Landing page — voice and liquid-glass design", () => {
+  it("leads with the plain, relatable tagline and explains it in one sentence", () => {
+    render(<LandingPage />);
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1).toHaveTextContent("Hisaab saaf.");
+    expect(h1).toHaveTextContent("Dosti barkaraar.");
+    expect(document.body.textContent).toMatch(/bhai, paise kab doge/);
+    expect(document.body.textContent).toMatch(/settle up on UPI in one tap/);
+  });
+
+  it("rotates what the app is for (and the full list is available to screen readers)", () => {
+    render(<LandingPage />);
+    expect(screen.getByTestId("rotating-word")).toHaveTextContent("Goa trips");
+    expect(screen.getByText(/Goa trips, flat rent, office lunches/, { selector: ".sr-only" })).toBeInTheDocument();
+  });
+
+  it("feature cards and FAQ items are frosted glass, and the highlights strip is a moving marquee with a hidden duplicate", () => {
+    const { container } = render(<LandingPage />);
+    expect(container.querySelectorAll("#features .lg-glass").length).toBeGreaterThanOrEqual(12);
+    expect(container.querySelectorAll("#faq details.lg-glass").length).toBeGreaterThanOrEqual(5);
+    const marquee = container.querySelector(".lg-marquee")!;
+    expect(marquee).not.toBeNull();
+    expect(marquee.querySelectorAll("ul[aria-hidden='true']")).toHaveLength(1); // the looped copy isn't read twice
+  });
+
+  it("decorative colour blobs are hidden from assistive tech", () => {
+    const { container } = render(<LandingPage />);
+    const blobs = container.querySelectorAll(".lg-blob");
+    expect(blobs.length).toBeGreaterThan(8);
+    for (const b of blobs) expect(b.closest("[aria-hidden='true']")).not.toBeNull();
+  });
+
+  it("content is fully visible without JavaScript: nothing is hidden by default (reveal arms only in the browser)", () => {
+    const { container } = render(<LandingPage />);
+    expect(container.querySelectorAll(".reveal-armed")).toHaveLength(0);
+  });
+});
+
 describe("DownloadPanel — tailored to the visitor", () => {
   const desktop = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15";
   const android = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36";

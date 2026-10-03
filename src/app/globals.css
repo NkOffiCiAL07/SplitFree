@@ -209,6 +209,121 @@ body {
   .anim-fade-in {
     animation: fade-in 0.5s ease both;
   }
+  /* ── liquid glass ───────────────────────────────────────────
+     Frosted, refractive surfaces with a specular highlight, over slowly morphing liquid colour blobs. */
+  .lg-glass {
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.66), hsl(0 0% 100% / 0.28));
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    backdrop-filter: blur(24px) saturate(1.8);
+    border: 1px solid hsl(0 0% 100% / 0.7);
+    box-shadow:
+      inset 0 1.5px 0 hsl(0 0% 100% / 0.95),
+      inset 0 -1px 0 hsl(0 0% 100% / 0.3),
+      inset 0 0 28px hsl(0 0% 100% / 0.22),
+      0 24px 60px -20px hsl(262 70% 35% / 0.3);
+  }
+  /* positioned so the highlight layer anchors to it — unless the element is already absolutely positioned */
+  .lg-glass:not(.absolute):not(.fixed):not(.sticky),
+  .lg-glass-dark:not(.absolute):not(.fixed):not(.sticky) { position: relative; }
+  .lg-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(120% 55% at 12% 0%, hsl(0 0% 100% / 0.6), transparent 58%);
+    pointer-events: none;
+  }
+  .dark .lg-glass {
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.13), hsl(0 0% 100% / 0.04));
+    border-color: hsl(0 0% 100% / 0.2);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.3),
+      inset 0 -1px 0 hsl(0 0% 100% / 0.06),
+      0 24px 60px -20px hsl(0 0% 0% / 0.6);
+  }
+  .dark .lg-glass::before { background: radial-gradient(120% 55% at 12% 0%, hsl(0 0% 100% / 0.16), transparent 58%); }
+  .lg-glass input:not([type="checkbox"]):not([type="radio"]) {
+    background: hsl(0 0% 100% / 0.6);
+    border-color: hsl(0 0% 100% / 0.8);
+  }
+  .dark .lg-glass input:not([type="checkbox"]):not([type="radio"]) {
+    background: hsl(0 0% 100% / 0.06);
+    border-color: hsl(0 0% 100% / 0.16);
+  }
+
+  /* glass on top of a saturated gradient (white-tinted rather than whitened) */
+  .lg-glass-dark {
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.22), hsl(0 0% 100% / 0.07));
+    -webkit-backdrop-filter: blur(18px) saturate(1.7);
+    backdrop-filter: blur(18px) saturate(1.7);
+    border: 1px solid hsl(0 0% 100% / 0.38);
+    box-shadow: inset 0 1.5px 0 hsl(0 0% 100% / 0.55), inset 0 -1px 0 hsl(0 0% 100% / 0.12), 0 14px 34px -12px hsl(262 80% 12% / 0.5);
+    color: white;
+  }
+
+  .lg-blob {
+    position: absolute;
+    border-radius: 42% 58% 70% 30% / 45% 30% 70% 55%;
+    filter: blur(46px);
+    will-change: transform, border-radius;
+    animation: lg-morph 16s ease-in-out infinite alternate, lg-drift 24s ease-in-out infinite alternate;
+  }
+  .lg-blob-2 { animation-duration: 19s, 28s; animation-delay: -4s, -9s; }
+  .lg-blob-3 { animation-duration: 22s, 31s; animation-delay: -8s, -3s; }
+  @keyframes lg-morph {
+    0%   { border-radius: 42% 58% 70% 30% / 45% 30% 70% 55%; }
+    50%  { border-radius: 62% 38% 35% 65% / 55% 65% 35% 45%; }
+    100% { border-radius: 36% 64% 55% 45% / 40% 55% 45% 60%; }
+  }
+  @keyframes lg-drift {
+    0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    100% { transform: translate3d(48px, -36px, 0) rotate(35deg) scale(1.12); }
+  }
+
+  .lg-float { animation: lg-float 7s ease-in-out infinite; }
+  .lg-float-2 { animation: lg-float 9s ease-in-out infinite reverse; }
+  .lg-float-3 { animation: lg-float 8s ease-in-out -3s infinite; }
+  @keyframes lg-float {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+    50%      { transform: translate3d(6px, -12px, 0) rotate(1.2deg); }
+  }
+
+  /* a light that sweeps across a button */
+  .lg-shine { position: relative; overflow: hidden; }
+  .lg-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 32%, hsl(0 0% 100% / 0.55) 50%, transparent 68%);
+    transform: translateX(-130%);
+    animation: lg-sweep 3.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes lg-sweep { 0%, 55% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+  .lg-ready { animation: lg-ready 1.8s ease-in-out infinite; }
+  @keyframes lg-ready {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(190 90% 60% / 0.55); }
+    50%      { box-shadow: 0 0 0 9px hsl(190 90% 60% / 0); }
+  }
+
+  /* scroll reveal: armed by JS only for things below the fold, so content is never hidden without it */
+  .reveal-armed { opacity: 0; transform: translateY(28px) scale(0.98); transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .reveal-armed.is-visible { opacity: 1; transform: none; }
+
+  .lg-marquee { animation: lg-marquee 38s linear infinite; }
+  @keyframes lg-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .lg-word { animation: lg-word 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  @keyframes lg-word { from { opacity: 0; transform: translateY(0.6em); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+
+  .lg-sheen { animation: lg-sheen 7s ease-in-out infinite; }
+  @keyframes lg-sheen { 0%, 60% { transform: translateX(-120px); opacity: 0; } 70% { opacity: 1; } 100% { transform: translateX(260px); opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lg-blob, .lg-float, .lg-float-2, .lg-float-3, .lg-shine::after, .lg-ready, .lg-marquee, .lg-word, .lg-sheen { animation: none; }
+    .reveal-armed { opacity: 1; transform: none; transition: none; }
+  }
+
   /* ── filling pot (sign-in) ── */
   .fill-wave { animation: fill-wave 2.6s linear infinite; }
   .fill-wave-2 { animation: fill-wave 4.2s linear infinite reverse; }
