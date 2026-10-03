@@ -241,7 +241,9 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   /* positioned so the highlight layer anchors to it — unless the element is already absolutely positioned */
   .lg-glass:not(.absolute):not(.fixed):not(.sticky),
   .lg-glass-dark:not(.absolute):not(.fixed):not(.sticky) { position: relative; }
+  .lg-glass { isolation: isolate; }
   .lg-glass::before {
+    z-index: -1; /* behind the content (it used to wash headings out), above the glass background */
     content: "";
     position: absolute;
     inset: 0;

@@ -266,3 +266,63 @@ describe("UpdatePasswordContent", () => {
     expect(h.push).not.toHaveBeenCalled();
   });
 });
+
+describe("Sign-in / sign-up forms — built for phones (touch targets, keyboards, password managers)", () => {
+  it("login: password managers can recognise the fields, and the keyboard suits each one", () => {
+    render(<LoginForm />);
+    const email = screen.getByLabelText("Email");
+    const password = screen.getByPlaceholderText("••••••••");
+    expect(email).toHaveAttribute("type", "email");
+    expect(email).toHaveAttribute("autocomplete", "username");
+    expect(password).toHaveAttribute("autocomplete", "current-password");
+    expect(email).toHaveAttribute("inputmode", "email");
+    expect(email).toHaveAttribute("autocapitalize", "none");   // no auto-capital first letter in an email
+    expect(email).toHaveAttribute("autocorrect", "off");
+    expect(email).toHaveAttribute("spellcheck", "false");
+    expect(email).toHaveAttribute("enterkeyhint", "next");     // keyboard's action key moves to the password
+    expect(password).toHaveAttribute("enterkeyhint", "go");    // …and then signs in
+  });
+
+  it("signup: asks the password manager to save a NEW password, and capitalises names", () => {
+    render(<SignupForm />);
+    expect(screen.getByLabelText("Full name")).toHaveAttribute("autocomplete", "name");
+    expect(screen.getByLabelText("Full name")).toHaveAttribute("autocapitalize", "words");
+    expect(screen.getByLabelText("Email")).toHaveAttribute("autocomplete", "username");
+    expect(screen.getByLabelText("Password")).toHaveAttribute("autocomplete", "new-password");
+  });
+
+  it("every control is a comfortable thumb target on phones (52px, vs Material's 48–56dp guidance)", () => {
+    render(<LoginForm />);
+    for (const el of [screen.getByLabelText("Email"), screen.getByPlaceholderText("••••••••"), screen.getByRole("button", { name: /^sign in$/i }), screen.getByRole("button", { name: /continue with google/i })]) {
+      expect(el.className).toMatch(/max-lg:h-\[52px\]/);
+    }
+  });
+
+  it("the show/hide password button is labelled, announces its state, and is a 44px target", async () => {
+    render(<LoginForm />);
+    const toggle = screen.getByRole("button", { name: "Show password" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(toggle.className).toMatch(/size-11/);
+    await userEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide password" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByPlaceholderText("••••••••")).toHaveAttribute("type", "text");
+  });
+
+  it("errors are tied to their fields for screen readers (aria-invalid + described-by) and announced", async () => {
+    render(<LoginForm />);
+    expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "false");
+    await userEvent.type(screen.getByLabelText("Email"), "a@b");
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    const email = screen.getByLabelText("Email");
+    await waitFor(() => expect(email).toHaveAttribute("aria-invalid", "true"));
+    const msg = screen.getAllByRole("alert").find((a) => a.id === "email-error")!;
+    expect(msg).toHaveTextContent("Enter a valid email");
+    expect(email).toHaveAttribute("aria-describedby", "email-error");
+  });
+
+  it("the sign-up and forgot-password links are big enough to hit", () => {
+    render(<LoginForm />);
+    expect(screen.getByRole("link", { name: /forgot password/i }).className).toMatch(/py-2/);
+    expect(screen.getByRole("link", { name: /sign up free/i }).className).toMatch(/py-2/);
+  });
+});

@@ -97,7 +97,7 @@ function LoginPageContent() {
       {/* Google */}
       <Button
         variant="outline"
-        className="w-full gap-2"
+        className="w-full gap-2 max-lg:h-[52px] max-lg:rounded-xl max-lg:text-base"
         onClick={handleGoogle}
         loading={googleLoading}
         disabled={inApp}
@@ -122,11 +122,14 @@ function LoginPageContent() {
             type="email"
             placeholder="you@example.com"
             startIcon={<Mail />}
-            autoComplete="email"
+            autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className="max-lg:h-[52px] max-lg:rounded-xl"
             {...register("email")}
           />
           {errors.email && (
-            <p className="text-xs text-destructive">{errors.email.message}</p>
+            <p id="email-error" role="alert" className="text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -135,7 +138,7 @@ function LoginPageContent() {
             <Label htmlFor="password">Password</Label>
             <Link
               href="/reset-password"
-              className="text-xs text-primary hover:underline"
+              className="-my-2 py-2 text-sm text-primary hover:underline"
             >
               Forgot password?
             </Link>
@@ -149,22 +152,27 @@ function LoginPageContent() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="-mr-3 flex size-11 items-center justify-center rounded-lg hover:text-foreground"
               >
                 {showPassword ? <EyeOff /> : <Eye />}
               </button>
             }
-            autoComplete="current-password"
+            autoComplete="current-password" enterKeyHint="go"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            className="max-lg:h-[52px] max-lg:rounded-xl"
             {...register("password")}
           />
           {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
+            <p id="password-error" role="alert" className="text-xs text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          className={`w-full lg-shine ${ready ? "lg-ready" : ""}`}
+          className={`w-full lg-shine max-lg:h-[52px] max-lg:rounded-xl ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}
@@ -173,9 +181,9 @@ function LoginPageContent() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="py-1 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-primary font-medium hover:underline">
+        <Link href="/signup" className="-my-2 inline-block py-2 font-medium text-primary hover:underline">
           Sign up free
         </Link>
       </p>

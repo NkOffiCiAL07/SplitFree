@@ -11,9 +11,7 @@ describe("Auth layout — welcome for phones (and the Android app when signed ou
     expect(welcome).toHaveTextContent("Splitr Pro");
     expect(welcome).toHaveTextContent("Hisaab saaf. Dosti barkaraar.");
     expect(welcome).toHaveTextContent(/bhai, paise kab doge/);
-    for (const benefit of ["UPI pay links", "Works offline", "Smart settle-up", "No ads"]) {
-      expect(within(welcome).getByText(benefit)).toBeInTheDocument();
-    }
+    expect(within(welcome).getByTestId("rotating-word")).toHaveTextContent(OCCASIONS[0]); // what it is for, one short line
   });
 
   it("is only for small screens (the desktop already has the branding panel) and is a labelled region", () => {

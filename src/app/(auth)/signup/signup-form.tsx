@@ -129,7 +129,7 @@ function SignupFormContent() {
 
       <Button
         variant="outline"
-        className="w-full gap-2"
+        className="w-full gap-2 max-lg:h-[52px] max-lg:rounded-xl max-lg:text-base"
         onClick={handleGoogle}
         loading={googleLoading}
         disabled={inApp}
@@ -152,11 +152,14 @@ function SignupFormContent() {
             id="name"
             placeholder="Alex Johnson"
             startIcon={<User />}
-            autoComplete="name"
+            autoComplete="name" autoCapitalize="words" enterKeyHint="next"
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "name-error" : undefined}
+            className="max-lg:h-[52px] max-lg:rounded-xl"
             {...register("name")}
           />
           {errors.name && (
-            <p className="text-xs text-destructive">{errors.name.message}</p>
+            <p id="name-error" role="alert" className="text-xs text-destructive">{errors.name.message}</p>
           )}
         </div>
 
@@ -167,11 +170,14 @@ function SignupFormContent() {
             type="email"
             placeholder="you@example.com"
             startIcon={<Mail />}
-            autoComplete="email"
+            autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className="max-lg:h-[52px] max-lg:rounded-xl"
             {...register("email")}
           />
           {errors.email && (
-            <p className="text-xs text-destructive">{errors.email.message}</p>
+            <p id="email-error" role="alert" className="text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -186,22 +192,27 @@ function SignupFormContent() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="-mr-3 flex size-11 items-center justify-center rounded-lg hover:text-foreground"
               >
                 {showPassword ? <EyeOff /> : <Eye />}
               </button>
             }
-            autoComplete="new-password"
+            autoComplete="new-password" enterKeyHint="go"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            className="max-lg:h-[52px] max-lg:rounded-xl"
             {...register("password")}
           />
           {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
+            <p id="password-error" role="alert" className="text-xs text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          className={`w-full lg-shine ${ready ? "lg-ready" : ""}`}
+          className={`w-full lg-shine max-lg:h-[52px] max-lg:rounded-xl ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
           loading={isSubmitting}

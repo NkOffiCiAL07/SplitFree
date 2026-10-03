@@ -80,47 +80,47 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        {/* Right — frosted-glass form over soft liquid colour */}
-        <div className="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden bg-gradient-to-br from-violet-50 via-white to-sky-50 p-6 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/40">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {/* Right — on phones: a compact brand header with the form sheet right under it (no scrolling to sign in);
+            on desktop: a frosted-glass card over soft liquid colour */}
+        <div className="relative flex flex-1 flex-col items-center justify-start overflow-hidden bg-gradient-to-b from-violet-700 via-indigo-700 to-fuchsia-700 lg:justify-center lg:gap-6 lg:bg-gradient-to-br lg:from-violet-50 lg:via-white lg:to-sky-50 lg:p-6 dark:lg:from-zinc-950 dark:lg:via-zinc-950 dark:lg:to-violet-950/40">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden lg:block">
             <div className="lg-blob -right-24 -top-24 h-80 w-80 bg-violet-400/45" />
             <div className="lg-blob lg-blob-2 -bottom-24 -left-16 h-80 w-80 bg-sky-300/50" />
             <div className="lg-blob lg-blob-3 bottom-10 right-10 h-56 w-56 bg-fuchsia-300/40" />
           </div>
+          <Backdrop className="lg:hidden" />
 
-          {/* Welcome for phones and tablets (also what the Android app shows when signed out) */}
+          {/* Phone header: compact, so the form is visible straight away (also what the Android app shows signed out) */}
           <section
             aria-label="Welcome"
             data-testid="welcome"
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-indigo-700 to-fuchsia-700 p-6 text-white shadow-xl shadow-violet-500/25 lg:hidden"
+            className="relative z-10 w-full px-6 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] text-white lg:hidden [@media(min-height:800px)]:pb-8 [@media(min-height:800px)]:pt-[max(2.5rem,env(safe-area-inset-top))]"
           >
-            <Backdrop className="opacity-80" />
-            <div className="relative">
-              <div className="mb-4 flex items-center gap-2.5">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-white">
-                  <Zap className="size-4 text-violet-600" />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="mb-3 flex items-center gap-2.5">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-white">
+                    <Zap className="size-4 text-violet-600" />
+                  </div>
+                  <span className="text-lg font-semibold">{APP_NAME}</span>
                 </div>
-                <span className="text-lg font-semibold">{APP_NAME}</span>
+                <p className="text-[1.65rem] font-bold leading-[1.1] tracking-tight">
+                  {HEADLINE_LINE_1}{" "}
+                  <span className="block bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{HEADLINE_LINE_2}</span>
+                </p>
               </div>
-              <div className="float-right -mt-1 ml-2">
-                <FillingPot size="sm" />
-              </div>
-              <p className="text-2xl font-bold leading-tight">{HEADLINE}</p>
-              <p className="mt-2 text-sm leading-relaxed text-white/80">{SUBLINE}</p>
-              <p className="mt-3 text-xs text-white/75">
-                Made for <RotatingWords words={OCCASIONS} className="font-semibold text-white" />
-              </p>
-              <ul className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
-                {["UPI pay links", "Works offline", "Smart settle-up", "No ads"].map((t) => (
-                  <li key={t} className="lg-glass-dark flex items-center gap-1 rounded-full px-2.5 py-1">
-                    <Check className="size-3" aria-hidden="true" /> {t}
-                  </li>
-                ))}
-              </ul>
+              <FillingPot size="sm" className="shrink-0" />
             </div>
+            <p className="mt-2 hidden text-sm leading-relaxed text-white/80 min-[400px]:[@media(min-height:780px)]:block">{SUBLINE}</p>
+            <p className="mt-2 text-xs text-white/80 [@media(max-height:640px)]:hidden">
+              Made for <RotatingWords words={OCCASIONS} className="font-semibold text-white" />
+            </p>
           </section>
 
-          <div className="lg-glass anim-fade-up relative z-10 w-full max-w-md rounded-3xl p-6 sm:p-8" style={{ animationDelay: "120ms" }}>
+          <div
+            className="lg-glass anim-fade-up relative z-10 w-full flex-1 rounded-t-[2rem] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 max-lg:border-0 max-lg:bg-background! max-lg:bg-none! max-lg:backdrop-filter-none! max-lg:shadow-[0_-18px_50px_-18px_rgba(30,10,80,0.5)]! lg:max-w-md lg:flex-none lg:rounded-3xl lg:p-8"
+            style={{ animationDelay: "120ms" }}
+          >
             {children}
           </div>
         </div>
