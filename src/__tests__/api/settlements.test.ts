@@ -106,6 +106,37 @@ describe("POST /api/settlements — validation", () => {
   });
 });
 
+describe("POST /api/settlements — safe retries (clientId)", () => {
+  const CID = "22222222-2222-4222-8222-222222222222";
+  const valid = { toUserId: OTHER, amount: 100, groupId: null };
+
+  it("a retried payment returns the one already recorded and writes nothing new", async () => {
+    p.settlement.findUnique.mockResolvedValue({ id: CID, fromUserId: ME });
+    const res = await POST(req("/api/settlements", json({ ...valid, clientId: CID })));
+    expect(res.status).toBe(200);
+    expect(p.settlement.create).not.toHaveBeenCalled();
+    expect(p.activity.create).not.toHaveBeenCalled();
+  });
+
+  it("an id owned by another payer is refused", async () => {
+    p.settlement.findUnique.mockResolvedValue({ id: CID, fromUserId: STRANGER });
+    expect((await POST(req("/api/settlements", json({ ...valid, clientId: CID })))).status).toBe(409);
+    expect(p.settlement.create).not.toHaveBeenCalled();
+  });
+
+  it("a first attempt saves the payment under the clientId", async () => {
+    p.settlement.findUnique.mockResolvedValue(null);
+    p.friendship.findMany.mockResolvedValue([{ friendId: OTHER }]);
+    p.groupMember.findMany.mockResolvedValue([]);
+    p.expenseSplit.findMany.mockResolvedValue([]);
+    p.settlement.create.mockResolvedValue({ id: CID, fromUser: { name: "Me" }, toUser: { name: "Pal" } });
+    p.notification.createMany.mockResolvedValue({});
+    p.activity.create.mockResolvedValue({});
+    expect((await POST(req("/api/settlements", json({ ...valid, clientId: CID })))).status).toBe(201);
+    expect(p.settlement.create.mock.calls[0][0].data.id).toBe(CID);
+  });
+});
+
 describe("POST /api/settlements/remind", () => {
   const valid = { debtorId: OTHER, amount: 5000, currency: "INR" };
 

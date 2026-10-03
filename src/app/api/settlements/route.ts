@@ -11,6 +11,7 @@ import { loadGroupLedger } from "@/lib/ledger-db";
 const userSelect = { select: { id: true, name: true, avatarUrl: true } } as const;
 
 const createSettlementSchema = z.object({
+  clientId: z.string().uuid().optional(), // lets a retried (offline-queued) request be recognised
   toUserId: z.string().uuid(),
   amount: z.number().positive(),
   groupId: z.string().uuid().optional().nullable(),
@@ -81,6 +82,14 @@ export async function POST(req: NextRequest) {
 
     if (data.toUserId === user!.id) return err("Cannot settle with yourself", 400);
 
+    if (data.clientId) {
+      const existing = await prisma.settlement.findUnique({
+        where: { id: data.clientId },
+        include: { fromUser: userSelect, toUser: userSelect },
+      });
+      if (existing) return existing.fromUserId === user!.id ? ok(existing, 200) : err("Conflict", 409);
+    }
+
     if (data.groupId) {
       const [payerIn, payeeIn] = await Promise.all([
         isGroupMember(data.groupId, user!.id),
@@ -95,6 +104,7 @@ export async function POST(req: NextRequest) {
     const settlement = await prisma.$transaction(async (tx) => {
       const s = await tx.settlement.create({
         data: {
+          ...(data.clientId ? { id: data.clientId } : {}),
           fromUserId: user!.id,
           toUserId: data.toUserId,
           amount: toCents(data.amount),

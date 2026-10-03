@@ -1,14 +1,10 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-async function fetchJSON(url: string, init?: RequestInit) {
-  const res = await fetch(url, init);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data;
-}
+const fetchJSON = apiFetch;
 
 export function useGroupBudget(groupId: string) {
   return useQuery({

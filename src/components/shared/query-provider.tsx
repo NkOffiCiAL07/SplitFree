@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { startQueryPersistence, clearQueryCache } from "@/lib/offline/persist";
+import { setOutboxUser, clearOutbox } from "@/lib/offline/outbox";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,6 +21,8 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           },
           mutations: {
             retry: 0,
+            // Run writes even when offline so they can be queued on the device (the default would just pause them)
+            networkMode: "always",
           },
         },
       })
@@ -28,8 +32,21 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   // (and the service worker's offline API copies) on sign-out or when a different user signs in.
   useEffect(() => {
     let currentUserId: string | null | undefined;
+    let stopPersisting: (() => void) | undefined;
+    let cancelled = false;
     const { data: { subscription } } = createClient().auth.onAuthStateChange((event, session) => {
       const nextUserId = session?.user?.id ?? null;
+      // Offline mode: keep this user's data on the device, and tell the outbox whose writes it holds
+      if (nextUserId !== (currentUserId ?? null)) {
+        stopPersisting?.();
+        stopPersisting = undefined;
+        setOutboxUser(nextUserId);
+        if (nextUserId) {
+          startQueryPersistence(queryClient, nextUserId).then((stop) => {
+            if (cancelled) stop(); else stopPersisting = stop;
+          });
+        }
+      }
       // Only a real sign-out or a switch between two accounts counts; the initial
       // session / first sign-in must never wipe in-flight queries.
       const changed =
@@ -39,6 +56,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       if (!changed) return;
       queryClient.cancelQueries();
       queryClient.removeQueries();
+      // Nothing of the previous account may stay on the device: saved data and unsent writes
+      clearQueryCache().catch(() => {});
+      clearOutbox();
+      setOutboxUser(nextUserId);
       if (typeof caches !== "undefined") {
         caches.keys().then((names) =>
           Promise.all(names.map(async (name) => {
@@ -53,7 +74,11 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         ).catch(() => {});
       }
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      stopPersisting?.();
+      subscription.unsubscribe();
+    };
   }, [queryClient]);
 
   return (

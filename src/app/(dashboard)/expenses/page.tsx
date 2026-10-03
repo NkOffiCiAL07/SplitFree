@@ -22,6 +22,7 @@ import { useUserCurrency } from "@/hooks/use-profile";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
 import { Separator } from "@/components/ui/separator";
 import type { Expense } from "@/types";
+import { PendingSyncList } from "@/components/expenses/pending-sync-list";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   FOOD:"🍔",TRANSPORT:"🚗",ACCOMMODATION:"🏨",ENTERTAINMENT:"🎭",
@@ -88,6 +89,8 @@ export default function ExpensesPage() {
           <AddExpenseDialog open={addOpen} onOpenChange={setAddOpen} />
         </div>
       </div>
+
+      <PendingSyncList />
 
       {/* Search + filter bar */}
       <div className="space-y-2">

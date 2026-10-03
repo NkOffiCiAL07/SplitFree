@@ -1,16 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Friendship, FriendRequest, Expense, Settlement } from "@/types";
 import type { CurrencyNet } from "@/lib/ledger";
 
-async function fetchJSON(url: string, init?: RequestInit) {
-  const res = await fetch(url, init);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data;
-}
+const fetchJSON = apiFetch;
 
 export function useFriends() {
   return useQuery<Friendship[]>({

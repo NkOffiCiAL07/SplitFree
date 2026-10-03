@@ -1,17 +1,14 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
+import { isQueued, postOrQueue } from "@/lib/offline/queued-write";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Expense } from "@/types";
 import { expenseToCreatePayload } from "@/lib/expense-payload";
 import type { Changes } from "@/lib/revisions";
 
-async function fetchJSON(url: string, init?: RequestInit) {
-  const res = await fetch(url, init);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data;
-}
+const fetchJSON = apiFetch;
 
 export function useExpenses(groupId?: string) {
   const params = groupId ? `?groupId=${groupId}` : "";
@@ -32,16 +29,17 @@ export function useExpense(id: string) {
 export function useCreateExpense() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) =>
-      fetchJSON("/api/expenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }),
-    onMutate: async () => {
-      // optimistic: could add placeholder, kept simple
+    mutationFn: (data: unknown) => {
+      const d = data as { description?: string; amount?: number; currency?: string };
+      return postOrQueue<Expense>("/api/expenses", data as Record<string, unknown>, {
+        kind: "expense", label: d.description ?? "Expense", amount: d.amount ?? 0, currency: d.currency ?? "INR",
+      });
     },
-    onSuccess: (expense: Expense) => {
+    onSuccess: (expense) => {
+      if (isQueued(expense)) {
+        toast.success("Saved on this device — it will sync when you're back online");
+        return;
+      }
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });

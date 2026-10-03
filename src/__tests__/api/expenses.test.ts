@@ -197,3 +197,46 @@ describe("GET /api/expenses — search, filters and paging", () => {
     expect(data.nextCursor).toBeNull();
   });
 });
+
+describe("POST /api/expenses — safe retries (clientId)", () => {
+  const CID = "11111111-1111-4111-8111-111111111111";
+
+  it("uses the clientId as the new expense's id", async () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }]);
+    p.expense.findUnique.mockResolvedValue(null);
+    p.expense.create.mockResolvedValue({ id: CID, paidBy: { name: "Me" } });
+    expect((await post(body({ clientId: CID }))).status).toBe(201);
+    expect(p.expense.create.mock.calls[0][0].data.id).toBe(CID);
+  });
+
+  it("a retry of an already-saved expense returns it (200) and creates nothing", async () => {
+    p.expense.findUnique.mockResolvedValue({ id: CID });
+    p.expense.findFirst.mockResolvedValue({ id: CID, description: "Dinner" });
+    const res = await post(body({ clientId: CID }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.id).toBe(CID);
+    expect(p.expense.create).not.toHaveBeenCalled();
+    expect(p.activity.create).not.toHaveBeenCalled(); // no second activity entry / notification
+  });
+
+  it("an id that belongs to someone else's expense is refused, never leaked", async () => {
+    p.expense.findUnique.mockResolvedValue({ id: CID });
+    p.expense.findFirst.mockResolvedValue(null);
+    expect((await post(body({ clientId: CID }))).status).toBe(409);
+    expect(p.expense.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a clientId that isn't a UUID", async () => {
+    expect((await post(body({ clientId: "abc" }))).status).toBe(422);
+  });
+
+  it("without a clientId, the database generates the id as before", async () => {
+    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    p.groupMember.findMany.mockResolvedValue([{ userId: ME }, { userId: OTHER }]);
+    p.expense.create.mockResolvedValue({ id: "e1", paidBy: { name: "Me" } });
+    await post(body());
+    expect(p.expense.create.mock.calls[0][0].data).not.toHaveProperty("id");
+    expect(p.expense.findUnique).not.toHaveBeenCalled();
+  });
+});

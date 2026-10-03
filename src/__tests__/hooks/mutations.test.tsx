@@ -67,7 +67,7 @@ const cases: Case[] = [
     request: { url: "/api/friends", method: "POST", body: { action: "decline", requesterId: "u2" } }, invalidates: [["friends"]], toast: "Request declined" },
 
   { name: "settleUp", hook: useSettleUp as never, input: { toUserId: "u2", amount: 50, currency: "INR", groupId: "g1" },
-    request: { url: "/api/settlements", method: "POST", body: { toUserId: "u2", amount: 50, currency: "INR", groupId: "g1" } },
+    request: { url: "/api/settlements", method: "POST", body: { toUserId: "u2", amount: 50, currency: "INR", groupId: "g1", clientId: expect.any(String) } },
     invalidates: [["settlements"], ["expenses"], ["balance"], ["balances"], ["friends"], ["groups"], ["dashboard"], ["analytics"]], toast: "Payment recorded!" },
   { name: "sendReminder", hook: useSendReminder as never, input: { debtorId: "u2", amount: 5000, currency: "INR" },
     request: { url: "/api/settlements/remind", method: "POST", body: { debtorId: "u2", amount: 5000, currency: "INR" } }, invalidates: [], toast: "Reminder sent" },

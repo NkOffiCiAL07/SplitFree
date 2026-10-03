@@ -54,6 +54,24 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createExpenseSchema.parse(body);
 
+    // Idempotent retry: the same clientId again returns the expense already created instead of a duplicate
+    const expenseInclude = {
+      paidBy: true,
+      splits: { include: { user: true } },
+      payers: { include: { user: true } },
+      group: true,
+    };
+    if (data.clientId) {
+      const existing = await prisma.expense.findUnique({ where: { id: data.clientId }, select: { id: true } });
+      if (existing) {
+        const visible = await prisma.expense.findFirst({
+          where: { id: data.clientId, ...visibleToUser(user!.id) },
+          include: expenseInclude,
+        });
+        return visible ? ok(visible, 200) : err("Conflict", 409);
+      }
+    }
+
     if (data.groupId) {
       const member = await prisma.groupMember.findUnique({
         where: { groupId_userId: { groupId: data.groupId, userId: user!.id } },
@@ -99,6 +117,7 @@ export async function POST(req: NextRequest) {
 
     const expense = await prisma.expense.create({
       data: {
+        ...(data.clientId ? { id: data.clientId } : {}),
         description: data.description,
         amount: totalCents,
         currency: data.currency,
@@ -120,12 +139,7 @@ export async function POST(req: NextRequest) {
           })),
         },
       },
-      include: {
-        paidBy: true,
-        splits: { include: { user: true } },
-        payers: { include: { user: true } },
-        group: true,
-      },
+      include: expenseInclude,
     });
 
     // Notify every group member except the payer

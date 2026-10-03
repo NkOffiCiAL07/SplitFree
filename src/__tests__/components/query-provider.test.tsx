@@ -89,3 +89,65 @@ describe("QueryProvider — never leak one account's data to another", () => {
     expect(auth.state.unsubscribe).toHaveBeenCalledOnce();
   });
 });
+
+describe("QueryProvider — offline mode", () => {
+  const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+
+  it("restores the signed-in user's saved data on start", async () => {
+    const { saveQueryCache } = await import("@/lib/offline/persist");
+    const { QueryClient } = await import("@tanstack/react-query");
+    const saved = new QueryClient();
+    saved.setQueryData(["groups"], ["goa"]);
+    await saveQueryCache(saved, "u1");
+
+    mount();
+    emit("INITIAL_SESSION", session("u1"));
+    await flush();
+    expect(client.getQueryData(["groups"])).toEqual(["goa"]);
+  });
+
+  it("never restores another user's saved data", async () => {
+    const { saveQueryCache } = await import("@/lib/offline/persist");
+    const { QueryClient } = await import("@tanstack/react-query");
+    const saved = new QueryClient();
+    saved.setQueryData(["groups"], ["goa"]);
+    await saveQueryCache(saved, "someone-else");
+
+    mount();
+    emit("INITIAL_SESSION", session("u1"));
+    await flush();
+    expect(client.getQueryData(["groups"])).toBeUndefined();
+  });
+
+  it("sign-out wipes the device copy and any unsent offline writes", async () => {
+    const { enqueue, pendingItems } = await import("@/lib/offline/outbox");
+    const { restoreQueryCache, saveQueryCache } = await import("@/lib/offline/persist");
+    const { QueryClient } = await import("@tanstack/react-query");
+    mount();
+    emit("INITIAL_SESSION", session("u1"));
+    enqueue({ id: "a", kind: "expense", url: "/api/expenses", body: {}, label: "Dinner", amount: 1, currency: "INR" });
+    expect(pendingItems()).toHaveLength(1);
+    const saved = new QueryClient();
+    saved.setQueryData(["groups"], ["goa"]);
+    await saveQueryCache(saved, "u1");
+
+    emit("SIGNED_OUT", null);
+    await flush();
+    expect(pendingItems()).toEqual([]);
+    expect(await restoreQueryCache(new QueryClient(), "u1")).toBe(false);
+  });
+
+  it("an account switch doesn't let the new user see or send the old user's queued writes", async () => {
+    const { enqueue, pendingItems } = await import("@/lib/offline/outbox");
+    mount();
+    emit("INITIAL_SESSION", session("u1"));
+    enqueue({ id: "a", kind: "expense", url: "/api/expenses", body: {}, label: "Dinner", amount: 1, currency: "INR" });
+    emit("SIGNED_IN", session("u2"));
+    expect(pendingItems()).toEqual([]);
+  });
+
+  it("lets writes run while offline so they can be queued (networkMode: always)", () => {
+    mount();
+    expect(client.getDefaultOptions().mutations?.networkMode).toBe("always");
+  });
+});

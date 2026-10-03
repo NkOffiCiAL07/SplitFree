@@ -1,15 +1,11 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Group, GroupDetail } from "@/types";
 
-async function fetchJSON(url: string, init?: RequestInit) {
-  const res = await fetch(url, init);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data;
-}
+const fetchJSON = apiFetch;
 
 /** Active groups by default; pass `archived` for the archived ones. */
 export function useGroups(archived = false) {

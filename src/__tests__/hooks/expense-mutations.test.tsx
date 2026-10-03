@@ -24,7 +24,7 @@ describe("useCreateExpense", () => {
     const { wrapper, invalidated } = createHarness();
     const { result } = renderHook(() => useCreateExpense(), { wrapper });
     await act(async () => { await result.current.mutateAsync({ description: "x" }); });
-    expect(callOf(fetchMock)).toEqual({ url: "/api/expenses", method: "POST", body: { description: "x" } });
+    expect(callOf(fetchMock)).toEqual({ url: "/api/expenses", method: "POST", body: { description: "x", clientId: expect.any(String) } }); // clientId makes a retry idempotent
     expect(refreshed(invalidated)).toEqual(expect.arrayContaining(["expenses", "dashboard", "analytics", "balance"]));
     expect(invalidated()).toContainEqual(["groups", "g1"]);
     expect(toast.success).toHaveBeenCalledWith("Expense added");

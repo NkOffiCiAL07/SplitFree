@@ -1,15 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
+import { isQueued, postOrQueue } from "@/lib/offline/queued-write";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { SimplifiedDebt } from "@/types";
 
-async function fetchJSON(url: string, init?: RequestInit) {
-  const res = await fetch(url, init);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.data;
-}
+const fetchJSON = apiFetch;
 
 export function useSettlements(groupId?: string) {
   const params = new URLSearchParams();
@@ -31,12 +28,14 @@ export function useSettleUp() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: { toUserId: string; amount: number; currency?: string; groupId?: string | null; note?: string }) =>
-      fetchJSON("/api/settlements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      postOrQueue("/api/settlements", data, {
+        kind: "settlement", label: data.note?.trim() || "Payment", amount: data.amount, currency: data.currency ?? "INR",
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (isQueued(result)) {
+        toast.success("Payment saved on this device — it will sync when you're back online");
+        return;
+      }
       qc.invalidateQueries({ queryKey: ["settlements"] });
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
