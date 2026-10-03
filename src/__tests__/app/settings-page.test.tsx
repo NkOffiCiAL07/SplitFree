@@ -115,10 +115,18 @@ describe("SettingsPage", () => {
     expect(loc.href).toBe("/api/export");
   });
 
-  it("Delete account is not wired up yet and says so (it must not pretend to delete)", async () => {
+  it("Download my data gets the full JSON export", async () => {
+    const loc = { href: "" };
+    vi.stubGlobal("location", loc);
     renderPage();
-    await userEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    expect(h.toast.error).toHaveBeenCalledWith("Account deletion requires email confirmation");
-    expect(fetch).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: /download all my data/i }));
+    expect(loc.href).toBe("/api/account/export");
+  });
+
+  it("Delete account opens a confirmation — it never deletes on the first click", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: /^delete account$/i }));
+    expect(await screen.findByRole("dialog")).toHaveTextContent(/can't be undone/i);
+    expect(fetch).not.toHaveBeenCalledWith("/api/account", expect.anything());
   });
 });

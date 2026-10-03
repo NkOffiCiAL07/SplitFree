@@ -1,4 +1,5 @@
 import { SplitError } from "@/lib/algorithms/debt-simplification";
+import { AccountDeletedError, isDeletedAccount } from "@/lib/account";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -43,11 +44,18 @@ export function resetKnownUsers() {
   knownUsers.clear();
 }
 
+/** Drop the cached "this user exists" entry (after the account is deleted). */
+export function forgetKnownUser(userId: string) {
+  knownUsers.delete(userId);
+}
+
 export async function ensureUserProfile(userId: string, email: string, name?: string) {
   const expires = knownUsers.get(userId);
   if (expires && expires > Date.now()) return null; // already known to exist
   // Cheap indexed read on the hot path; only write for first-time users.
   const existing = await prisma.user.findUnique({ where: { id: userId } });
+  // A sign-in token stays valid for a while after deletion: it must not be able to act as the anonymised account
+  if (existing && isDeletedAccount(existing.email)) throw new AccountDeletedError();
   if (existing) {
     knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
     return existing;
@@ -88,6 +96,7 @@ export function handleError(e: unknown) {
     return err((e as ZodError).issues.map((x) => x.message).join(", "), 422);
   }
   if (e instanceof SplitError) return err(e.message, 400);
+  if (e instanceof AccountDeletedError) return err(e.message, 401);
   // Unique-constraint violation: the same record was created by a concurrent identical request
   if (isUniqueViolation(e)) return err("This was already saved", 409);
   console.error(e);

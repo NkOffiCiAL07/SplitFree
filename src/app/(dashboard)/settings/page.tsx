@@ -5,7 +5,7 @@ import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { m } from "framer-motion";
-import { Moon, Sun, Monitor, Download, Trash2, Shield } from "lucide-react";
+import { Moon, Sun, Monitor, Download, Shield } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { UpiSettings } from "@/components/settings/upi-settings";
+import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 
 
 export default function SettingsPage() {
@@ -179,17 +180,14 @@ export default function SettingsPage() {
             <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => window.location.href = "/api/export"}>
               <Download className="size-4" /> Export all expenses (CSV)
             </Button>
+            <Button variant="outline" className="gap-2 w-full sm:w-auto sm:ml-2" onClick={() => window.location.href = "/api/account/export"}>
+              <Download className="size-4" /> Download all my data (JSON)
+            </Button>
             <Separator />
             <div>
               <p className="text-sm font-medium text-destructive">Danger zone</p>
-              <p className="text-xs text-muted-foreground mb-3">These actions are permanent and cannot be undone.</p>
-              <Button
-                variant="outline"
-                className="gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                onClick={() => toast.error("Account deletion requires email confirmation")}
-              >
-                <Trash2 className="size-4" /> Delete account
-              </Button>
+              <p className="text-xs text-muted-foreground mb-3">Deleting your account is permanent. You must be settled up with everyone first.</p>
+              <DeleteAccountDialog />
             </div>
           </CardContent>
         </Card>
