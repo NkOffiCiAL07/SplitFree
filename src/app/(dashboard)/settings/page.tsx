@@ -13,12 +13,19 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { saveFileFromUrl } from "@/lib/save-file";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { UpiSettings } from "@/components/settings/upi-settings";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 
+
+// Browsers download the file; the iPhone app opens the share sheet (its web view can't save downloads)
+async function saveExport(url: string, filename: string, mime: string) {
+  try { await saveFileFromUrl(url, filename, mime); }
+  catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't save the file"); }
+}
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -177,10 +184,10 @@ export default function SettingsPage() {
             <CardDescription>Export or delete your data</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
-            <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => window.location.href = "/api/export"}>
+            <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => saveExport("/api/export", "splitr-expenses.csv", "text/csv")}>
               <Download className="size-4" /> Export all expenses (CSV)
             </Button>
-            <Button variant="outline" className="gap-2 w-full sm:w-auto sm:ml-2" onClick={() => window.location.href = "/api/account/export"}>
+            <Button variant="outline" className="gap-2 w-full sm:w-auto sm:ml-2" onClick={() => saveExport("/api/account/export", "splitr-my-data.json", "text/plain")}>
               <Download className="size-4" /> Download all my data (JSON)
             </Button>
             <Separator />

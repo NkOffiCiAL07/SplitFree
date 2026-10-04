@@ -32,6 +32,7 @@ import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { LazyAddExpenseDialog as AddExpenseDialog } from "@/components/expenses/lazy-add-expense-dialog";
 import { LazyEditGroupDialog as EditGroupDialog } from "@/components/groups/lazy-group-dialogs";
 import { toast } from "sonner";
+import { saveBlob } from "@/lib/save-file";
 // The QR code library is only needed when the invite dialog opens
 const QRCodeSVG = dynamic(() => import("qrcode.react").then((m) => m.QRCodeSVG), { ssr: false });
 import { APP_NAME } from "@/lib/app-config";
@@ -116,10 +117,10 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, size, size);
       ctx.drawImage(img, 0, 0, size, size);
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = `${group?.name ?? "group"}-invite-qr.png`;
-      a.click();
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        saveBlob(blob, `${group?.name ?? "group"}-invite-qr.png`).catch((e) => toast.error(e instanceof Error ? e.message : "Couldn't save the QR code"));
+      }, "image/png");
     };
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(serialized);
   };
