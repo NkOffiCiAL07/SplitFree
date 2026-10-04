@@ -368,6 +368,25 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   .lg-sheen { animation: lg-sheen 7s ease-in-out infinite; }
   @keyframes lg-sheen { 0%, 60% { transform: translateX(-120px); opacity: 0; } 70% { opacity: 1; } 100% { transform: translateX(260px); opacity: 0; } }
 
+  /* Sign-in: slowly shifting aurora behind the phone header, a shimmering headline, and ₹ coins rising through it */
+  @keyframes lg-aurora { from { background-position: 0% 0%; } to { background-position: 0% 100%; } }
+  @media (max-width: 1023px) { .lg-aurora { background-size: 100% 240%; animation: lg-aurora 16s ease-in-out infinite alternate; } }
+  .lg-text-shimmer { background-size: 260% 100%; animation: lg-text-shimmer 5s ease-in-out infinite alternate; }
+  @keyframes lg-text-shimmer { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+  .lg-coin {
+    position: absolute; bottom: -28px; display: grid; place-items: center; border-radius: 9999px;
+    font-weight: 700; color: rgb(120 53 15 / 0.85); pointer-events: none; will-change: transform, opacity;
+    background: radial-gradient(circle at 30% 28%, #fff7d6, #fbbf24 55%, #d97706);
+    box-shadow: 0 0 14px rgb(251 191 36 / 0.55), inset 0 -2px 3px rgb(146 64 14 / 0.35);
+    opacity: 0; animation: lg-coin-rise 9s ease-in infinite;
+  }
+  @keyframes lg-coin-rise {
+    0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+    12% { opacity: 0.65; }
+    70% { opacity: 0.45; }
+    100% { transform: translateY(-330px) rotate(300deg) scale(1.05); opacity: 0; }
+  }
+
   /* Phones (often mid-range Android): keep the colour and gentle drift, drop the costly continuous reshaping and
      use lighter blurs, so scrolling and typing stay smooth and the battery lasts. */
   @media (max-width: 1023px), (pointer: coarse) {
@@ -378,7 +397,8 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .lg-blob, .lg-float, .lg-float-2, .lg-float-3, .lg-shine::after, .lg-ready, .lg-marquee, .lg-word, .lg-sheen { animation: none; }
+    .lg-blob, .lg-float, .lg-float-2, .lg-float-3, .lg-shine::after, .lg-ready, .lg-marquee, .lg-word, .lg-sheen, .lg-aurora, .lg-text-shimmer { animation: none; }
+    .lg-coin { display: none; }
     .reveal-armed { opacity: 1; transform: none; transition: none; }
   }
 

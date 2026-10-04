@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { render, screen, within, act } from "@testing-library/react";
 import { vi, beforeEach, afterEach } from "vitest";
 import AuthLayout, { metadata } from "@/app/(auth)/layout";
@@ -86,5 +87,27 @@ describe("Auth layout — phone chrome", () => {
     render(<AuthLayout><form aria-label="login form" /></AuthLayout>);
     const sheet = screen.getByRole("form", { name: "login form" }).parentElement!;
     expect(sheet).toHaveClass("flex", "flex-col", "flex-1");
+  });
+});
+
+describe("Auth layout — phone sign-in animation", () => {
+  it("has a scrolling strip of chips (twice, for a seamless loop), hidden from screen readers, and coins that never take clicks", () => {
+    render(<AuthLayout><form aria-label="login form" /></AuthLayout>);
+    const strip = screen.getByTestId("chip-strip");
+    expect(strip).toHaveAttribute("aria-hidden", "true");
+    const chips = strip.querySelectorAll(".lg-glass-dark");
+    expect(chips.length).toBeGreaterThan(0);
+    expect(chips.length % 2).toBe(0);
+    expect(chips[0].textContent).toBe(chips[chips.length / 2].textContent);
+    expect(strip.querySelector(".lg-marquee")).not.toBeNull();
+    expect(document.querySelectorAll(".lg-coin").length).toBeGreaterThanOrEqual(5);
+    for (const coin of document.querySelectorAll(".lg-coin")) expect(coin.closest("[aria-hidden='true']")).not.toBeNull();
+  });
+
+  it("the animations all stop for people who asked for reduced motion", () => {
+    const css = readFileSync("src/app/globals.css", "utf8");
+    const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)", css.indexOf("lg-aurora")));
+    for (const cls of [".lg-aurora", ".lg-text-shimmer", ".lg-marquee"]) expect(reduced.split("}")[0]).toContain(cls);
+    expect(reduced.split("}")[1]).toContain(".lg-coin");
   });
 });

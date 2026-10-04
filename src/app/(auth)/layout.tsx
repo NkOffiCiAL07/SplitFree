@@ -20,6 +20,14 @@ export const viewport: Viewport = {
 
 const TRUST = ["Free forever", "No ads", "Works offline"];
 
+// Scrolling proof-of-life strip on phones (decorative)
+const CHIPS = ["✅ Asha settled ₹850 on UPI", "🏖️ Goa trip squared up", "🍕 Dinner split 4 ways", "⚡ Fewer payments, same result", "🏠 Rent split, no awkward chats", "📲 Pay in one tap"];
+
+const FADE_EDGES = "linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent)";
+
+// ₹ coins that float up through the phone header (left %, size px, delay s, duration s)
+const COINS: [number, number, number, number][] = [[6, 18, 0, 9], [22, 14, 2.5, 11], [38, 20, 5, 10], [54, 13, 1.2, 12], [68, 17, 4, 9.5], [83, 15, 7, 11], [93, 19, 3.2, 10.5]];
+
 function Backdrop({ className = "" }: { className?: string }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
@@ -85,7 +93,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Right — on phones: a compact brand header with the form sheet right under it (no scrolling to sign in);
             on desktop: a frosted-glass card over soft liquid colour */}
-        <div className="relative flex flex-1 flex-col items-center justify-start overflow-hidden bg-gradient-to-b from-violet-700 via-indigo-700 to-fuchsia-700 lg:justify-center lg:gap-6 lg:bg-gradient-to-br lg:from-violet-50 lg:via-white lg:to-sky-50 lg:p-6 dark:lg:from-zinc-950 dark:lg:via-zinc-950 dark:lg:to-violet-950/40">
+        <div className="lg-aurora relative flex flex-1 flex-col items-center justify-start overflow-hidden bg-gradient-to-b from-violet-700 via-indigo-700 to-fuchsia-700 lg:justify-center lg:gap-6 lg:bg-gradient-to-br lg:from-violet-50 lg:via-white lg:to-sky-50 lg:p-6 dark:lg:from-zinc-950 dark:lg:via-zinc-950 dark:lg:to-violet-950/40">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden lg:block">
             <div className="lg-blob -right-24 -top-24 h-80 w-80 bg-violet-400/45" />
             <div className="lg-blob lg-blob-2 -bottom-24 -left-16 h-80 w-80 bg-sky-300/50" />
@@ -99,12 +107,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             data-testid="welcome"
             className="relative z-10 w-full px-6 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] text-white lg:hidden [@media(min-height:800px)]:pb-8 [@media(min-height:800px)]:pt-[max(2.5rem,env(safe-area-inset-top))]"
           >
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              {COINS.map(([left, size, delay, dur]) => (
+                <span key={left} className="lg-coin" style={{ left: `${left}%`, width: size, height: size, fontSize: size * 0.6, animationDelay: `${delay}s`, animationDuration: `${dur}s` }}>₹</span>
+              ))}
+            </div>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <BrandLogo size={38} tone="light" className="mb-3" />
                 <p className="text-[1.65rem] font-bold leading-[1.1] tracking-tight">
                   {HEADLINE_LINE_1}{" "}
-                  <span className="block bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{HEADLINE_LINE_2}</span>
+                  <span className="lg-text-shimmer block bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{HEADLINE_LINE_2}</span>
                 </p>
               </div>
               <FillingPot size="sm" className="shrink-0 scale-110" />
@@ -113,6 +126,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <p className="mt-2 text-xs text-white/80 [@media(max-height:640px)]:hidden">
               Made for <RotatingWords words={OCCASIONS} className="font-semibold text-white" />
             </p>
+            <div aria-hidden="true" data-testid="chip-strip" className="-mx-6 mt-3 overflow-hidden [@media(max-height:690px)]:hidden" style={{ WebkitMaskImage: FADE_EDGES, maskImage: FADE_EDGES }}>
+              <div className="lg-marquee flex w-max">
+                {[...CHIPS, ...CHIPS].map((c, i) => (
+                  <span key={i} className="lg-glass-dark mr-2 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium">{c}</span>
+                ))}
+              </div>
+            </div>
           </section>
 
           <div
