@@ -378,13 +378,13 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
     font-weight: 700; color: rgb(120 53 15 / 0.85); pointer-events: none; will-change: transform, opacity;
     background: radial-gradient(circle at 30% 28%, #fff7d6, #fbbf24 55%, #d97706);
     box-shadow: 0 0 14px rgb(251 191 36 / 0.55), inset 0 -2px 3px rgb(146 64 14 / 0.35);
-    opacity: 0; animation: lg-coin-rise 9s ease-in infinite;
+    opacity: 0; animation: lg-coin-rise 7s ease-out infinite;
   }
   @keyframes lg-coin-rise {
     0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
     12% { opacity: 0.65; }
     70% { opacity: 0.45; }
-    100% { transform: translateY(-330px) rotate(300deg) scale(1.05); opacity: 0; }
+    100% { transform: translateY(-120px) rotate(240deg) scale(1.05); opacity: 0; }
   }
 
   /* Phones (often mid-range Android): keep the colour and gentle drift, drop the costly continuous reshaping and
