@@ -46,6 +46,22 @@ Everything in the simulator talks to the same Supabase/Vercel as the website.
 | Dark mode / Dynamic Type | Simulator → Features / Settings → Accessibility |
 | Rotation | Locked to portrait on iPhone |
 
+### Automated simulator tests (what was actually run)
+```
+scripts/ios-run-sim.sh "iPhone 17"     # build (Debug), install and launch the app on that simulator
+scripts/ios-ui-tests.sh "iPhone 17"    # XCUITest: drives the app like a user, screenshots to /tmp/splitr-ui/
+```
+`ios-ui-tests.sh` creates a throw-away Supabase account (`scripts/ui-test-account.mjs`), erases and reboots the
+simulator so no old session is left, runs the tests in `ios/UITests`, and deletes the account afterwards.
+Verified on an iPhone 17 / iOS 27 simulator: launch → sign-in (email only, no Google, even before the page finishes
+loading), typing with the real iOS keyboard (pot fills), `splitrpro://join/…` deep link opens the invite inside the
+app, sign-in → dashboard + tabs, still signed in after relaunch, the marketing page never appears in the app.
+Gotchas:
+- It erases the simulator — don't run it while you are looking at it (the screen goes black while it reboots).
+- A freshly erased simulator needs a minute to settle (the script waits); the first page load can take a few minutes.
+- This Xcode has no separate Simulator.app; the simulator window lives inside Xcode (or use `xcrun simctl io <udid> screenshot`).
+- The full run is slow (about 10 minutes). Run one test with `ONLY_TESTING=SplitrUITests/SplitrUITests/test04_signInAndUseTheApp scripts/ios-ui-tests.sh`.
+
 ### Test without Xcode (already automated)
 ```
 npm run build && npm run ios:webkit
@@ -87,6 +103,7 @@ errors, and the iPhone install steps. It cannot test the native shell itself (sp
 - **Push notifications:** Web Push doesn't work inside WKWebView. In-app/email notifications still work. Native push needs `@capacitor/push-notifications`, an APNs key, and server-side sending — a good v1.1.
 - **Offline:** data you've seen and writes made offline work (stored on device, synced later). The site itself must load once per launch; with no network at launch the bundled offline screen appears. (Service workers would need `WKAppBoundDomains` — test that in the Simulator before enabling.)
 - **Google sign-in** is hidden in the iPhone app (Google blocks embedded browsers). Native Google/Apple sign-in can be added with a Capacitor social-login plugin.
+- **Saving files:** the app's web view can't download files, so *Export CSV*, *Download my data* and the invite QR open the iOS share sheet (Save to Files, AirDrop, WhatsApp) — see `src/lib/save-file.ts`. PDF export (needs a print dialog) is not offered on phones.
 - iPad: not targeted (iPhone only) — set `TARGETED_DEVICE_FAMILY` to `1,2` and add iPad screenshots to support it.
 
 ## 6. After you change the config or icons
