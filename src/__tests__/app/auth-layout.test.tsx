@@ -127,3 +127,14 @@ describe("Auth layout — phone sign-in animation", () => {
   });
 
 });
+
+describe("Auth layout — steady desktop card", () => {
+  it("the desktop form card has one fixed minimum height (tall enough for sign-up) so switching tabs never resizes it, and a small logo", () => {
+    const { container } = render(<AuthLayout><form aria-label="login form" /></AuthLayout>);
+    const card = screen.getByRole("form", { name: "login form" }).parentElement!.parentElement!;
+    expect(card.className).toContain("lg:min-h-[45rem]");
+    const heroLogo = container.querySelector(".anim-fade-up svg, .anim-fade-up img") as SVGElement | HTMLImageElement;
+    expect(Number(heroLogo.getAttribute("width"))).toBeLessThanOrEqual(36);
+  });
+});
+

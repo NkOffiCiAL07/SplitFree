@@ -55,7 +55,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* Left — hero (desktop) */}
           <div className="hidden min-h-dvh flex-col justify-between p-10 lg:flex xl:p-14">
             <div className="anim-fade-up">
-              <BrandLogo size={48} tone="light" />
+              <BrandLogo size={32} tone="light" />
             </div>
 
             {/* The glass pot fills as the form is filled in, on a softly lit stage; a live activity card sits beside it */}
@@ -125,7 +125,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </div>
             </section>
 
-            <div className="relative z-10 flex w-full flex-1 flex-col lg:max-w-[28rem] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:p-px lg:shadow-[0_40px_90px_-25px_rgba(76,29,149,0.85)]">
+            <div className="relative z-10 flex w-full flex-1 flex-col lg:min-h-[45rem] lg:max-w-[28rem] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:p-px lg:shadow-[0_40px_90px_-25px_rgba(76,29,149,0.85)]">
               <span aria-hidden="true" className="auth-card-glow pointer-events-none absolute inset-0 hidden lg:block" />
               <div
                 className="lg-glass anim-fade-up relative z-10 flex w-full flex-1 flex-col rounded-t-[2rem] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 max-lg:border-0 max-lg:bg-background! max-lg:bg-none! max-lg:backdrop-filter-none! max-lg:shadow-[0_-18px_50px_-18px_rgba(30,10,80,0.5)]! lg:rounded-[calc(1.5rem-1px)] lg:border-0 lg:bg-background! lg:bg-none! lg:p-9 lg:backdrop-filter-none! lg:shadow-none!"
