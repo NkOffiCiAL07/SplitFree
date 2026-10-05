@@ -18,7 +18,7 @@ const variantStyles = {
   green:  { icon: "bg-green-500/10 text-green-600 dark:text-green-400",  bar: "bg-green-500",  text: "text-green-600 dark:text-green-400" },
   red:    { icon: "bg-red-500/10 text-red-600 dark:text-red-400",        bar: "bg-red-500",    text: "text-red-600 dark:text-red-400" },
   amber:  { icon: "bg-amber-500/10 text-amber-600 dark:text-amber-400",  bar: "bg-amber-500",  text: "text-amber-600 dark:text-amber-400" },
-  violet: { icon: "bg-violet-500/10 text-violet-600 dark:text-violet-400", bar: "bg-violet-500", text: "text-violet-600 dark:text-violet-400" },
+  violet: { icon: "bg-brand-500/10 text-brand-600 dark:text-brand-400", bar: "bg-brand-500", text: "text-brand-600 dark:text-brand-400" },
   blue:   { icon: "bg-blue-500/10 text-blue-600 dark:text-blue-400",     bar: "bg-blue-500",   text: "text-blue-600 dark:text-blue-400" },
 };
 

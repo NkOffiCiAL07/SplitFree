@@ -32,9 +32,9 @@ describe("StatCard", () => {
     expect(screen.getByText("₹499.99")).toHaveClass("text-green-600");
     expect(screen.getByText("others owe you")).toBeInTheDocument();
   });
-  it("omits the subtitle when not given and defaults to the violet style", () => {
+  it("omits the subtitle when not given and defaults to the theme (brand) colour", () => {
     render(<StatCard title="Groups" value="3" icon={TrendingUp} />);
-    expect(screen.getByText("3")).toHaveClass("text-violet-600");
+    expect(screen.getByText("3")).toHaveClass("text-brand-600"); // follows the chosen colour theme
     expect(screen.queryByText("shared groups")).not.toBeInTheDocument();
   });
 });
