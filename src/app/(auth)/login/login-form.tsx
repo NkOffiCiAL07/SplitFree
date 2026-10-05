@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
@@ -42,6 +42,13 @@ function LoginPageContent() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // The sign-in callback sends people back here with ?error=auth_failed when Google (or an email link) did not complete.
+  // It used to show nothing at all, which looked like the button simply didn't work.
+  const authFailed = searchParams.get("error") === "auth_failed";
+  useEffect(() => {
+    if (authFailed) toast.error("Sign-in didn't complete. Please try again — or sign in with your email and password.");
+  }, [authFailed]);
 
   const {
     register,

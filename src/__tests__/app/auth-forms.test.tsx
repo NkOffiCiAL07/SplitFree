@@ -511,3 +511,17 @@ describe("sign-in, sign-up and reset survive a bad network and a phone keyboard"
     expect(h.supabase.resetPasswordForEmail).toHaveBeenCalledWith("me@x.com", expect.anything()); // trimmed
   });
 });
+
+describe("LoginForm — a sign-in that did not complete says so", () => {
+  it("shows a message when the callback sends people back with ?error=auth_failed (it used to show nothing)", async () => {
+    h.search.value = "error=auth_failed";
+    render(<LoginForm />);
+    await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith(expect.stringMatching(/didn't complete.*try again.*email and password/i)));
+    expect(h.toast.error).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows nothing extra on a normal visit", () => {
+    render(<LoginForm />);
+    expect(h.toast.error).not.toHaveBeenCalled();
+  });
+});

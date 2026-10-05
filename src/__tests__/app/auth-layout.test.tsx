@@ -140,7 +140,8 @@ describe("Auth layout — steady desktop card", () => {
   it("the desktop form card has one fixed minimum height (tall enough for sign-up) so switching tabs never resizes it, and a small logo", async () => {
     const { container } = await renderLayout(<form aria-label="login form" />);
     const card = screen.getByRole("form", { name: "login form" }).parentElement!.parentElement!;
-    expect(card.className).toContain("lg:min-h-[51rem]"); // (only on screens tall enough for it)
+    expect(card.className).toContain("lg:min-h-[53rem]"); // always: the same size on both tabs, at every window height
+    expect(card.className).not.toMatch(/\[@media[^\]]*\]:lg:min-h/); // (it used to apply only on tall screens, so short ones differed)
     expect(card.className).toContain("lg:my-auto"); // centred when there is room, scrolls from the top when there is not
     const heroLogo = container.querySelector(".anim-fade-up svg, .anim-fade-up img") as SVGElement | HTMLImageElement;
     expect(Number(heroLogo.getAttribute("width"))).toBeLessThanOrEqual(36);

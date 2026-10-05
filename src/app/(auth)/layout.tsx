@@ -131,7 +131,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
               </div>
             </section>
 
-            <div className="auth-card relative z-10 flex w-full flex-1 flex-col lg:my-auto lg:max-w-[28rem] lg:flex-none lg:overflow-hidden [@media(min-height:900px)]:lg:min-h-[51rem] lg:rounded-3xl lg:p-px lg:shadow-[0_40px_90px_-25px_rgba(76,29,149,0.85)]">
+            <div className="auth-card relative z-10 flex w-full flex-1 flex-col lg:my-auto lg:max-w-[28rem] lg:flex-none lg:overflow-hidden lg:min-h-[53rem] lg:rounded-3xl lg:p-px lg:shadow-[0_40px_90px_-25px_rgba(76,29,149,0.85)]">
               <span aria-hidden="true" className="auth-card-glow pointer-events-none absolute inset-0 hidden lg:block" />
               <div
                 className="lg-glass anim-fade-up relative z-10 flex w-full flex-1 flex-col rounded-t-[2rem] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 max-lg:border-0 max-lg:bg-background! max-lg:bg-none! max-lg:backdrop-filter-none! max-lg:shadow-[0_-18px_50px_-18px_rgba(30,10,80,0.5)]! lg:rounded-[calc(1.5rem-1px)] lg:border-0 lg:bg-background! lg:bg-none! lg:p-8 lg:backdrop-filter-none! lg:shadow-none!"
