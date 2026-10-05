@@ -105,6 +105,7 @@ describe("mobile numbers stay private", () => {
     walk("src/app");
     walk("src/lib");
     const readers = files.filter((f) => /\bphone:\s*(false|true)/.test(readFileSync(f, "utf8")) && !f.includes("lib/prisma.ts"));
-    expect(readers.sort()).toEqual(["src/app/api/account/export/route.ts", "src/app/api/profile/route.ts"]);
+    // (api-helpers: creating/finishing a profile has to know whether a number is already saved; nothing there returns it to a client)
+    expect(readers.sort()).toEqual(["src/app/api/account/export/route.ts", "src/app/api/profile/route.ts", "src/lib/api-helpers.ts"]);
   });
 });

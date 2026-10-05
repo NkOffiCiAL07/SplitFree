@@ -17,6 +17,29 @@ describe("ensureUserProfile", () => {
     expect(p.user.upsert).not.toHaveBeenCalled();
   });
 
+  it("fills in a missing mobile number from the sign-up details instead of asking again (the row existed before the details were applied)", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "u7", name: "Asha", phone: null });
+    p.user.update.mockResolvedValue({ id: "u7", phone: "+919876543210" });
+    await ensureUserProfile("u7", "a@x.com", "Asha", "+919876543210");
+    expect(p.user.update).toHaveBeenCalledWith({ where: { id: "u7" }, data: { phone: "+919876543210" } });
+  });
+
+  it("never overwrites a number that is already saved, and does nothing when sign-up gave none", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "u8", phone: "+14155552671" });
+    await ensureUserProfile("u8", "a@x.com", "Asha", "+919876543210");
+    expect(p.user.update).not.toHaveBeenCalled();
+    resetKnownUsers();
+    p.user.findUnique.mockResolvedValue({ id: "u9", phone: null });
+    await ensureUserProfile("u9", "a@x.com", "Asha", undefined);
+    expect(p.user.update).not.toHaveBeenCalled();
+  });
+
+  it("asks for the saved number explicitly (it is hidden from queries by default)", async () => {
+    p.user.findUnique.mockResolvedValue({ id: "u10", phone: "+919876543210" });
+    await ensureUserProfile("u10", "a@x.com");
+    expect(p.user.findUnique.mock.calls[0][0].omit).toEqual({ phone: false });
+  });
+
   it("creates a first-time user with INR and a name derived from the email", async () => {
     p.user.findUnique.mockResolvedValue(null);
     p.user.upsert.mockResolvedValue({ id: "u2" });

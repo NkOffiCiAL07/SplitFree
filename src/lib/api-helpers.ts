@@ -61,10 +61,18 @@ export async function ensureUserProfile(userId: string, email: string, name?: st
   const expires = knownUsers.get(userId);
   if (expires && expires > Date.now()) return null; // already known to exist
   // Cheap indexed read on the hot path; only write for first-time users.
-  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  // (phone is hidden from queries by default; we need to know whether it is already saved)
+  const existing = await prisma.user.findUnique({ where: { id: userId }, omit: { phone: false } });
   // A sign-in token stays valid for a while after deletion: it must not be able to act as the anonymised account
   if (existing && isDeletedAccount(existing.email)) throw new AccountDeletedError();
   if (existing) {
+    // A row can exist before the sign-up details were applied to it; if the person gave a number at sign-up and none is saved,
+    // save it now rather than asking them for it a second time
+    if (!existing.phone && phone) {
+      const updated = await prisma.user.update({ where: { id: userId }, data: { phone } });
+      knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
+      return updated;
+    }
     knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
     return existing;
   }
