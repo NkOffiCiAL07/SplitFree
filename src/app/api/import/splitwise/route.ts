@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (rateLimit(`import:${me}`, 5, 60 * 60_000)) return err("Too many imports, try again later", 429);
 
     const { groupId, mapping, rows } = importSchema.parse(await req.json());
-    await ensureUserProfile(me, user!.email!);
+    await ensureUserProfile(me, user!.email!, user!.name, user!.phone);
 
     const mappedIds = new Set(Object.values(mapping));
     if (!mappedIds.has(me)) return err("Map yourself to one of the people in the file", 400);

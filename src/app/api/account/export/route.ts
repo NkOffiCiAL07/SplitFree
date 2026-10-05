@@ -10,10 +10,10 @@ export async function GET() {
     const { user, error } = await requireAuth();
     if (error) return error;
     const userId = user!.id;
-    await ensureUserProfile(userId, user!.email!);
+    await ensureUserProfile(userId, user!.email!, user!.name, user!.phone);
 
     const [profile, memberships, expenses, settlements, friendships, comments, budgets] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true, currency: true, timezone: true, upiId: true, createdAt: true } }),
+      prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true, currency: true, timezone: true, upiId: true, phone: true, createdAt: true } }),
       prisma.groupMember.findMany({ where: { userId }, select: { role: true, joinedAt: true, group: { select: { id: true, name: true, currency: true, category: true, createdAt: true, archivedAt: true } } } }),
       prisma.expense.findMany({
         where: visibleToUser(userId),

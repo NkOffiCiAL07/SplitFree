@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
 };
 
-const LAST_UPDATED = "October 2, 2026";
+const LAST_UPDATED = "October 5, 2026";
 const CONTACT_EMAIL = "nishantkumar19041@gmail.com";
 
 export default function PrivacyPage() {
@@ -35,7 +35,8 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Information We Collect</h2>
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
-            <li><strong className="text-foreground">Account information</strong> — name and email address when you sign up.</li>
+            <li><strong className="text-foreground">Account information</strong> — name, email address and mobile number when you sign up. Your mobile number is required to create an account.</li>
+            <li><strong className="text-foreground">Payment address (optional)</strong> — your UPI ID, if you add one, so friends can pay you.</li>
             <li><strong className="text-foreground">Profile data</strong> — optional avatar/profile photo you upload.</li>
             <li><strong className="text-foreground">Expense data</strong> — expenses, amounts, groups, and splits you create.</li>
             <li><strong className="text-foreground">Usage data</strong> — pages visited and actions taken within the app, used to improve the product.</li>
@@ -50,6 +51,12 @@ export default function PrivacyPage() {
             <li>To send notifications about friend requests, group invites, and expense activity.</li>
             <li>To improve and maintain the app.</li>
           </ul>
+          <p className="text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Your mobile number</strong> is kept on your account to identify you and to help us
+            reach you about your account if we ever need to. It is <strong className="text-foreground">never shown to other users</strong>,
+            never used for advertising or marketing, and never sold. We do not send text messages or call you today; we do not verify
+            the number yet. If we add phone verification or text-message alerts, we will update this policy first.
+          </p>
         </section>
 
         <section className="space-y-3">
@@ -67,7 +74,7 @@ export default function PrivacyPage() {
           <p className="text-muted-foreground leading-relaxed">
             We do <strong className="text-foreground">not</strong> sell, trade, or rent your personal
             information to third parties. Your expense data is only visible to you and the group members
-            or friends you explicitly share it with. We use Supabase and Vercel as infrastructure
+            or friends you explicitly share it with; other people cannot see your mobile number or email address through the app. We use Supabase and Vercel as infrastructure
             providers — they process your data solely to operate the service.
           </p>
         </section>
@@ -75,9 +82,9 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Your Rights</h2>
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
-            <li><strong className="text-foreground">Access</strong> — You can export your expense data from Settings → Export Data.</li>
-            <li><strong className="text-foreground">Deletion</strong> — You can delete your account and all associated data from Settings → Delete Account.</li>
-            <li><strong className="text-foreground">Correction</strong> — You can update your name and profile at any time from your Profile page.</li>
+            <li><strong className="text-foreground">Access</strong> — You can download your data, including your mobile number, from Settings → Download all my data.</li>
+            <li><strong className="text-foreground">Deletion</strong> — You can delete your account and all associated data from Settings → Delete Account. This removes your name, email address, mobile number, photo and UPI ID.</li>
+            <li><strong className="text-foreground">Correction</strong> — You can update your name, profile and mobile number at any time from your Profile and Settings pages.</li>
           </ul>
         </section>
 

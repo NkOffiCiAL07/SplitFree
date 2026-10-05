@@ -9,7 +9,7 @@ const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUP
 if (process.argv[2] === "create") {
   mkdirSync(dir, { recursive: true });
   const email = `ios-ui-test-${Date.now()}@example.com`, password = "Ui-Test-" + Math.random().toString(36).slice(2, 10) + "A1";
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name: "iOS UI Test" } });
+  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name: "iOS UI Test", phone_number: "+919876543210" } /* new accounts must have a number, or the app asks for one */ });
   if (error) { console.error(error.message); process.exit(1); }
   writeFileSync(file, JSON.stringify({ email, password, id: data.user.id }));
   console.log("created", email);

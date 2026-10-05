@@ -54,12 +54,13 @@ export function useAuth() {
   );
 
   const signUpWithEmail = useCallback(
-    async (email: string, password: string, name: string, next?: string) => {
+    async (email: string, password: string, name: string, next?: string, phone?: string) => {
       return supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name },
+          // the number rides along in the sign-in's metadata and is saved to the profile on first use (see ensureUserProfile)
+          data: { name, ...(phone ? { phone_number: phone } : {}) },
           // `next` carries where the person was heading (e.g. an invite link) through email confirmation
           emailRedirectTo: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
         },

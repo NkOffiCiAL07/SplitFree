@@ -66,6 +66,7 @@ export interface UserProfile {
   avatarUrl: string | null;
   /** Payment address people can pay to (INR) */
   upiId?: string | null;
+  phone?: string | null;
   currency: Currency;
   timezone: string;
   createdAt: Date;

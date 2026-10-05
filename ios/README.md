@@ -92,6 +92,19 @@ errors, and the iPhone install steps. It cannot test the native shell itself (sp
 - [ ] Export compliance: already answered in Info.plist (`ITSAppUsesNonExemptEncryption = false`, only standard HTTPS)
 - [ ] **Review notes: provide a working test account** (email + password with sample data). The demo login was removed, so create one (e.g. appreview@yourdomain) and put the credentials in *App Review Information*.
 
+### App Store Connect → App Privacy (answer these exactly; they must match the privacy policy)
+The app collects the data below. For **every** item choose: *linked to the user* = **Yes**, *used for tracking* = **No**, purpose = **App Functionality** (and nothing else — no advertising, no analytics purpose unless you add an analytics tool).
+| Category | Data type | Why |
+|---|---|---|
+| Contact Info | **Name** | shown to friends in groups |
+| Contact Info | **Email Address** | sign-in, invites |
+| Contact Info | **Phone Number** | **required at sign-up** (kept private, not verified, no SMS sent) |
+| User Content | **Other User Content** | expenses, groups, comments |
+| Financial Info | **Other Financial Info** | amounts owed/paid and your optional UPI ID |
+| Identifiers | **User ID** | your account |
+| Usage Data | **Product Interaction** | only if you keep the usage note in the privacy policy |
+Privacy Policy URL: `https://splitfree-xi.vercel.app/privacy` (updated 5 Oct 2026 to mention the mobile number). If you ever add SMS/OTP or an analytics tool, update both the policy and these answers first.
+
 ## 4. What reviewers look at (be ready)
 - **4.2 Minimum functionality** — an app that is only a website can be rejected. This app adds native behaviour: status bar and launch handling, haptics on money actions, deep links from invites, UPI app hand-off, a bundled offline screen. For extra safety add before submitting (each is small): push notifications (APNs), Face ID lock, native share sheet for invites, Home Screen quick actions.
 - **4.8 Sign in with Apple** — required when an app offers *other* third-party sign-in (Google). The iPhone app offers **email sign-in only**, so it isn't triggered. If you later enable Google/Facebook in the iPhone app, add Sign in with Apple too.

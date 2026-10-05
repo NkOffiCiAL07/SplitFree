@@ -224,3 +224,22 @@ describe("DownloadPanel — tailored to the visitor", () => {
     expect(screen.getByTestId("apk-sha256")).toBeInTheDocument();
   });
 });
+
+describe("Landing page — English version for visitors outside India", () => {
+  it("India's page keeps the Hinglish tagline", () => {
+    render(<LandingPage />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hisaab saaf. Dosti barkaraar.");
+    expect(document.body.textContent).toMatch(/bhai, paise kab doge/);
+  });
+
+  it("the international page says the same thing in English", async () => {
+    const { default: IntlPage, metadata } = await import("@/app/intl/page");
+    render(<IntlPage />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Settle up. Stay friends.");
+    expect(document.body.textContent).toMatch(/when are you paying me back/);
+    expect(document.body.textContent).not.toMatch(/Hisaab|Dosti|bhai, paise|shaadi/);
+    // search engines index "/" only
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(metadata.alternates?.canonical).toBe("/");
+  });
+});

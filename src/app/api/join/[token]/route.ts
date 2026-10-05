@@ -35,7 +35,7 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ token
     if (error) return error;
     const { token } = await params;
 
-    await ensureUserProfile(user!.id, user!.email!);
+    await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 
     const group = await findGroup(token);
     if (!group) return err("Invite link is invalid or has expired", 404);

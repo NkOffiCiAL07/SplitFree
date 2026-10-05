@@ -98,7 +98,7 @@ export async function fanOut(items: NotificationInput[]) {
  */
 export async function createNotifications(
   items: NotificationInput[],
-  db: Pick<Prisma.TransactionClient, "notification"> = prisma
+  db: { notification: Pick<Prisma.TransactionClient["notification"], "createMany"> } = prisma
 ) {
   if (items.length === 0) return;
   await db.notification.createMany({

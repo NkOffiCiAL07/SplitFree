@@ -122,6 +122,7 @@ model User {
   pushSubscriptions PushSubscription[]
   emailNotifications Boolean       @default(true) @map("email_notifications")
   upiId            String?        @map("upi_id") // payment address shown to people who owe you (INR)
+  phone            String?        // mobile number in international format (+919876543210); required for new accounts, not verified
 
   @@map("users")
 }

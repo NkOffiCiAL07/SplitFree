@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const { user, error } = await requireAuth();
     if (error) return error;
 
-    await ensureUserProfile(user!.id, user!.email!);
+    await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 
     const body = await req.json();
     const data = createGroupSchema.parse(body);

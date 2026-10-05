@@ -21,8 +21,15 @@ describe("ensureUserProfile", () => {
     p.user.findUnique.mockResolvedValue(null);
     p.user.upsert.mockResolvedValue({ id: "u2" });
     await ensureUserProfile("u2", "priya.k@x.com");
-    expect(p.user.upsert.mock.calls[0][0].create).toEqual({ id: "u2", email: "priya.k@x.com", name: "priya.k", currency: "INR" });
+    expect(p.user.upsert.mock.calls[0][0].create).toEqual({ id: "u2", email: "priya.k@x.com", name: "priya.k", phone: null, currency: "INR" });
     expect(p.user.upsert.mock.calls[0][0].update).toEqual({}); // never overwrites an existing row
+  });
+
+  it("saves the name and mobile number the person gave at sign-up when their profile is first created", async () => {
+    p.user.findUnique.mockResolvedValue(null);
+    p.user.upsert.mockResolvedValue({});
+    await ensureUserProfile("u9", "a@x.com", "Asha Rao", "+919876543210");
+    expect(p.user.upsert.mock.calls[0][0].create).toMatchObject({ name: "Asha Rao", phone: "+919876543210" });
   });
 
   it("uses an explicit name when given", async () => {

@@ -7,6 +7,7 @@ import { OfflineStatus } from "@/components/layout/offline-status";
 import { InstallBanner } from "@/components/layout/install-banner";
 import { DemoBanner } from "@/components/dashboard/demo-banner";
 import { GlobalAddExpenseDialog } from "@/components/expenses/global-add-expense-dialog";
+import { PhonePrompt } from "@/components/auth/phone-prompt";
 
 export default function DashboardLayout({
   children,
@@ -42,6 +43,9 @@ export default function DashboardLayout({
 
       {/* Global add expense dialog (opened from mobile FAB / command palette) */}
       <GlobalAddExpenseDialog />
+
+      {/* New accounts (e.g. Google sign-ups) must add a mobile number before going further */}
+      <PhonePrompt />
     </div>
   );
 }

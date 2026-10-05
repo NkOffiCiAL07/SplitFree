@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, Mail, Lock, User, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User, ShieldCheck, Phone } from "lucide-react";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function GoogleIcon() {
@@ -26,6 +26,8 @@ import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
 import { useInAppBrowser, useNativeApp } from "@/hooks/use-platform";
 import { formProgress } from "@/lib/form-fill";
 import { signupSchema } from "@/lib/validations/auth";
+import { normalizePhone } from "@/lib/phone";
+import { useRegion } from "@/components/auth/region-context";
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,7 @@ function SignupFormContent() {
   const redirectParam = searchParams.get("redirect");
   const redirect = safeRedirectPath(redirectParam);
   const { signUpWithEmail, signInWithGoogle } = useAuth();
+  const region = useRegion(); // placeholder and country code follow where the visitor is
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -55,18 +58,20 @@ function SignupFormContent() {
   // The pot beside the form fills as the form does
   const name = useWatch({ control, name: "name" });
   const email = useWatch({ control, name: "email" });
+  const phone = useWatch({ control, name: "phone" });
   const password = useWatch({ control, name: "password" });
   const inApp = useInAppBrowser();
   const native = useNativeApp(); // the iPhone app: email sign-in only (Google blocks embedded web views)
   const ready = useFillLevel() >= 1; // the pot is full: invite the click
-  useReportFill(formProgress([{ kind: "name", value: name }, { kind: "email", value: email }, { kind: "password", value: password, min: 8 }]));
+  useReportFill(formProgress([{ kind: "name", value: name }, { kind: "phone", value: phone }, { kind: "email", value: email }, { kind: "password", value: password, min: 8 }]));
 
   const onSubmit = async (values: SignupValues) => {
     const { error, data } = await signUpWithEmail(
       values.email,
       values.password,
       values.name,
-      redirectParam ? redirect : undefined
+      redirectParam ? redirect : undefined,
+      normalizePhone(values.phone, region.dial) ?? undefined // stored in international format
     );
     if (error) {
       toast.error(error.message);
@@ -166,6 +171,29 @@ function SignupFormContent() {
           />
           {errors.name && (
             <p id="name-error" role="alert" className="text-xs text-destructive">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "250ms" }}>
+          <Label htmlFor="phone">Mobile number</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder={region.phoneExample}
+            startIcon={<Phone />}
+            autoComplete="tel" inputMode="tel" autoCorrect="off" spellCheck={false} enterKeyHint="next"
+            aria-invalid={!!errors.phone}
+            aria-describedby={errors.phone ? "phone-error" : "phone-hint"}
+            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            // A number typed the local way is turned into international format before it is checked (when we know the country)
+            {...register("phone", { setValueAs: (v: string) => normalizePhone(v, region.dial) ?? v })}
+          />
+          {errors.phone ? (
+            <p id="phone-error" role="alert" className="text-xs text-destructive">{errors.phone.message}</p>
+          ) : (
+            <p id="phone-hint" className="text-xs text-muted-foreground">
+              {region.isIndia || region.dial ? "Required. Kept private — never shown to other people." : "Required. Start with your country code, like +44. Kept private — never shown to other people."}
+            </p>
           )}
         </div>
 

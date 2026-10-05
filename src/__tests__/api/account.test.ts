@@ -119,7 +119,7 @@ describe("DELETE /api/account — when everything is settled", () => {
 
     expect(p.user.update).toHaveBeenCalledWith({
       where: { id: ME },
-      data: { name: DELETED_NAME, email: deletedEmail(ME), avatarUrl: null, upiId: null, emailNotifications: false },
+      data: { name: DELETED_NAME, email: deletedEmail(ME), avatarUrl: null, upiId: null, phone: null, emailNotifications: false },
     });
     for (const m of ["groupMember", "notification", "pushSubscription", "budget", "expenseComment", "activity"]) {
       expect(p[m].deleteMany, m).toHaveBeenCalledWith({ where: { userId: ME } });

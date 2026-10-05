@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { UpiSettings } from "@/components/settings/upi-settings";
+import { PhoneSettings } from "@/components/settings/phone-settings";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 
 
@@ -112,6 +113,19 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <NotificationSettings />
+          </CardContent>
+        </Card>
+      </m.div>
+
+      {/* Mobile number */}
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Your mobile number</CardTitle>
+            <CardDescription>Required for your account</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <PhoneSettings />
           </CardContent>
         </Card>
       </m.div>

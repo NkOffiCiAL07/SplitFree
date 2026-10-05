@@ -13,7 +13,7 @@ export async function GET() {
   if (error) return error;
 
   try {
-    await ensureUserProfile(user!.id, user!.email!);
+    await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
     const userId = user!.id;
 
     // Totals/balances are all-time (they must match /api/balances); only the chart is limited to 6 months.

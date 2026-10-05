@@ -35,7 +35,19 @@ export async function updateSession(request: NextRequest) {
     url.pathname.startsWith("/signup") ||
     url.pathname.startsWith("/reset-password");
   const isApiRoute = url.pathname.startsWith("/api");
-  const isPublicRoute = url.pathname === "/" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support" || url.pathname.startsWith("/downloads/");
+  const isPublicRoute = url.pathname === "/" || url.pathname === "/intl" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support" || url.pathname.startsWith("/downloads/");
+
+  // Visitors outside India get the English version of the home page at the same address (the Hinglish tagline and
+  // rupee examples only make sense in India). Both versions are static pages; people in India, and any request
+  // without a country (development, tests), keep the original. Search crawlers are not treated specially.
+  const country = (request.headers.get("x-vercel-ip-country") ?? "").toUpperCase();
+  if (url.pathname === "/" && country && country !== "IN" && !(request.headers.get("user-agent") ?? "").includes("SplitrProApp")) {
+    const rewrite = url.clone();
+    rewrite.pathname = "/intl";
+    const response = NextResponse.rewrite(rewrite);
+    supabaseResponse.cookies.getAll().forEach((c) => response.cookies.set(c)); // keep a refreshed session
+    return response;
+  }
 
   // The iPhone app never shows the marketing page (its "home" is the dashboard); signed-out people continue on to sign-in
   if (url.pathname === "/" && (request.headers.get("user-agent") ?? "").includes("SplitrProApp")) {

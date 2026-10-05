@@ -65,7 +65,7 @@ export async function DELETE(req: NextRequest) {
 
       await tx.user.update({
         where: { id: userId },
-        data: { name: DELETED_NAME, email: deletedEmail(userId), avatarUrl: null, upiId: null, emailNotifications: false },
+        data: { name: DELETED_NAME, email: deletedEmail(userId), avatarUrl: null, upiId: null, phone: null, emailNotifications: false },
       });
     });
     forgetKnownUser(userId);

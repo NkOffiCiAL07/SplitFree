@@ -48,6 +48,38 @@ describe("updateSession (page protection)", () => {
     expect((await updateSession(req("/"))).status).toBe(200);
   });
 
+  describe("English home page for visitors outside India", () => {
+    const fromCountry = (path: string, country?: string, ua?: string) => new NextRequestCtor(`https://app.example${path}`, { headers: { ...(country ? { "x-vercel-ip-country": country } : {}), ...(ua ? { "user-agent": ua } : {}) } });
+    const rewritten = (res: Response) => res.headers.get("x-middleware-rewrite");
+
+    it("rewrites '/' to the international page for any country but India — at the SAME address (no redirect)", async () => {
+      getUser.mockResolvedValue({ data: { user: null } });
+      for (const c of ["US", "GB", "DE", "ae"]) {
+        const res = await updateSession(fromCountry("/", c));
+        expect(res.status, c).toBe(200);
+        expect(rewritten(res), c).toMatch(/\/intl$/);
+        expect(res.headers.get("location"), c).toBeNull();
+      }
+    });
+
+    it("leaves India, a request with no country, other pages, and the iPhone app alone", async () => {
+      getUser.mockResolvedValue({ data: { user: null } });
+      expect(rewritten(await updateSession(fromCountry("/", "IN")))).toBeNull();
+      expect(rewritten(await updateSession(fromCountry("/")))).toBeNull();
+      expect(rewritten(await updateSession(fromCountry("/privacy", "US")))).toBeNull();
+      const app = await updateSession(fromCountry("/", "US", "Mozilla/5.0 (iPhone) SplitrProApp/1.0"));
+      expect(rewritten(app)).toBeNull(); // the app goes to the dashboard instead
+      expect(app.status).toBe(307);
+    });
+
+    it("the international page is public (no sign-in needed)", async () => {
+      getUser.mockResolvedValue({ data: { user: null } });
+      const res = await updateSession(fromCountry("/intl", "US"));
+      expect(res.status).toBe(200);
+      expect(res.headers.get("location")).toBeNull();
+    });
+  });
+
   describe("signed out", () => {
     beforeEach(() => getUser.mockResolvedValue({ data: { user: null } }));
 

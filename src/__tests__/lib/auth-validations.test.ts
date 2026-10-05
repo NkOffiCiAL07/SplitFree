@@ -22,13 +22,19 @@ describe("passwordSchema (shared by signup and reset)", () => {
 });
 
 describe("signupSchema", () => {
-  const ok = { name: "Asha", email: "asha@x.com", password: "Passw0rdX" };
+  const ok = { name: "Asha", phone: "98765 43210", email: "asha@x.com", password: "Passw0rdX" };
   it("accepts valid details", () => expect(signupSchema.safeParse(ok).success).toBe(true));
   it("validates each field", () => {
     expect(signupSchema.safeParse({ ...ok, name: "A" }).success).toBe(false);
     expect(signupSchema.safeParse({ ...ok, name: "x".repeat(81) }).success).toBe(false);
     expect(signupSchema.safeParse({ ...ok, email: "nope" }).success).toBe(false);
     expect(signupSchema.safeParse({ ...ok, password: "weakpass" }).success).toBe(false);
+  });
+  it("requires a valid mobile number", () => {
+    expect(signupSchema.safeParse({ name: "Asha", email: "asha@x.com", password: "Passw0rdX" }).success).toBe(false); // missing
+    expect(signupSchema.safeParse({ ...ok, phone: "" }).success).toBe(false);
+    expect(signupSchema.safeParse({ ...ok, phone: "12345" }).success).toBe(false);
+    expect(signupSchema.safeParse({ ...ok, phone: "+44 7911 123456" }).success).toBe(true);
   });
 });
 

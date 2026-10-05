@@ -118,8 +118,9 @@ describe("LoginForm", () => {
 });
 
 describe("SignupForm", () => {
-  const fill = async (name: string, email: string, password: string) => {
+  const fill = async (name: string, email: string, password: string, phone = "98765 43210") => {
     await userEvent.type(screen.getByLabelText("Full name"), name);
+    if (phone) await userEvent.type(screen.getByLabelText("Mobile number"), phone);
     await userEvent.type(screen.getByLabelText("Email"), email);
     await userEvent.type(screen.getByLabelText("Password"), password);
     await userEvent.click(screen.getByRole("button", { name: /^create account$/i }));
@@ -132,10 +133,48 @@ describe("SignupForm", () => {
     expect(h.auth.signUpWithEmail).not.toHaveBeenCalled();
   });
 
+  it("REQUIRES a mobile number: without one nothing is sent and the field says so", async () => {
+    render(<SignupForm />);
+    await fill("Asha Rao", "asha@x.com", "Passw0rdX", "");
+    expect(await screen.findByText(/enter your mobile number/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("aria-invalid", "true");
+    expect(h.auth.signUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it("refuses a number that can't be a mobile (too short, letters, a landline-looking one)", async () => {
+    for (const bad of ["12345", "abcdefghij", "5876543210"]) {
+      const { unmount } = render(<SignupForm />);
+      await fill("Asha Rao", "asha@x.com", "Passw0rdX", bad);
+      expect(await screen.findByText(/valid mobile number/i)).toBeInTheDocument();
+      expect(h.auth.signUpWithEmail).not.toHaveBeenCalled();
+      unmount();
+    }
+  });
+
+  it("sends the number in international format however it was typed (and keeps other countries' + codes)", async () => {
+    for (const [typed, sent] of [["+91 98765-43210", "+919876543210"], ["09876543210", "+919876543210"], ["+44 7911 123456", "+447911123456"]]) {
+      h.auth.signUpWithEmail.mockClear();
+      const { unmount } = render(<SignupForm />);
+      await fill("Asha Rao", "asha@x.com", "Passw0rdX", typed);
+      await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalled());
+      expect(h.auth.signUpWithEmail.mock.calls[0][4]).toBe(sent);
+      unmount();
+    }
+  });
+
+  it("the number field is phone-friendly: tel keyboard, autofill hint and a privacy note", () => {
+    render(<SignupForm />);
+    const f = screen.getByLabelText("Mobile number");
+    expect(f).toHaveAttribute("type", "tel");
+    expect(f).toHaveAttribute("inputmode", "tel");
+    expect(f).toHaveAttribute("autocomplete", "tel");
+    expect(screen.getByText(/never shown to other people/i)).toBeInTheDocument();
+  });
+
   it("asks you to confirm your email when there's no session yet", async () => {
     render(<SignupForm />);
     await fill("Asha Rao", "asha@x.com", "Passw0rdX");
-    await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalledWith("asha@x.com", "Passw0rdX", "Asha Rao", undefined));
+    await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalledWith("asha@x.com", "Passw0rdX", "Asha Rao", undefined, "+919876543210"));
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
     expect(h.push).not.toHaveBeenCalled();
   });
@@ -152,7 +191,7 @@ describe("SignupForm", () => {
       h.search.value = "redirect=/join/tok123";
       render(<SignupForm />);
       await fill("Asha Rao", "asha@x.com", "Passw0rdX");
-      await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalledWith("asha@x.com", "Passw0rdX", "Asha Rao", "/join/tok123"));
+      await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalledWith("asha@x.com", "Passw0rdX", "Asha Rao", "/join/tok123", "+919876543210"));
     });
 
     it("sends auto-confirmed accounts straight to the destination", async () => {
@@ -183,7 +222,7 @@ describe("SignupForm", () => {
       render(<SignupForm />);
       await fill("Asha Rao", "asha@x.com", "Passw0rdX");
       await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalled());
-      expect(h.auth.signUpWithEmail.mock.calls[0]).toHaveLength(4);
+      expect(h.auth.signUpWithEmail.mock.calls[0].slice(0, 4)).toEqual(["asha@x.com", "Passw0rdX", "Asha Rao", undefined]); // (the 5th is the mobile number)
       expect(h.auth.signUpWithEmail.mock.calls[0][3]).toBeUndefined();
     });
   });
@@ -362,5 +401,37 @@ describe("Sign-in polish", () => {
   it("the subtitle is one short line (it used to wrap and leave 'them.' alone)", () => {
     render(<LoginForm />);
     expect(screen.getByText("Your groups and balances are waiting.")).toBeInTheDocument();
+  });
+});
+
+describe("SignupForm — phone field follows the visitor's country", () => {
+  it("India: example in the local style, and a bare 10-digit number is sent as +91", async () => {
+    const { RegionProvider } = await import("@/components/auth/region-context");
+    const { regionFor } = await import("@/lib/region");
+    render(<RegionProvider region={regionFor("IN")}><SignupForm /></RegionProvider>);
+    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("placeholder", "98765 43210");
+  });
+
+  it("the UK: a local-style number (07911 123456) is accepted and sent in international format", async () => {
+    const { RegionProvider } = await import("@/components/auth/region-context");
+    const { regionFor } = await import("@/lib/region");
+    h.auth.signUpWithEmail.mockClear();
+    render(<RegionProvider region={regionFor("GB")}><SignupForm /></RegionProvider>);
+    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("placeholder", "07911 123456");
+    await userEvent.type(screen.getByLabelText("Full name"), "Asha Rao");
+    await userEvent.type(screen.getByLabelText("Mobile number"), "07911 123456");
+    await userEvent.type(screen.getByLabelText("Email"), "asha@x.com");
+    await userEvent.type(screen.getByLabelText("Password"), "Passw0rdX");
+    await userEvent.click(screen.getByRole("button", { name: /^create account$/i }));
+    await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalled());
+    expect(h.auth.signUpWithEmail.mock.calls[0][4]).toBe("+447911123456");
+  });
+
+  it("a country we have no code for must be typed with + (and the hint says so)", async () => {
+    const { RegionProvider } = await import("@/components/auth/region-context");
+    const { regionFor } = await import("@/lib/region");
+    render(<RegionProvider region={regionFor("ZZ")}><SignupForm /></RegionProvider>);
+    expect(screen.getByText(/start with your country code/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Mobile number").getAttribute("placeholder")).toMatch(/^\+/);
   });
 });

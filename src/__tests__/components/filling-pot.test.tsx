@@ -97,10 +97,12 @@ describe("the pot fills as you fill in the sign-in form", () => {
     expect(lg()).toHaveAttribute("data-level", "0");
   });
 
-  it("sign-up counts its three fields", async () => {
+  it("sign-up counts its four fields (name, mobile number, email, password)", async () => {
     render(<FillProvider><FillingPot /><SignupForm /></FillProvider>);
     await userEvent.type(screen.getByLabelText("Full name"), "Asha");
-    expect(Number(lg().getAttribute("data-level"))).toBeCloseTo(1 / 3, 2);
+    expect(Number(lg().getAttribute("data-level"))).toBeCloseTo(1 / 4, 2);
+    await userEvent.type(screen.getByLabelText("Mobile number"), "98765 43210");
+    expect(Number(lg().getAttribute("data-level"))).toBeCloseTo(2 / 4, 2);
     await userEvent.type(screen.getByLabelText("Email"), "asha@example.com");
     await userEvent.type(screen.getByLabelText("Password"), "longpassword1");
     expect(lg()).toHaveAttribute("data-level", "1");

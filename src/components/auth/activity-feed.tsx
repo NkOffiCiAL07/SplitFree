@@ -3,19 +3,22 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const ROWS = [
-  { icon: "✓", tone: "bg-emerald-400/90 text-emerald-950", text: <><b className="font-semibold">Asha</b> paid you ₹850</>, meta: "Just now" },
-  { icon: "🏖️", tone: "bg-sky-300/90 text-sky-950", text: <>Goa trip — <b className="font-semibold">all settled</b></>, meta: "4 friends" },
+export interface FeedCopy { payer: string; amount: string; trip: string }
+
+const rowsFor = (c: FeedCopy) => [
+  { icon: "✓", tone: "bg-emerald-400/90 text-emerald-950", text: <><b className="font-semibold">{c.payer}</b> paid you {c.amount}</>, meta: "Just now" },
+  { icon: "🏖️", tone: "bg-sky-300/90 text-sky-950", text: <>{c.trip} — <b className="font-semibold">all settled</b></>, meta: "4 friends" },
   { icon: "⚡", tone: "bg-amber-300/90 text-amber-950", text: <>10 payments → <b className="font-semibold">3</b></>, meta: "Simplified" },
 ];
 
 /** A little live "activity" card (decoration): the highlight walks down the rows so the page feels alive. */
-export function ActivityFeed({ className }: { className?: string }) {
+export function ActivityFeed({ className, copy = { payer: "Asha", amount: "₹850", trip: "Goa trip" } }: { className?: string; copy?: FeedCopy }) {
+  const ROWS = rowsFor(copy);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
     if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setActive((i) => (i + 1) % ROWS.length), 2600);
+    const id = setInterval(() => setActive((i) => (i + 1) % 3), 2600);
     return () => clearInterval(id);
   }, []);
 

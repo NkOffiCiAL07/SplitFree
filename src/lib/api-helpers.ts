@@ -4,10 +4,11 @@ import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/phone";
 import { ZodError } from "zod";
 
-/** The signed-in user as far as the API needs to know (all callers read only id and email). */
-export interface AuthUser { id: string; email: string | undefined }
+/** The signed-in user as far as the API needs to know. name/phone come from what they entered at sign-up (used once, when their profile is first created). */
+export interface AuthUser { id: string; email: string | undefined; name?: string; phone?: string }
 
 /**
  * Verifies the session's access token locally against Supabase's cached public signing keys (ES256)
@@ -20,7 +21,13 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (error || !claims?.sub) return null;
-  return { id: claims.sub, email: claims.email };
+  const meta = (claims.user_metadata ?? {}) as { name?: unknown; phone_number?: unknown };
+  return {
+    id: claims.sub,
+    email: claims.email,
+    name: typeof meta.name === "string" && meta.name.trim() ? meta.name.trim().slice(0, 100) : undefined,
+    phone: normalizePhone(typeof meta.phone_number === "string" ? meta.phone_number : undefined) ?? undefined,
+  };
 }
 
 export async function requireAuth() {
@@ -49,7 +56,7 @@ export function forgetKnownUser(userId: string) {
   knownUsers.delete(userId);
 }
 
-export async function ensureUserProfile(userId: string, email: string, name?: string) {
+export async function ensureUserProfile(userId: string, email: string, name?: string, phone?: string) {
   const expires = knownUsers.get(userId);
   if (expires && expires > Date.now()) return null; // already known to exist
   // Cheap indexed read on the hot path; only write for first-time users.
@@ -60,12 +67,12 @@ export async function ensureUserProfile(userId: string, email: string, name?: st
     knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
     return existing;
   }
-  const created = await createUserProfile(userId, email, name);
+  const created = await createUserProfile(userId, email, name, phone);
   knownUsers.set(userId, Date.now() + KNOWN_USER_TTL_MS);
   return created;
 }
 
-async function createUserProfile(userId: string, email: string, name?: string) {
+async function createUserProfile(userId: string, email: string, name?: string, phone?: string) {
   return prisma.user.upsert({
     where: { id: userId },
     update: {},
@@ -73,6 +80,7 @@ async function createUserProfile(userId: string, email: string, name?: string) {
       id: userId,
       email,
       name: name ?? email.split("@")[0],
+      phone: phone ?? null,
       currency: DEFAULT_CURRENCY, // DB default is USD; most users are in India
     },
   });
