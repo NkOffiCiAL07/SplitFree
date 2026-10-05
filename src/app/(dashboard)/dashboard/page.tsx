@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useQuery } from "@tanstack/react-query";
 import { m } from "framer-motion";
@@ -31,6 +32,7 @@ async function fetchDashboard() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const timeOfDay = useTimeOfDay();
   const firstName = user?.user_metadata?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
   const { setAddExpenseOpen } = useUIStore();
 
@@ -82,7 +84,7 @@ export default function DashboardPage() {
       >
         <div>
           <h2 className="text-xl font-bold">
-            {getTimeOfDay()}, {firstName} 👋
+            {timeOfDay}, {firstName} 👋
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>
         </div>
@@ -155,4 +157,12 @@ function getTimeOfDay(): string {
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
+}
+
+// The server's clock is not the visitor's: while hydrating, say a neutral "Hello" (what the server rendered), then the
+// right greeting for the visitor's own time. (Rendering the time of day straight away made the server HTML and the
+// browser disagree, which makes React throw the server HTML away and start over.)
+const noSubscribe = () => () => {};
+function useTimeOfDay(): string {
+  return useSyncExternalStore(noSubscribe, getTimeOfDay, () => "Hello");
 }

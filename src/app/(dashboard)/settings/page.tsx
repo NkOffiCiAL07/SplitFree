@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CURRENCY_CODES as CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currencies";
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import { useState } from "react";
 import { m } from "framer-motion";
 import { Moon, Sun, Monitor, Download, Shield } from "lucide-react";
@@ -31,6 +32,7 @@ async function saveExport(url: string, filename: string, mime: string) {
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const mounted = useMounted(); // the saved theme is only known in the browser: highlighting it earlier makes the server and browser HTML differ
   const qc = useQueryClient();
   const { data: profile } = useProfile();
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
@@ -91,7 +93,7 @@ export default function SettingsPage() {
                   onClick={() => setTheme(value)}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all",
-                    theme === value
+                    mounted && theme === value
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border hover:bg-accent"
                   )}

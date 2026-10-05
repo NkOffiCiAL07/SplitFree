@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/use-profile";
 import { normalizePhone } from "@/lib/phone";
 import { browserCountry } from "@/lib/region";
+import { useMounted } from "@/hooks/use-mounted";
 
 /** Your mobile number (required for accounts; it can be changed but not removed). Private — never shown to other people. */
 export function PhoneSettings() {
@@ -17,6 +18,7 @@ export function PhoneSettings() {
   const saved: string = profile?.phone ?? "";
   const [value, setValue] = useState(saved);
   const [busy, setBusy] = useState(false);
+  const mounted = useMounted(); // the browser's country is unknown on the server: start neutral, then follow it (no hydration mismatch)
 
   const normalized = normalizePhone(value);
   const invalid = value.trim() !== "" && !normalized;
@@ -46,7 +48,7 @@ export function PhoneSettings() {
     <div className="space-y-2" data-testid="phone-settings">
       <Label htmlFor="phone-number" className="text-sm">Mobile number</Label>
       <div className="flex gap-2">
-        <PhoneField id="phone-number" initial={saved} defaultCountry={browserCountry()} disabled={!profile} onChange={setValue} invalid={invalid} className="flex-1" />
+        <PhoneField id="phone-number" initial={saved} defaultCountry={mounted ? browserCountry() : "IN"} disabled={!profile} onChange={setValue} invalid={invalid} className="flex-1" />
         <Button variant="brand" size="sm" onClick={save} disabled={!profile || busy || !normalized || unchanged} loading={busy}>
           Save
         </Button>

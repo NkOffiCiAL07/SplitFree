@@ -38,6 +38,8 @@ export function PhoneField({ id, initial = "", defaultCountry, onChange, invalid
   };
   const [state, setState] = useState(() => start(initial));
   const [syncedFrom, setSyncedFrom] = useState(initial);
+  const [syncedDefault, setSyncedDefault] = useState(defaultCountry);
+  const [touched, setTouched] = useState(false);
 
   // A different saved number arrived (e.g. the profile finished loading): show it (state adjusted during render, not in an effect)
   if (initial !== syncedFrom) {
@@ -45,8 +47,16 @@ export function PhoneField({ id, initial = "", defaultCountry, onChange, invalid
     setState(start(initial));
   }
 
+  // The suggested country can change after the first render (the browser's guess arrives after hydration): follow it, but
+  // never override a choice the person has already made or a saved number
+  if (defaultCountry !== syncedDefault) {
+    setSyncedDefault(defaultCountry);
+    if (!touched && !parseE164(initial)) setState((s) => ({ ...s, country: countryByCode(defaultCountry)?.code ?? "" }));
+  }
+
   const country = countryByCode(state.country);
   const update = (next: { country: string; text: string }) => {
+    setTouched(true);
     setState(next);
     onChange(emit(next.country, next.text));
   };

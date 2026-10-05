@@ -147,3 +147,23 @@ describe("PhoneSettings", () => {
     await waitFor(() => expect(h.toast.success).toHaveBeenCalledWith("Mobile number saved"));
   });
 });
+
+describe("PhoneField country suggestion (it arrives after hydration)", () => {
+  it("follows a changed suggestion until the person touches it, then never overrides their choice", async () => {
+    const { PhoneField } = await import("@/components/ui/phone-field");
+    const { rerender } = render(<PhoneField id="f" defaultCountry="IN" onChange={() => {}} />);
+    expect(screen.getByLabelText("Country code")).toHaveValue("IN");
+    rerender(<PhoneField id="f" defaultCountry="GB" onChange={() => {}} />); // the browser's guess arrives
+    expect(screen.getByLabelText("Country code")).toHaveValue("GB");
+    await userEvent.selectOptions(screen.getByLabelText("Country code"), "US"); // the person chooses
+    rerender(<PhoneField id="f" defaultCountry="DE" onChange={() => {}} />);
+    expect(screen.getByLabelText("Country code")).toHaveValue("US");
+  });
+
+  it("a saved number always wins over a suggestion", async () => {
+    const { PhoneField } = await import("@/components/ui/phone-field");
+    const { rerender } = render(<PhoneField id="f" initial="+919876543210" defaultCountry="IN" onChange={() => {}} />);
+    rerender(<PhoneField id="f" initial="+919876543210" defaultCountry="GB" onChange={() => {}} />);
+    expect(screen.getByLabelText("Country code")).toHaveValue("IN");
+  });
+});
