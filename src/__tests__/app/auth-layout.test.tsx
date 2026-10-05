@@ -54,10 +54,26 @@ describe("Auth layout — liquid glass", () => {
     expect(HEADLINE).toBe("Hisaab saaf. Dosti barkaraar.");
   });
 
-  it("floating glass chips show the product in action (they're decoration, not required reading)", () => {
-    const { container } = render(<AuthLayout><div /></AuthLayout>);
-    expect(container.querySelectorAll(".lg-glass-dark.lg-float, .lg-glass-dark.lg-float-2, .lg-glass-dark.lg-float-3")).toHaveLength(3);
-    expect(container.textContent).toMatch(/Asha paid you ₹850/);
+  it("a live activity card shows the product in action (decoration, hidden from screen readers) and the highlight moves on", () => {
+    vi.useFakeTimers();
+    try {
+      render(<AuthLayout><div /></AuthLayout>);
+      const feeds = screen.getAllByTestId("activity-feed");
+      expect(feeds.length).toBeGreaterThan(0);
+      for (const f of feeds) expect(f).toHaveAttribute("aria-hidden", "true");
+      expect(feeds[0].textContent).toMatch(/Asha paid you ₹850/);
+      const active = () => feeds[0].querySelector("[data-active='true']")?.textContent;
+      const first = active();
+      act(() => { vi.advanceTimersByTime(2700); });
+      expect(active()).not.toBe(first);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("hero and form share ONE aurora canvas, and the form card has the travelling edge light", () => {
+    const { container } = render(<AuthLayout><form aria-label="login form" /></AuthLayout>);
+    expect(container.querySelectorAll(".auth-canvas")).toHaveLength(1);
+    expect(container.querySelector(".auth-card-glow")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".auth-orb")).toHaveAttribute("aria-hidden", "true");
   });
 });
 
@@ -79,7 +95,7 @@ describe("Rotating occasions", () => {
 
 describe("Auth layout — phone chrome", () => {
   it("colours the phone's status bar like the header, so there's no white strip above the purple", () => {
-    expect(viewport.themeColor).toBe("#6d28d9");
+    expect(viewport.themeColor).toBe("#120b34");
     expect(viewport.viewportFit).toBe("cover");
   });
 
@@ -106,8 +122,8 @@ describe("Auth layout — phone sign-in animation", () => {
 
   it("the animations all stop for people who asked for reduced motion", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
-    const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)", css.indexOf("lg-aurora")));
-    for (const cls of [".lg-aurora", ".lg-text-shimmer", ".lg-marquee"]) expect(reduced.split("}")[0]).toContain(cls);
-    expect(reduced.split("}")[1]).toContain(".lg-coin");
+    const reduced = css.split("@media (prefers-reduced-motion: reduce)").slice(1).map((b) => b.slice(0, b.indexOf("\n  }") + 4)).join("\n");
+    for (const cls of [".lg-aurora", ".lg-text-shimmer", ".lg-marquee", ".lg-coin", ".auth-canvas", ".auth-card-glow", ".auth-orb"]) expect(reduced).toContain(cls);
   });
+
 });

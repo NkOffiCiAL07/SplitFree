@@ -33,7 +33,7 @@ export function FillingPot({ size = "lg", className }: { size?: "lg" | "sm"; cla
     >
       <svg
         viewBox="0 0 200 250"
-        className={cn("overflow-visible", big ? "h-[min(36vh,310px)] w-auto" : "w-20", mood === "full" && "fill-pop")}
+        className={cn("overflow-visible", big ? "h-[min(30vh,290px)] w-auto" : "w-20", mood === "full" && "fill-pop")}
         aria-hidden="true"
       >
         <defs>
