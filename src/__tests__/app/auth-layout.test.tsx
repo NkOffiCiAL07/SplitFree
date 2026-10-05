@@ -140,7 +140,8 @@ describe("Auth layout — steady desktop card", () => {
   it("the desktop form card has one fixed minimum height (tall enough for sign-up) so switching tabs never resizes it, and a small logo", async () => {
     const { container } = await renderLayout(<form aria-label="login form" />);
     const card = screen.getByRole("form", { name: "login form" }).parentElement!.parentElement!;
-    expect(card.className).toContain("lg:min-h-[51rem]");
+    expect(card.className).toContain("lg:min-h-[51rem]"); // (only on screens tall enough for it)
+    expect(card.className).toContain("lg:my-auto"); // centred when there is room, scrolls from the top when there is not
     const heroLogo = container.querySelector(".anim-fade-up svg, .anim-fade-up img") as SVGElement | HTMLImageElement;
     expect(Number(heroLogo.getAttribute("width"))).toBeLessThanOrEqual(36);
   });
@@ -171,3 +172,19 @@ describe("Auth layout — words follow the visitor's country", () => {
     expect(screen.getAllByTestId("rotating-word")[0].textContent).not.toMatch(/Goa|shaadi|chai/);
   });
 });
+
+describe("phones get a lighter sign-in and cards (smooth scrolling on mid-range Android)", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+
+  it("no live background blur on glass cards on phones, with a more opaque fill instead", () => {
+    expect(css).toMatch(/\.lg-glass, \.lg-glass-dark \{\s*-webkit-backdrop-filter: none;\s*backdrop-filter: none;/);
+    expect(css).toMatch(/\.lg-glass \{ background: linear-gradient\(145deg, hsl\(0 0% 100% \/ 0\.92\)/);
+  });
+
+  it("the full-screen gradient animation and film grain are skipped on phones, but kept on desktop", () => {
+    expect(css).toMatch(/@media \(max-width: 1023px\), \(pointer: coarse\) \{\s*\.auth-canvas \{ animation: none; \}\s*\.auth-grain \{ display: none; \}/);
+    expect(css).toMatch(/\.auth-canvas \{[^}]*animation: auth-canvas 24s/); // desktop still animates
+    expect(css).toMatch(/\.lg-glass \{[^}]*backdrop-filter: blur\(24px\)/); // desktop keeps the full glass effect
+  });
+});
+

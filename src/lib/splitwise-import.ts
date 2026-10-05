@@ -215,6 +215,9 @@ export function rowToRecord(row: SplitwiseRow, mapping: Record<string, string>):
   for (const p of payers) if (p.share > 0) splitMap.set(p.userId, (splitMap.get(p.userId) ?? 0) + p.share);
 
   const primary = [...payers].sort((a, b) => b.paid - a.paid)[0];
+  // Splitwise rows can be a few cents off zero (we tolerate that), which would leave what the payers paid a few cents away
+  // from the cost. Whatever is left over goes to the main payer, so the payers always add up to the cost EXACTLY.
+  primary.paid += row.cost - payers.reduce((a, p) => a + p.paid, 0);
   return {
     kind: "expense",
     expense: {

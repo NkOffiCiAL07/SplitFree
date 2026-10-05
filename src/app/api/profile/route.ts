@@ -4,7 +4,7 @@ import { normalizePhone } from "@/lib/phone";
 import { phoneSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, tooManyRequests } from "@/lib/api-helpers";
 
 const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required").max(100).optional(),
@@ -35,6 +35,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
+  { const limited = tooManyRequests(user!.id, "profile-write", 30); if (limited) return limited; }
 
   try {
     const body = await request.json();

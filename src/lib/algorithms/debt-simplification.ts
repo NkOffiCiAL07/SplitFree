@@ -87,10 +87,12 @@ export function calculateSplits(
   const result: Record<string, number> = {};
 
   if (splitType === "EQUAL") {
+    // Everyone gets the same whole amount; the few units left over go ONE EACH to the first people in the list (never all
+    // on one person: ₹100 between 3 is 33.34 / 33.33 / 33.33, and ₹100 between 7 is 14.29 ×4 then 14.28 ×3 — shares differ by at most one unit)
     const perPerson = Math.floor(total / participants.length);
     const remainder = total - perPerson * participants.length;
     participants.forEach((id, idx) => {
-      result[id] = perPerson + (idx === 0 ? remainder : 0);
+      result[id] = perPerson + (idx < remainder ? 1 : 0);
     });
     return scale(result);
   }
@@ -120,7 +122,8 @@ export function calculateSplits(
   }
 
   const totalWeight = participants.reduce((sum, id) => sum + valueOf(id), 0);
-  if (splitType === "PERCENTAGE" && Math.abs(totalWeight - 100) > 0.01) throw new SplitError("Percentages must sum to 100");
+  // (whole hundredths of a percent, so float noise like 99.99000000000001 can't decide the outcome; 0.01% either way is allowed)
+  if (splitType === "PERCENTAGE" && Math.abs(Math.round(totalWeight * 100) - 10000) > 1) throw new SplitError("Percentages must sum to 100");
   if (splitType === "SHARES" && totalWeight === 0) throw new SplitError("Total shares cannot be zero");
   return scale(allocateProportionally(total, participants, valueOf, totalWeight));
 }
@@ -143,6 +146,12 @@ function allocateProportionally(
   let leftover = totalCents - rows.reduce((sum, r) => sum + r.floor, 0);
   const byRemainder = rows.filter((r) => r.eligible).sort((x, y) => y.frac - x.frac || x.order - y.order);
   for (let i = 0; leftover > 0 && byRemainder.length > 0; i++, leftover--) byRemainder[i % byRemainder.length].floor += 1;
+  // Safety net: the 1e-9 nudge above could (for weights with very long decimals) round two shares up at once and leave the
+  // floors ABOVE the total. Take the surplus back from whoever lost the least to rounding, so the sum is always exact.
+  if (leftover < 0) {
+    const bySmallestRemainder = rows.filter((r) => r.floor > 0).sort((x, y) => x.frac - y.frac || y.order - x.order);
+    for (let i = 0; leftover < 0 && bySmallestRemainder.length > 0; i++, leftover++) bySmallestRemainder[i % bySmallestRemainder.length].floor -= 1;
+  }
   return Object.fromEntries(rows.map((r) => [r.id, r.floor]));
 }
 
@@ -152,14 +161,17 @@ export function computeNetBalance(
   expenses: Array<{
     paidById: string;
     splits: Array<{ userId: string; amount: number }>;
+    payers?: Array<{ userId: string; amount: number }>;
   }>,
   settlements: Array<{ fromUserId: string; toUserId: string; amount: number }>
 ): number {
   let balance = 0;
 
   for (const expense of expenses) {
-    // Amount paid
-    if (expense.paidById === userId) {
+    // Amount paid (several payers: each paid their own part; otherwise `paidById` paid it all)
+    if (expense.payers && expense.payers.length > 0) {
+      balance += expense.payers.filter((p) => p.userId === userId).reduce((sum, p) => sum + p.amount, 0);
+    } else if (expense.paidById === userId) {
       balance += expense.splits.reduce((sum, s) => sum + s.amount, 0);
     }
     // Amount owed by you

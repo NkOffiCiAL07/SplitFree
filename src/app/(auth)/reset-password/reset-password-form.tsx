@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const requestSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: z.string().trim().email("Enter a valid email"),
 });
 
 type RequestForm = z.infer<typeof requestSchema>;
@@ -28,16 +28,21 @@ function RequestResetForm() {
 
   const onSubmit = async (data: RequestForm) => {
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password/update`,
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password/update`,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setSent(true);
+    } catch {
+      toast.error("Couldn't reach the server — check your connection and try again");
+    } finally {
+      setLoading(false); // (it used to stay "loading" forever if the request itself failed)
     }
-    setSent(true);
   };
 
   if (sent) {

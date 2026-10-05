@@ -202,6 +202,8 @@ model Expense {
   @@index([paidById, date])
   @@index([date])
   @@index([recurringParentId])
+  @@index([groupId, date(sort: Desc)]) // a group's expense list, newest first
+  @@index([isRecurring]) // the daily job that creates recurring expenses
   @@map("expenses")
 }
 
@@ -294,6 +296,7 @@ model Activity {
   group   Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
   expense Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 
+  @@index([userId, createdAt(sort: Desc)]) // the latest activity for a person (dashboard, activity page)
   @@index([userId])
   @@index([groupId])
   @@index([expenseId])

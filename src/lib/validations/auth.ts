@@ -14,12 +14,12 @@ export const phoneSchema = z.string().trim().min(1, "Enter your mobile number").
 export const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(80),
   phone: phoneSchema,
-  email: z.string().email("Enter a valid email"),
+  email: z.string().trim().email("Enter a valid email"),
   password: passwordSchema,
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: z.string().trim().email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 

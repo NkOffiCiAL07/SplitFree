@@ -317,7 +317,7 @@ export default function FriendsPage() {
       {groupContacts.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
-            <Users className="size-3.5 text-violet-500" />
+            <Users className="size-3.5 text-brand-500" />
             From your groups
             <Badge variant="secondary" className="text-[10px] px-1.5">{groupContacts.length}</Badge>
           </h3>

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, clientIp } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, clientIp, tooManyRequests } from "@/lib/api-helpers";
 import { createGroupSchema } from "@/lib/validations/group";
 
 export async function GET(req: NextRequest) {
@@ -32,12 +32,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = clientIp(req); // first hop only; the raw header can be a list
-  if (rateLimit(ip, 20)) return err("Too many requests", 429);
+  if (rateLimit(`ip:${clientIp(req)}`, 300)) return err("Too many requests", 429); // flood guard (addresses are shared)
 
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "group-create", 20); if (limited) return limited; }
 
     await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 

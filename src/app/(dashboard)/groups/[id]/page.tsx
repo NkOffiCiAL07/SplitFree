@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccent } from "@/components/shared/accent-provider";
 import { buildGroupInviteMessage, whatsappShareUrl } from "@/lib/invite";
 import dynamic from "next/dynamic";
 import { use, useState } from "react";
@@ -44,6 +45,7 @@ const EditExpenseDialog = dynamic(
 );
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const accent = useAccent(); // the invite QR takes the chosen colour theme
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
@@ -650,7 +652,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   value={qrUrl}
                   size={210}
                   level="H"
-                  fgColor="#7c3aed"
+                  fgColor={accent.scale[700]}
                   bgColor="#ffffff"
                   imageSettings={{
                     src: "/icons/icon-192x192.png",

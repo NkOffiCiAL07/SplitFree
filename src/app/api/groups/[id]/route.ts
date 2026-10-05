@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, expensePeople } from "@/lib/api-helpers";
 import { updateGroupSchema } from "@/lib/validations/group";
 import { computeGroupStats } from "@/lib/group-stats";
 import { loadGroupLedger } from "@/lib/ledger-db";
@@ -28,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         include: {
           members: { include: { user: true }, orderBy: { joinedAt: "asc" } },
           expenses: {
-            include: { paidBy: true, splits: { include: { user: true } }, payers: { include: { user: true } } },
+            include: { paidBy: expensePeople, splits: { include: { user: expensePeople } }, payers: { include: { user: expensePeople } } },
             orderBy: { date: "desc" },
             take: 20,
           },

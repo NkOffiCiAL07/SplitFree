@@ -2,7 +2,7 @@ import { createNotifications } from "@/lib/notify";
 import { CURRENCY_CODES, DEFAULT_CURRENCY, isLegalAmount } from "@/lib/currencies";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, isUniqueViolation, isGroupMember, getKnownUserIds, parseLimit } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, isUniqueViolation, isGroupMember, getKnownUserIds, parseLimit, tooManyRequests } from "@/lib/api-helpers";
 import { z } from "zod";
 import { toCents, formatCurrency } from "@/lib/utils";
 import { simplifyDebts } from "@/lib/algorithms/debt-simplification";
@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "settle-write", 120); if (limited) return limited; }
 
     await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 

@@ -13,7 +13,7 @@ describe("regionFor", () => {
 
   it("anywhere else is NOT India, with that country's currency symbol and dial code", () => {
     expect(regionFor("US")).toMatchObject({ isIndia: false, amount: "$20", dial: "1" });
-    expect(regionFor("GB")).toMatchObject({ isIndia: false, amount: "£15", dial: "44", phoneExample: "07911 123456" });
+    expect(regionFor("GB")).toMatchObject({ isIndia: false, amount: "£15", dial: "44", phoneExample: "7911 123456" });
     expect(regionFor("DE")).toMatchObject({ isIndia: false, amount: "€18", dial: "49" });
     expect(regionFor("AE").amount).toBe("AED 75");
     expect(regionFor("JP").amount).toBe("¥2,000");

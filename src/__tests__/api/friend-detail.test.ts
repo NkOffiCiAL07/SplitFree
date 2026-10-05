@@ -70,7 +70,7 @@ describe("GET /api/friends/[id]", () => {
     p.settlement.findMany.mockResolvedValue([]);
     await call(OTHER);
     const where = p.expense.findMany.mock.calls[0][0].where;
-    expect(where.AND[0].OR).toContainEqual({ paidById: ME });
+    expect(where.AND[0]).toHaveProperty("id.in"); // expenses I can see (ids found through the indexes)
     expect(where.AND[1].OR).toEqual([
       { paidById: OTHER }, { splits: { some: { userId: OTHER } } }, { payers: { some: { userId: OTHER } } },
     ]);

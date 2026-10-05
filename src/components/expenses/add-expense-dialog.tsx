@@ -20,7 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn, getInitials } from "@/lib/utils";
+import { cn, getInitials, toCents } from "@/lib/utils";
+import { calculateSplits } from "@/lib/algorithms/debt-simplification";
+import { storedUnitFor } from "@/lib/currencies";
 import { toast } from "sonner";
 import type { GroupMember } from "@/types";
 import { parseQuickExpense, matchPeople } from "@/lib/quick-add";
@@ -162,11 +164,14 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
   const allMemberIds = resolvedMembers.map((m) => m.userId);
   const activeParticipants = participants.length > 0 ? participants : allMemberIds;
 
-  const equalSplitPerPerson = (() => {
-    const total = parseFloat(amountStr ?? "0") || 0;
-    const count = activeParticipants.length || 1;
-    if (total <= 0 || count === 0 || splitType !== "EQUAL") return null;
-    return total / count;
+  // Each person's REAL share, from the very function the server uses to save the expense — so what the preview shows is
+  // exactly what gets saved (₹100 between 3 is 33.34 / 33.33 / 33.33, not "33.33 each", which would add up to 99.99).
+  const equalSplitAmounts = (() => {
+    if (splitType !== "EQUAL" || activeParticipants.length === 0) return null;
+    const cents = toCents(parseFloat(amountStr ?? "0") || 0);
+    const unit = storedUnitFor(selectedCurrency);
+    if (!(cents > 0) || cents % unit !== 0) return null; // (yen has no fractions: the form's own check explains it)
+    try { return calculateSplits(cents, activeParticipants, "EQUAL", undefined, unit); } catch { return null; }
   })();
 
   // `participants` is empty while "everyone" is selected, so a click must start from the full list:
@@ -195,9 +200,12 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
     if (splitType === "EQUAL" || activeParticipants.length === 0) return null;
     const total = parseFloat(amountStr ?? "0") || 0;
     const sum = activeParticipants.reduce((acc, uid) => acc + (parseFloat(splitValues[uid] ?? "0") || 0), 0);
-    if (splitType === "EXACT" && total > 0 && Math.abs(sum - total) > 0.01)
+    // Compared in whole cents (the server is exact: one cent off is refused, so say so here instead of after submitting)
+    const centsOf = (uid: string) => toCents(parseFloat(splitValues[uid] ?? "0") || 0);
+    const sumCents = activeParticipants.reduce((acc, uid) => acc + centsOf(uid), 0);
+    if (splitType === "EXACT" && total > 0 && sumCents !== toCents(total))
       return `Split amounts must sum to ${total.toFixed(2)} (currently ${sum.toFixed(2)})`;
-    if (splitType === "PERCENTAGE" && sum > 0 && Math.abs(sum - 100) > 0.01)
+    if (splitType === "PERCENTAGE" && sum > 0 && Math.abs(Math.round(sum * 100) - 10000) > 1)
       return `Percentages must sum to 100% (currently ${sum.toFixed(1)}%)`;
     return null;
   })();
@@ -522,7 +530,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
               </div>
 
               {/* Equal split preview */}
-              {splitType === "EQUAL" && equalSplitPerPerson !== null && (
+              {splitType === "EQUAL" && equalSplitAmounts !== null && (
                 <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-1">
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Split preview</p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -532,7 +540,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
                       return (
                         <span key={uid} className="text-xs">
                           <span className="font-medium">{name}</span>
-                          <span className="text-muted-foreground"> {equalSplitPerPerson.toFixed(selectedCurrency === "JPY" ? 0 : 2)} {selectedCurrency}</span>
+                          <span className="text-muted-foreground"> {((equalSplitAmounts[uid] ?? 0) / 100).toFixed(selectedCurrency === "JPY" ? 0 : 2)} {selectedCurrency}</span>
                         </span>
                       );
                     })}

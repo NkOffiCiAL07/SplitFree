@@ -3,16 +3,16 @@
 
 @theme inline {
   /* Brand colors — violet-indigo inspired by Linear */
-  --color-brand-50: #f5f3ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-300: #c4b5fd;
-  --color-brand-400: #a78bfa;
-  --color-brand-500: #8b5cf6;
-  --color-brand-600: #7c3aed;
-  --color-brand-700: #6d28d9;
-  --color-brand-800: #5b21b6;
-  --color-brand-900: #4c1d95;
+  --color-brand-50: hsl(var(--brand-50));
+  --color-brand-100: hsl(var(--brand-100));
+  --color-brand-200: hsl(var(--brand-200));
+  --color-brand-300: hsl(var(--brand-300));
+  --color-brand-400: hsl(var(--brand-400));
+  --color-brand-500: hsl(var(--brand-500));
+  --color-brand-600: hsl(var(--brand-600));
+  --color-brand-700: hsl(var(--brand-700));
+  --color-brand-800: hsl(var(--brand-800));
+  --color-brand-900: hsl(var(--brand-900));
 
   /* Semantic tokens (HSL via CSS vars) */
   --color-background: hsl(var(--background));
@@ -53,6 +53,8 @@
 
 /* ─── Light mode ─────────────────────────────────────────── */
 :root {
+  /* the default (violet) palette; the others are applied through <html data-accent=…> (see src/lib/themes.ts) */
+  --brand-50:250 100% 98%;--brand-100:251 91% 95%;--brand-200:251 95% 92%;--brand-300:252 95% 85%;--brand-400:255 92% 76%;--brand-500:258 90% 66%;--brand-600:262 83% 58%;--brand-700:263 70% 50%;--brand-800:263 69% 42%;--brand-900:264 67% 35%;--brand-grad-a:262 83% 58%;--brand-grad-b:243 75% 59%;
   --radius: 0.625rem;
   --background: 0 0% 100%;
   --foreground: 222 47% 11%;
@@ -104,6 +106,18 @@
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 100%;
+}
+
+/* "Pure black" option for dark mode: true black backgrounds save battery on OLED screens */
+.dark[data-oled] {
+  --background: 0 0% 0%;
+  --card: 0 0% 5%;
+  --popover: 0 0% 5%;
+  --muted: 0 0% 11%;
+  --secondary: 0 0% 11%;
+  --accent: 0 0% 13%;
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
 }
 
 /* ─── Base ────────────────────────────────────────────────── */
@@ -167,11 +181,11 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   }
 
   .gradient-brand {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, hsl(var(--brand-grad-a)) 0%, hsl(var(--brand-grad-b)) 100%);
   }
 
   .gradient-brand-text {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, hsl(var(--brand-grad-a)) 0%, hsl(var(--brand-grad-b)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -421,6 +435,17 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
     background: conic-gradient(from 0deg, transparent 0 52%, #22d3ee 68%, #a78bfa 80%, #e879f9 92%, transparent);
     animation: auth-spin 8s linear infinite;
   }
+  /* Short browser windows: shrink the desktop form card to fit instead of running off the top of the screen */
+  @media (min-width: 1024px) and (max-height: 860px) { .auth-card { zoom: 0.9; } }
+  @media (min-width: 1024px) and (max-height: 740px) { .auth-card { zoom: 0.8; } }
+  @media (min-width: 1024px) and (max-height: 640px) { .auth-card { zoom: 0.7; } }
+  /* Phones: animating a full-screen gradient's position repaints the whole screen every frame, and a full-screen blend
+     mode forces an extra compositing pass — both are costly on mid-range Android. The floating blobs (transform only, cheap
+     for the GPU) and the coins keep the page alive; the canvas itself stays still and the grain is skipped. */
+  @media (max-width: 1023px), (pointer: coarse) {
+    .auth-canvas { animation: none; }
+    .auth-grain { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .auth-canvas, .auth-orb::before, .auth-orb::after, .auth-card-glow::before { animation: none; }
   }
@@ -429,10 +454,16 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
      use lighter blurs, so scrolling and typing stay smooth and the battery lasts. */
   @media (max-width: 1023px), (pointer: coarse) {
     .lg-blob { filter: blur(34px); animation: lg-drift 26s ease-in-out infinite alternate; }
+    /* A live background blur on every card (the landing page has ~20, the sign-in chips even move) is the classic cause of
+       scroll jank on mid-range Android. On phones the surfaces are slightly more opaque instead — nearly the same look,
+       no per-frame blur. (The desktop keeps the full glass effect.) */
     .lg-glass, .lg-glass-dark {
-      -webkit-backdrop-filter: blur(14px) saturate(1.5);
-      backdrop-filter: blur(14px) saturate(1.5);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
+    .lg-glass { background: linear-gradient(145deg, hsl(0 0% 100% / 0.92), hsl(0 0% 100% / 0.8)); }
+    .dark .lg-glass { background: linear-gradient(145deg, hsl(222 30% 16% / 0.92), hsl(222 30% 12% / 0.88)); }
+    .lg-glass-dark { background: linear-gradient(145deg, hsl(0 0% 100% / 0.2), hsl(0 0% 100% / 0.12)); }
   }
   @media (prefers-reduced-motion: reduce) {
     .lg-blob, .lg-float, .lg-float-2, .lg-float-3, .lg-shine::after, .lg-ready, .lg-marquee, .lg-word, .lg-sheen, .lg-aurora, .lg-text-shimmer { animation: none; }

@@ -2,7 +2,7 @@ import { storedUnitFor } from "@/lib/currencies";
 import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, isUniqueViolation, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, visibleScope, expenseResponseInclude, isUniqueViolation, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE, tooManyRequests } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents, formatCurrency } from "@/lib/utils";
@@ -20,14 +20,10 @@ export async function GET(req: NextRequest) {
     const paged = searchParams.get("paged") === "true";
 
     // Search/category/date/recurring/group all run in the database, over the full history
+    const scope = await visibleScope(user!.id);
     const expenses = await prisma.expense.findMany({
-      where: { AND: [visibleToUser(user!.id), buildExpenseFilter(searchParams)] },
-      include: {
-        paidBy: true,
-        splits: { include: { user: true } },
-        payers: { include: { user: true } },
-        group: true,
-      },
+      where: { AND: [scope, buildExpenseFilter(searchParams)] },
+      include: expenseResponseInclude,
       orderBy: [{ date: "desc" }, { id: "desc" }],
       take: paged ? limit + 1 : limit, // one extra row tells us whether another page exists
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
@@ -43,12 +39,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = clientIp(req);
-  if (rateLimit(ip, 30)) return err("Too many requests", 429);
+  // Flood guard by address, kept wide: an office, college or mobile carrier shares ONE address among thousands of people
+  if (rateLimit(`ip:${clientIp(req)}`, 600)) return err("Too many requests", 429);
 
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "expense-write", 120); if (limited) return limited; }
 
     await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 
@@ -56,12 +53,7 @@ export async function POST(req: NextRequest) {
     const data = createExpenseSchema.parse(body);
 
     // Idempotent retry: the same clientId again returns the expense already created instead of a duplicate
-    const expenseInclude = {
-      paidBy: true,
-      splits: { include: { user: true } },
-      payers: { include: { user: true } },
-      group: true,
-    };
+    const expenseInclude = expenseResponseInclude;
     if (data.clientId) {
       const existing = await prisma.expense.findUnique({ where: { id: data.clientId }, select: { id: true } });
       if (existing) {

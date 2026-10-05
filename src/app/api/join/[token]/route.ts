@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, clientIp, tooManyRequests } from "@/lib/api-helpers";
 
 async function findGroup(token: string) {
   return prisma.group.findFirst({
@@ -17,12 +17,17 @@ async function findGroup(token: string) {
 }
 
 // GET — preview group info (public, no auth needed for preview)
-export async function GET(_: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  // Nobody is signed in here, so limit by address — generously, since a whole venue scanning one QR code shares an address
+  if (rateLimit(`join-preview:${clientIp(req)}`, 300)) return err("Too many requests", 429);
   try {
     const { token } = await params;
     const group = await findGroup(token);
     if (!group) return err("Invite link is invalid or has expired", 404);
-    return ok(group);
+    const res = ok(group);
+    // A burst of people scanning the same QR code should cost one database read, not hundreds
+    res.headers.set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
+    return res;
   } catch (e) {
     return handleError(e);
   }
@@ -33,6 +38,7 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ token
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "join", 30); if (limited) return limited; }
     const { token } = await params;
 
     await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);

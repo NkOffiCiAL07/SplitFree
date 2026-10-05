@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, handleError, visibleToUser } from "@/lib/api-helpers";
+import { requireAuth, ok, handleError, visibleScope } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
     if (q.length < 2) return ok({ groups: [], expenses: [], friends: [] });
 
+    const scope = await visibleScope(user!.id);
     const [groups, expenses, friends] = await Promise.all([
       prisma.group.findMany({
         where: {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.expense.findMany({
         where: {
-          ...visibleToUser(user!.id),
+          ...scope,
           description: { contains: q, mode: "insensitive" },
         },
         take: 5,

@@ -417,7 +417,7 @@ describe("SignupForm — phone field follows the visitor's country", () => {
     const { regionFor } = await import("@/lib/region");
     h.auth.signUpWithEmail.mockClear();
     render(<RegionProvider region={regionFor("GB")}><SignupForm /></RegionProvider>);
-    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("placeholder", "07911 123456");
+    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("placeholder", "7911 123456");
     await userEvent.type(screen.getByLabelText("Full name"), "Asha Rao");
     await userEvent.type(screen.getByLabelText("Mobile number"), "07911 123456");
     await userEvent.type(screen.getByLabelText("Email"), "asha@x.com");
@@ -427,11 +427,87 @@ describe("SignupForm — phone field follows the visitor's country", () => {
     expect(h.auth.signUpWithEmail.mock.calls[0][4]).toBe("+447911123456");
   });
 
-  it("a country we have no code for must be typed with + (and the hint says so)", async () => {
+  it("a country we have no code for starts with 'Choose country code' and the hint says so (typing a + number still works)", async () => {
     const { RegionProvider } = await import("@/components/auth/region-context");
     const { regionFor } = await import("@/lib/region");
+    h.auth.signUpWithEmail.mockClear();
     render(<RegionProvider region={regionFor("ZZ")}><SignupForm /></RegionProvider>);
-    expect(screen.getByText(/start with your country code/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("Mobile number").getAttribute("placeholder")).toMatch(/^\+/);
+    expect(screen.getByText(/choose your country code first/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Country code")).toHaveValue("");
+    expect(screen.getByLabelText("Mobile number")).toHaveAttribute("placeholder", "Mobile number");
+    await userEvent.type(screen.getByLabelText("Full name"), "Asha Rao");
+    await userEvent.type(screen.getByLabelText("Mobile number"), "+44 7911 123456");
+    await userEvent.type(screen.getByLabelText("Email"), "asha@x.com");
+    await userEvent.type(screen.getByLabelText("Password"), "Passw0rdX");
+    await userEvent.click(screen.getByRole("button", { name: /^create account$/i }));
+    await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalled());
+    expect(h.auth.signUpWithEmail.mock.calls[0][4]).toBe("+447911123456");
+  });
+
+  it("shows a country-code picker preselected from the visitor's country, and the chosen country changes the number's meaning", async () => {
+    const { RegionProvider } = await import("@/components/auth/region-context");
+    const { regionFor } = await import("@/lib/region");
+    h.auth.signUpWithEmail.mockClear();
+    render(<RegionProvider region={regionFor("IN")}><SignupForm /></RegionProvider>);
+    const picker = screen.getByLabelText("Country code");
+    expect(picker).toHaveValue("IN");
+    await userEvent.selectOptions(picker, "US");
+    await userEvent.type(screen.getByLabelText("Full name"), "Asha Rao");
+    await userEvent.type(screen.getByLabelText("Mobile number"), "(415) 555-2671");
+    await userEvent.type(screen.getByLabelText("Email"), "asha@x.com");
+    await userEvent.type(screen.getByLabelText("Password"), "Passw0rdX");
+    await userEvent.click(screen.getByRole("button", { name: /^create account$/i }));
+    await waitFor(() => expect(h.auth.signUpWithEmail).toHaveBeenCalled());
+    expect(h.auth.signUpWithEmail.mock.calls[0][4]).toBe("+14155552671");
+  });
+});
+
+describe("sign-in, sign-up and reset survive a bad network and a phone keyboard", () => {
+  const NETWORK = "Couldn't reach the server — check your connection and try again";
+
+  it("sign-in: a request that fails outright (no signal) shows a message and the button works again", async () => {
+    h.auth.signInWithEmail.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(<LoginForm />);
+    await userEvent.type(screen.getByLabelText("Email"), "me@x.com");
+    await userEvent.type(screen.getByLabelText("Password"), "secret1");
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith(NETWORK));
+    expect(h.push).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /^sign in$/i })).toBeEnabled();
+    // …and trying again once the connection is back works
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(h.push).toHaveBeenCalledWith("/dashboard"));
+  });
+
+  it("sign-in: an email with a trailing space (phone keyboards add one after autocomplete) is accepted, and sent without it", async () => {
+    render(<LoginForm />);
+    await userEvent.type(screen.getByLabelText("Email"), "me@x.com ");
+    await userEvent.type(screen.getByLabelText("Password"), "secret1");
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(h.auth.signInWithEmail).toHaveBeenCalledWith("me@x.com", "secret1"));
+    expect(screen.queryByText(/valid email/i)).toBeNull();
+  });
+
+  it("sign-up: a failed request shows a message too, and keeps what was typed", async () => {
+    h.auth.signUpWithEmail.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(<SignupForm />);
+    await userEvent.type(screen.getByLabelText("Full name"), "Asha Rao");
+    await userEvent.type(screen.getByLabelText("Mobile number"), "98765 43210");
+    await userEvent.type(screen.getByLabelText("Email"), "asha@x.com ");
+    await userEvent.type(screen.getByLabelText("Password"), "Passw0rdX");
+    await userEvent.click(screen.getByRole("button", { name: /^create account$/i }));
+    await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith(NETWORK));
+    expect(screen.getByLabelText("Email")).toHaveValue("asha@x.com"); // (email inputs drop stray spaces themselves)
+    expect(screen.getByLabelText("Full name")).toHaveValue("Asha Rao");
+  });
+
+  it("password reset: a failed request no longer leaves the button spinning forever", async () => {
+    h.supabase.resetPasswordForEmail.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    render(<ResetPasswordForm />);
+    await userEvent.type(screen.getByLabelText(/email address/i), "me@x.com ");
+    await userEvent.click(screen.getByRole("button", { name: /send reset link/i }));
+    await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith(NETWORK));
+    await waitFor(() => expect(screen.getByRole("button", { name: /send reset link/i })).toBeEnabled());
+    expect(h.supabase.resetPasswordForEmail).toHaveBeenCalledWith("me@x.com", expect.anything()); // trimmed
   });
 });

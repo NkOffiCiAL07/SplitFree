@@ -242,7 +242,7 @@ describe("GET /api/account/export", () => {
 
   it("only exports what the person can see (their own expenses/payments)", async () => {
     await EXPORT();
-    expect(p.expense.findMany.mock.calls[0][0].where.OR).toBeDefined(); // visibleToUser
+    expect(p.expense.findMany.mock.calls[0][0].where).toHaveProperty("id.in"); // only what the person can see (ids found through the indexes)
     expect(p.settlement.findMany.mock.calls[0][0].where).toEqual({ OR: [{ fromUserId: ME }, { toUserId: ME }] });
     expect(p.expenseComment.findMany.mock.calls[0][0].where).toEqual({ userId: ME });
     void STRANGER;

@@ -55,7 +55,7 @@ export function BrandLogo({ size = 36, tone = "dark", className }: { size?: numb
         <span
           className={cn(
             "rounded-md px-1.5 py-[3px] font-bold uppercase tracking-[0.12em]",
-            light ? "bg-white/20 text-white ring-1 ring-white/30" : "bg-violet-500/10 text-violet-600 ring-1 ring-violet-500/25 dark:text-violet-300"
+            light ? "bg-white/20 text-white ring-1 ring-white/30" : "bg-brand-500/10 text-brand-600 ring-1 ring-brand-500/25 dark:text-brand-300"
           )}
           style={{ fontSize: "0.56em" }}
         >

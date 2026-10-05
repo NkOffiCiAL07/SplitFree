@@ -3,7 +3,7 @@ import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds, isGroupArchived, ARCHIVED_MESSAGE } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds, isGroupArchived, ARCHIVED_MESSAGE, tooManyRequests, expenseResponseInclude } from "@/lib/api-helpers";
 import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const expense = await prisma.expense.findFirst({
       where: { id, ...visibleToUser(user!.id) },
-      include: { paidBy: true, splits: { include: { user: true } }, payers: { include: { user: true } }, group: true },
+      include: expenseResponseInclude,
     });
     if (!expense) return err("Expense not found", 404);
     return ok(expense);
@@ -40,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "expense-write", 240); if (limited) return limited; }
     const { id } = await params;
 
     const existing = await prisma.expense.findFirst({
@@ -161,7 +162,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             }
           : {}),
       },
-      include: { paidBy: true, splits: { include: { user: true } }, payers: { include: { user: true } }, group: true },
+      include: expenseResponseInclude,
     });
 
     // Edit history: store what changed (before → after) so it can be shown on the expense
@@ -204,6 +205,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "expense-write", 240); if (limited) return limited; }
     const { id } = await params;
 
     const expense = await prisma.expense.findFirst({

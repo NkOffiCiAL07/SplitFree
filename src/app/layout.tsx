@@ -8,6 +8,7 @@ import { MotionProvider } from "@/components/shared/motion-provider";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
 import { NativeBridge } from "@/components/shared/native-bridge";
 import { Toaster } from "sonner";
+import { accentBootScript, accentCss } from "@/lib/themes";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -88,11 +89,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full bg-background font-sans antialiased">
-        {/* Inline SW registration so crawlers (PWABuilder, Lighthouse) detect it */}
+        {/* Colour themes: the palettes (applied through <html data-accent>) */}
+        <style dangerouslySetInnerHTML={{ __html: accentCss() }} />
+        {/* Inline SW registration so crawlers (PWABuilder, Lighthouse) detect it; also applies the saved colour theme before first paint */}
         <script
           dangerouslySetInnerHTML={{
             // (also tags the iPhone app before first paint so web-only bits, e.g. the Google button, never flash)
-            __html: `if(/SplitrProApp/.test(navigator.userAgent))document.documentElement.classList.add('native-app');if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+            __html: `${accentBootScript};if(/SplitrProApp/.test(navigator.userAgent))document.documentElement.classList.add('native-app');if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
           }}
         />
         <ThemeProvider

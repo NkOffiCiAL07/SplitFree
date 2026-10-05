@@ -6,6 +6,7 @@ import { vi } from "vitest";
  */
 type Fn = ReturnType<typeof vi.fn>;
 const models = new Map<string, Map<string, Fn>>();
+const queryRaw: Fn = vi.fn().mockResolvedValue([]);
 
 function model(name: string) {
   let methods = models.get(name);
@@ -31,6 +32,7 @@ export const prismaMock: Record<string, unknown> = new Proxy({}, {
     if (key === "$transaction") {
       return async (arg: unknown) => (typeof arg === "function" ? (arg as (tx: unknown) => unknown)(prismaMock) : Promise.all(arg as unknown[]));
     }
+    if (key === "$queryRaw") return queryRaw; // tagged-template SQL (the ids a person may see)
     return model(key);
   },
 });
@@ -38,6 +40,13 @@ export const prismaMock: Record<string, unknown> = new Proxy({}, {
 /** Clears every stub/call so tests don't leak into each other. */
 export function resetPrisma() {
   models.forEach((methods) => methods.forEach((fn) => fn.mockReset()));
+  applyDefaults();
+}
+
+// "Which expenses can this person see" is looked up first by one raw SQL query (see visibleExpenseIds). A test that doesn't
+// care about it just gets no ids, and the expense list it stubs is what comes back.
+function applyDefaults() {
+  queryRaw.mockResolvedValue([]);
 }
 
 /** Signed-in user returned by the mocked Supabase client (set to null for "signed out"). */

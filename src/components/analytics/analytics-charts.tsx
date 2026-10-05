@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccent } from "@/components/shared/accent-provider";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
   CartesianGrid, PieChart, Pie, Cell,
@@ -9,6 +10,7 @@ import { formatCurrency, formatAxisCurrency } from "@/lib/utils";
 interface ChartProps<T> { data: T[]; currency: string }
 
 export function MonthlyBarChart({ data: monthlyData, currency }: ChartProps<{ name: string; total: number }>) {
+  const brand = useAccent().scale[500]; // the chosen colour theme
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -24,7 +26,7 @@ export function MonthlyBarChart({ data: monthlyData, currency }: ChartProps<{ na
           contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))", color: "hsl(var(--foreground))", fontSize: 12 }}
           formatter={(v) => [formatCurrency(Number(v) * 100, currency), "Total"]}
         />
-        <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="total" fill={brand} radius={[6, 6, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

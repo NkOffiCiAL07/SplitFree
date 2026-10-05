@@ -6,7 +6,7 @@ export const createGroupSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   category: z.enum(["HOME", "TRIP", "COUPLE", "FRIENDS", "WORK", "OTHER"]),
   currency: z.enum(CURRENCY_CODES),
-  memberEmails: z.array(z.string().email()).optional(),
+  memberEmails: z.array(z.string().trim().email()).optional(),
 });
 
 export const updateGroupSchema = createGroupSchema.partial().extend({
@@ -14,7 +14,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
 });
 
 export const addMemberSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().trim().email("Invalid email address"),
 });
 
 export type CreateGroupInput = z.infer<typeof createGroupSchema>;

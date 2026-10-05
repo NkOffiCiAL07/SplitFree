@@ -19,6 +19,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { UpiSettings } from "@/components/settings/upi-settings";
 import { PhoneSettings } from "@/components/settings/phone-settings";
+import { ThemeSettings } from "@/components/settings/theme-settings";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 
 
@@ -80,7 +81,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Appearance</CardTitle>
-            <CardDescription>Choose your preferred color theme</CardDescription>
+            <CardDescription>Light or dark, and the colour of the app</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="grid grid-cols-3 gap-3">
@@ -99,6 +100,9 @@ export default function SettingsPage() {
                   <span className="text-xs font-medium">{label}</span>
                 </button>
               ))}
+            </div>
+            <div className="mt-5 border-t pt-5">
+              <ThemeSettings />
             </div>
           </CardContent>
         </Card>

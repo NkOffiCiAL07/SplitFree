@@ -3,12 +3,13 @@ import Link from "next/link";
 import {
   Zap, Users, BarChart3, Shield, ArrowRight, Check, SplitSquareHorizontal, Globe, RefreshCw, Sparkles,
   WifiOff, QrCode, FileUp, History, Bell, UsersRound, ChevronDown, Smartphone, IndianRupee,
-  Home, Receipt, UserPlus, Signal, Wifi, BatteryFull,
+  Home, Receipt, UserPlus, Signal, Wifi, BatteryFull, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DownloadPanel } from "@/components/landing/download-panel";
 import { Reveal } from "@/components/landing/reveal";
+import { QrJoinShowcase } from "@/components/landing/qr-join-showcase";
 import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
@@ -32,7 +33,7 @@ const features = [
 ];
 
 const steps = [
-  { number: "01", icon: UsersRound, title: "Create a group", description: "Add roommates, travel buddies or friends. Share an invite link and they join instantly." },
+  { number: "01", icon: UsersRound, title: "Create a group", description: "Add roommates, travel buddies or friends. Share an invite link or show a QR code — they join instantly." },
   { number: "02", icon: SplitSquareHorizontal, title: "Log expenses", description: "Add a bill and choose how to split it. Type “dinner 900 with Asha” and quick-add does the rest." },
   { number: "03", icon: Zap, title: "Settle up", description: "See exactly who pays whom. Pay by UPI, record it, and the balance clears." },
 ];
@@ -46,20 +47,72 @@ const faqs = [
   { q: "Will my data be the same on web and Android?", a: "Yes — it's one account. Sign in on either and everything is there." },
 ];
 
-const chips = ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"];
+/** Everything on the page that is a number, a name or an India-only idea (UPI), so the English version can say it in its own way. */
+interface Sample {
+  owed: string; owe: string;
+  people: { name: string; note: string; amount: string; tone: string; bg: string }[];
+  recent: { emoji: string; name: string; share: string; tone: string; amount: string }[];
+  received: string; trip: string;
+  payments: { from: string; to: string; amount: string }[];
+  payChip: string;
+  chips: string[];
+  step3: string;
+  featuresLead: string;
+  exactLine: string;
+  feature4: (typeof features)[number];
+}
 
-function PhoneMock() {
-  const people = [
-    { name: "Himanshu", note: "you owe", amount: "₹1,200", tone: "text-red-600 dark:text-red-400", bg: "bg-rose-400" },
-    { name: "Divyansh", note: "owes you", amount: "₹850", tone: "text-green-600 dark:text-green-400", bg: "bg-emerald-500" },
-    { name: "Prakhar", note: "owes you", amount: "₹340", tone: "text-green-600 dark:text-green-400", bg: "bg-indigo-500" },
-  ];
-  const recent = [
-    { emoji: "🍔", name: "Dinner at Barbeque Nation", share: "you owe ₹600", tone: "text-red-600 dark:text-red-400", amount: "₹1,800" },
-    { emoji: "🏨", name: "Hotel — Goa trip", share: "you lent ₹2,166", tone: "text-green-600 dark:text-green-400", amount: "₹6,500" },
-    { emoji: "🚗", name: "Ola cab to airport", share: "you owe ₹170", tone: "text-red-600 dark:text-red-400", amount: "₹340" },
-    { emoji: "☕", name: "Chai at Pune station", share: "you lent ₹60", tone: "text-green-600 dark:text-green-400", amount: "₹120" },
-  ];
+const RED = "text-red-600 dark:text-red-400";
+const GREEN = "text-green-600 dark:text-green-400";
+
+const SAMPLE_IN: Sample = {
+  owed: "₹1,190", owe: "₹1,200",
+  people: [
+    { name: "Himanshu", note: "you owe", amount: "₹1,200", tone: RED, bg: "bg-rose-400" },
+    { name: "Divyansh", note: "owes you", amount: "₹850", tone: GREEN, bg: "bg-emerald-500" },
+    { name: "Prakhar", note: "owes you", amount: "₹340", tone: GREEN, bg: "bg-indigo-500" },
+  ],
+  recent: [
+    { emoji: "🍔", name: "Dinner at Barbeque Nation", share: "you owe ₹600", tone: RED, amount: "₹1,800" },
+    { emoji: "🏨", name: "Hotel — Goa trip", share: "you lent ₹2,166", tone: GREEN, amount: "₹6,500" },
+    { emoji: "🚗", name: "Ola cab to airport", share: "you owe ₹170", tone: RED, amount: "₹340" },
+    { emoji: "☕", name: "Chai at Pune station", share: "you lent ₹60", tone: GREEN, amount: "₹120" },
+  ],
+  received: "₹850 · UPI", trip: "Goa trip",
+  payments: [{ from: "Rohan", to: "Ananya", amount: "₹2,400" }, { from: "Kavya", to: "Ananya", amount: "₹1,150" }, { from: "Aditya", to: "Rohan", amount: "₹600" }],
+  payChip: "UPI",
+  chips: ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
+  step3: "See exactly who pays whom. Pay by UPI, record it, and the balance clears.",
+  featuresLead: "Built around how people in India actually share money — and it handles the awkward cases too.",
+  exactLine: "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
+  feature4: { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
+};
+
+const SAMPLE_INTL: Sample = {
+  owed: "$33", owe: "$32",
+  people: [
+    { name: "Mia", note: "you owe", amount: "$32", tone: RED, bg: "bg-rose-400" },
+    { name: "Liam", note: "owes you", amount: "$24", tone: GREEN, bg: "bg-emerald-500" },
+    { name: "Noah", note: "owes you", amount: "$9", tone: GREEN, bg: "bg-indigo-500" },
+  ],
+  recent: [
+    { emoji: "🍔", name: "Dinner at Luigi's", share: "you owe $15", tone: RED, amount: "$45" },
+    { emoji: "🏨", name: "Hotel — Lisbon trip", share: "you lent $54", tone: GREEN, amount: "$162" },
+    { emoji: "🚗", name: "Uber to airport", share: "you owe $9", tone: RED, amount: "$18" },
+    { emoji: "☕", name: "Coffee at the station", share: "you lent $3", tone: GREEN, amount: "$6" },
+  ],
+  received: "$20 · Settled", trip: "Lisbon trip",
+  payments: [{ from: "Noah", to: "Ava", amount: "$24" }, { from: "Mia", to: "Ava", amount: "$12" }, { from: "Liam", to: "Noah", amount: "$6" }],
+  payChip: "Pay",
+  chips: ["WhatsApp invites", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
+  step3: "See exactly who pays whom. Pay however you like, record it, and the balance clears.",
+  featuresLead: "Built around how friends actually share money — and it handles the awkward cases too.",
+  exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
+  feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
+};
+
+function PhoneMock({ s }: { s: Sample }) {
+  const { people, recent } = s;
   return (
     <div className="relative mx-auto w-[260px] sm:w-[290px]" aria-hidden="true">
       <div className="absolute -inset-10 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-fuchsia-500/20 blur-3xl" />
@@ -92,11 +145,11 @@ function PhoneMock() {
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2">
                 <p className="text-[8px] text-muted-foreground">Owed to you</p>
-                <p className="text-[15px] font-bold leading-tight text-green-600 dark:text-green-400">₹1,190</p>
+                <p className="text-[15px] font-bold leading-tight text-green-600 dark:text-green-400">{s.owed}</p>
               </div>
               <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2">
                 <p className="text-[8px] text-muted-foreground">You owe</p>
-                <p className="text-[15px] font-bold leading-tight text-red-600 dark:text-red-400">₹1,200</p>
+                <p className="text-[15px] font-bold leading-tight text-red-600 dark:text-red-400">{s.owe}</p>
               </div>
             </div>
 
@@ -153,7 +206,7 @@ function PhoneMock() {
 
       <div className="anim-float lg-glass absolute -left-[132px] top-24 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><Check className="size-3.5 text-green-500" /> Payment received</p>
-        <p className="text-[10px] text-muted-foreground">₹850 · UPI</p>
+        <p className="text-[10px] text-muted-foreground">{s.received}</p>
       </div>
       <div className="anim-float-slow lg-glass absolute -right-[130px] top-64 hidden rounded-2xl px-3 py-2 sm:block">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold"><WifiOff className="size-3.5 text-violet-500" /> Offline — saved</p>
@@ -173,6 +226,7 @@ function PhoneMock() {
  */
 export function LandingView({ international = false }: { international?: boolean }) {
   const copy = brandCopy(regionFor(international ? "US" : null));
+  const sample = international ? SAMPLE_INTL : SAMPLE_IN;
   return (
     <div className="min-h-dvh overflow-x-clip bg-background">
       {/* Nav */}
@@ -247,7 +301,7 @@ export function LandingView({ international = false }: { international?: boolean
           </div>
 
           <div className="anim-fade-up" style={{ animationDelay: "200ms" }}>
-            <PhoneMock />
+            <PhoneMock s={sample} />
           </div>
         </div>
       </section>
@@ -257,7 +311,7 @@ export function LandingView({ international = false }: { international?: boolean
         <div className="flex w-max lg-marquee gap-3 px-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
           {[0, 1].map((copy) => (
             <ul key={copy} className="flex shrink-0 gap-3" aria-hidden={copy === 1 ? "true" : undefined}>
-              {[...chips, ...chips].map((c, i) => (
+              {[...sample.chips, ...sample.chips].map((c, i) => (
                 <li key={`${c}-${i}`} className="lg-glass flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/80">
                   <Sparkles className="size-3.5 text-violet-500" />
                   {c}
@@ -287,7 +341,7 @@ export function LandingView({ international = false }: { international?: boolean
                   <Icon className="mt-1 size-6 text-white" />
                 </div>
                 <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{number === "03" ? sample.step3 : description}</p>
               </Reveal>
             ))}
           </div>
@@ -319,6 +373,9 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
       </section>
 
+      {/* Join by scanning a QR code */}
+      <QrJoinShowcase trip={sample.trip} />
+
       {/* Features */}
       <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -332,10 +389,10 @@ export function LandingView({ international = false }: { international?: boolean
               <span className="h-px w-4 bg-violet-500/50" /> Features <span className="h-px w-4 bg-violet-500/50" />
             </p>
             <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
-            <p className="mx-auto max-w-xl text-muted-foreground">Built around how people in India actually share money — and it handles the awkward cases too.</p>
+            <p className="mx-auto max-w-xl text-muted-foreground">{sample.featuresLead}</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map(({ icon: Icon, title, description, color }, i) => (
+            {features.map((f, i) => (f.title === SAMPLE_IN.feature4.title ? sample.feature4 : f)).map(({ icon: Icon, title, description, color }, i) => (
               <Reveal key={title} delay={(i % 4) * 80}>
                 <div className="lg-glass group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
                   <div className={`relative mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md shadow-black/10 ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
@@ -360,7 +417,7 @@ export function LandingView({ international = false }: { international?: boolean
             <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Because it&apos;s your money, the numbers have to be right</h2>
             <ul className="space-y-3 text-muted-foreground">
               {[
-                "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
+                sample.exactLine,
                 "Mixed currencies are never added together by mistake: each debt stays in its own currency.",
                 "Offline entries are saved on your device and can't be duplicated when they sync.",
                 "Green means you're owed, red means you owe — clear at a glance.",
@@ -373,17 +430,13 @@ export function LandingView({ international = false }: { international?: boolean
             </ul>
           </div>
           <div className="lg-glass rounded-3xl p-6">
-            <p className="mb-4 text-xs font-medium text-muted-foreground">Goa trip · simplified</p>
-            {[
-              { from: "Rohan", to: "Ananya", amount: "₹2,400" },
-              { from: "Kavya", to: "Ananya", amount: "₹1,150" },
-              { from: "Aditya", to: "Rohan", amount: "₹600" },
-            ].map((d) => (
+            <p className="mb-4 text-xs font-medium text-muted-foreground">{sample.trip} · simplified</p>
+            {sample.payments.map((d) => (
               <div key={d.from} className="flex items-center gap-3 border-b py-3 last:border-0">
                 <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-600 dark:text-violet-300">{d.from[0]}</div>
                 <p className="flex-1 text-sm"><span className="font-medium">{d.from}</span> pays <span className="font-medium">{d.to}</span></p>
                 <p className="text-sm font-semibold text-red-600 dark:text-red-400">{d.amount}</p>
-                <span className="hidden items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium sm:flex"><QrCode className="size-3" /> UPI</span>
+                <span className="hidden items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium sm:flex"><QrCode className="size-3" /> {sample.payChip}</span>
               </div>
             ))}
             <p className="mt-4 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">Seven payments between four friends became three. <span className="text-foreground">Example for illustration.</span></p>

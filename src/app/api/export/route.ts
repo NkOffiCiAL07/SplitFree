@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, handleError, visibleToUser } from "@/lib/api-helpers";
+import { requireAuth, handleError, tooManyRequests, visibleScope } from "@/lib/api-helpers";
 import { buildExpenseFilter } from "@/lib/expense-filters";
 import { format } from "date-fns";
 import { fromCents } from "@/lib/utils";
@@ -9,12 +9,14 @@ export async function GET(req: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "export", 20, 60 * 60_000); if (limited) return limited; }
 
     // Export exactly what the list shows: the same search/category/date/group filters apply
     const params = new URL(req.url).searchParams;
 
+    const scope = await visibleScope(user!.id);
     const expenses = await prisma.expense.findMany({
-      where: { AND: [visibleToUser(user!.id), buildExpenseFilter(params)] },
+      where: { AND: [scope, buildExpenseFilter(params)] },
       include: {
         paidBy: true,
         payers: { include: { user: true } },

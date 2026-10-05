@@ -72,12 +72,16 @@ describe("POST /api/groups (create)", () => {
     expect(p.group.create.mock.calls[0][0].data.members.create).toEqual([{ userId: ME, role: "ADMIN" }, { userId: OTHER, role: "MEMBER" }]);
   });
 
-  it("rate-limits by the first forwarded IP", async () => {
+  it("limits how fast ONE signed-in person can create groups — not per IP address, so people sharing an office or carrier address never block each other", async () => {
     p.group.create.mockResolvedValue({ id: GROUP, name: "G" });
+    const sameAddress = { "x-forwarded-for": "7.7.7.7, 10.0.0.1" };
     const statuses: number[] = [];
-    for (let i = 0; i < 22; i++) statuses.push((await CREATE_GROUP(json("POST", valid, { "x-forwarded-for": "7.7.7.7, 10.0.0.1" }))).status);
+    for (let i = 0; i < 22; i++) statuses.push((await CREATE_GROUP(json("POST", valid, sameAddress))).status);
     expect(statuses.slice(0, 20).every((s) => s === 201)).toBe(true);
     expect(statuses.slice(20)).toEqual([429, 429]);
+    // a different person on the very same address is unaffected
+    authState.user = { id: OTHER, email: "other@example.com" };
+    expect((await CREATE_GROUP(json("POST", valid, sameAddress))).status).toBe(201);
   });
 });
 

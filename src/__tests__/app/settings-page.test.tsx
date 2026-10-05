@@ -21,6 +21,8 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ data: {} }) }));
 });
 
+const currencyBox = () => screen.getAllByRole("combobox").find((el) => el.tagName !== "SELECT")!; // (the phone card has a country-code <select> too)
+
 describe("SettingsPage", () => {
   it("has every section", () => {
     renderPage();
@@ -69,19 +71,19 @@ describe("SettingsPage", () => {
     it("shows the saved currency (INR by default before the profile loads)", () => {
       h.profile.data = undefined;
       const { unmount } = (renderPage(), { unmount: () => {} });
-      expect(screen.getByRole("combobox")).toHaveTextContent("INR");
+      expect(currencyBox()).toHaveTextContent("INR");
       unmount();
     });
 
     it("reflects a saved non-INR currency once the profile loads", () => {
       h.profile.data = { currency: "USD" };
       renderPage();
-      expect(screen.getByRole("combobox")).toHaveTextContent("USD");
+      expect(currencyBox()).toHaveTextContent("USD");
     });
 
     it("lists INR first", async () => {
       renderPage();
-      await userEvent.click(screen.getByRole("combobox"));
+      await userEvent.click(currencyBox());
       const options = within(await screen.findByRole("listbox")).getAllByRole("option").map((o) => o.textContent);
       expect(options[0]).toBe("INR");
       expect(options).toHaveLength(7);
@@ -89,7 +91,7 @@ describe("SettingsPage", () => {
 
     it("saves a change to the profile, refreshes the dashboard, and confirms", async () => {
       const { invalidated } = renderPage();
-      await userEvent.click(screen.getByRole("combobox"));
+      await userEvent.click(currencyBox());
       await userEvent.click(await screen.findByRole("option", { name: "EUR" }));
       await waitFor(() => expect(h.toast.success).toHaveBeenCalledWith("Default currency updated"));
       const [url, init] = vi.mocked(fetch).mock.calls[0];
@@ -101,7 +103,7 @@ describe("SettingsPage", () => {
     it("shows the server's error if saving fails", async () => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({ error: { message: "Invalid currency" } }) }));
       renderPage();
-      await userEvent.click(screen.getByRole("combobox"));
+      await userEvent.click(currencyBox());
       await userEvent.click(await screen.findByRole("option", { name: "GBP" }));
       await waitFor(() => expect(h.toast.error).toHaveBeenCalledWith("Invalid currency"));
     });

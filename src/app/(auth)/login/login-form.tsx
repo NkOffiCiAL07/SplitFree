@@ -59,9 +59,15 @@ function LoginPageContent() {
   useReportFill(formProgress([{ kind: "email", value: email }, { kind: "password", value: password, min: 6 }]));
 
   const onSubmit = async (values: LoginValues) => {
-    const { error } = await signInWithEmail(values.email, values.password);
-    if (error) {
-      toast.error(error.message);
+    try {
+      const { error } = await signInWithEmail(values.email, values.password);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+    } catch {
+      // The request itself failed (no signal, a dropped connection): say so, instead of leaving the button silently idle
+      toast.error("Couldn't reach the server — check your connection and try again");
       return;
     }
     toast.success("Welcome back!");

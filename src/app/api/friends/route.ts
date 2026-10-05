@@ -2,10 +2,10 @@ import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { APP_NAME } from "@/lib/app-config";
-import { requireAuth, ensureUserProfile, ok, err, handleError } from "@/lib/api-helpers";
+import { requireAuth, ensureUserProfile, ok, err, handleError, tooManyRequests } from "@/lib/api-helpers";
 import { z } from "zod";
 
-const addFriendSchema = z.object({ email: z.string().email() });
+const addFriendSchema = z.object({ email: z.string().trim().email() });
 
 export async function GET(req: NextRequest) {
   try {
@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "friend-request", 30); if (limited) return limited; }
 
     await ensureUserProfile(user!.id, user!.email!, user!.name, user!.phone);
 

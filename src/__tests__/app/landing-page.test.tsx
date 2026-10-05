@@ -243,3 +243,56 @@ describe("Landing page — English version for visitors outside India", () => {
     expect(metadata.alternates?.canonical).toBe("/");
   });
 });
+
+describe("Landing page — the English version has no India-only wording", () => {
+  const indiaOnly = /₹|UPI|GPay|PhonePe|Paytm|paisa|rupee|Hisaab|Dosti|bhai|shaadi|chai|Goa|Pune|Ola |Barbeque|in India/i;
+
+  it("says nothing about rupees, UPI or India anywhere — page text, examples, features, steps and the highlights strip", async () => {
+    const { default: IntlPage } = await import("@/app/intl/page");
+    const { container } = render(<IntlPage />);
+    const text = container.textContent ?? "";
+    expect(text).not.toMatch(indiaOnly);
+    expect(text).toMatch(/exact cent/);
+    expect(text).toMatch(/\$20 · Settled/);
+    expect(text).toMatch(/Invite & remind on WhatsApp/);
+    expect(text).toMatch(/Pay however you like/);
+  });
+
+  it("India's page keeps UPI, rupees and the paisa wording", () => {
+    const { container } = render(<LandingPage />);
+    const text = container.textContent ?? "";
+    expect(text).toMatch(/UPI in one tap/);
+    expect(text).toMatch(/exact paisa/);
+    expect(text).toMatch(/₹1,190/);
+    expect(text).toMatch(/built around how people in India/i);
+  });
+
+  it("both versions keep the same sections, counts and calls to action", async () => {
+    const { default: IntlPage } = await import("@/app/intl/page");
+    const a = render(<LandingPage />);
+    const inIds = Array.from(a.container.querySelectorAll("section[id]")).map((s) => s.id);
+    const inCards = a.container.querySelectorAll("#features .lg-glass").length;
+    a.unmount();
+    const b = render(<IntlPage />);
+    expect(Array.from(b.container.querySelectorAll("section[id]")).map((s) => s.id)).toEqual(inIds);
+    expect(b.container.querySelectorAll("#features .lg-glass").length).toBe(inCards);
+  });
+});
+
+describe("Landing page — join a group by scanning a QR code", () => {
+  it("has its own section with a real QR code, three reasons it's easy, and a link target for the menu", () => {
+    const { container } = render(<LandingPage />);
+    const section = container.querySelector("#scan-to-join")!;
+    expect(section).not.toBeNull();
+    expect(within(section as HTMLElement).getByRole("heading", { name: /join a group by scanning a qr code/i })).toBeInTheDocument();
+    expect(section.textContent).toMatch(/Works with the normal camera app/);
+    expect(section.textContent).toMatch(/sign up and land straight in your group/);
+    expect(section.textContent).toMatch(/Save the code as an image/);
+    expect(section.querySelectorAll("li")).toHaveLength(3);
+  });
+
+  it("is mentioned in step 1 (create a group) too", () => {
+    render(<LandingPage />);
+    expect(document.body.textContent).toMatch(/Share an invite link or show a QR code/);
+  });
+});

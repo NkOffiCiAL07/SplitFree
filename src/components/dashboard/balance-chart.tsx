@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccent } from "@/components/shared/accent-provider";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { m } from "framer-motion";
 import {
@@ -33,6 +34,7 @@ function CustomTooltip({ active, payload, label, currency }: TooltipProps) {
 }
 
 export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY }: Props) {
+  const brand = useAccent().scale[500]; // the chosen colour theme
   const isEmpty = !isLoading && data.every((d) => d.owed === 0 && d.owing === 0);
 
   return (
@@ -51,7 +53,7 @@ export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-violet-500 shrink-0" />Owed to you
+                <span className="w-2.5 h-2.5 rounded-full bg-brand-500 shrink-0" />Owed to you
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />You owe
@@ -71,8 +73,8 @@ export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY
               <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-owed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    <stop offset="5%" stopColor={brand} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={brand} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grad-owing" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.18} />
@@ -88,7 +90,7 @@ export function BalanceChart({ data = [], isLoading, currency = DEFAULT_CURRENCY
                   tickFormatter={(v) => formatAxisCurrency(Number(v), currency)}
                 />
                 <Tooltip content={<CustomTooltip currency={currency} />} />
-                <Area type="monotone" dataKey="owed" name="owed" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#grad-owed)" dot={false} activeDot={{ r: 4, fill: "#8b5cf6" }} />
+                <Area type="monotone" dataKey="owed" name="owed" stroke={brand} strokeWidth={2.5} fill="url(#grad-owed)" dot={false} activeDot={{ r: 4, fill: "#8b5cf6" }} />
                 <Area type="monotone" dataKey="owing" name="owing" stroke="#ef4444" strokeWidth={2.5} fill="url(#grad-owing)" dot={false} activeDot={{ r: 4, fill: "#ef4444" }} />
               </AreaChart>
             </ResponsiveContainer>

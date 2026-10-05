@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, handleError, visibleToUser, ensureUserProfile } from "@/lib/api-helpers";
+import { requireAuth, handleError, ensureUserProfile, tooManyRequests, visibleScope } from "@/lib/api-helpers";
 import { fromCents } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -9,14 +9,16 @@ export async function GET() {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
+    { const limited = tooManyRequests(user!.id, "data-export", 10, 60 * 60_000); if (limited) return limited; }
     const userId = user!.id;
     await ensureUserProfile(userId, user!.email!, user!.name, user!.phone);
 
+    const scope = await visibleScope(userId);
     const [profile, memberships, expenses, settlements, friendships, comments, budgets] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, name: true, currency: true, timezone: true, upiId: true, phone: true, createdAt: true } }),
       prisma.groupMember.findMany({ where: { userId }, select: { role: true, joinedAt: true, group: { select: { id: true, name: true, currency: true, category: true, createdAt: true, archivedAt: true } } } }),
       prisma.expense.findMany({
-        where: visibleToUser(userId),
+        where: scope,
         orderBy: { date: "desc" },
         select: {
           id: true, description: true, amount: true, currency: true, category: true, date: true, notes: true, groupId: true, paidById: true, splitType: true,

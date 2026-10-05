@@ -60,6 +60,16 @@ describe("AddExpenseDialog — a group expense", () => {
     expect(screen.getAllByText(/300\.00 INR/)).toHaveLength(3);
   });
 
+  it("the preview shows each person's REAL share — the same cents the server saves — so ₹100 between 3 is 33.34 / 33.33 / 33.33, never '33.33 each' (99.99)", async () => {
+    renderGroup();
+    await userEvent.type(screen.getByPlaceholderText("0.00"), "100");
+    expect(screen.getAllByText(/33\.34 INR/)).toHaveLength(1);
+    expect(screen.getAllByText(/33\.33 INR/)).toHaveLength(2);
+    // and they really add up
+    const shown = Array.from(document.body.textContent!.matchAll(/(\d+\.\d\d) INR/g)).map((m) => Math.round(parseFloat(m[1]) * 100));
+    expect(shown.reduce((a, b) => a + b, 0)).toBe(10000);
+  });
+
   it("auto-categorises from the description (dinner → food)", async () => {
     renderGroup();
     await fill("Dinner at Taj", "500");
@@ -120,6 +130,21 @@ describe("AddExpenseDialog — unequal splits", () => {
     await submit();
     await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
     expect(mutateAsync.mock.calls[0][0]).toMatchObject({ splitType: "EXACT", splits: { me: 500, a: 300, b: 200 } });
+  });
+
+  it("exact: ONE cent off is caught right here, not after submitting (the server is exact)", async () => {
+    renderGroup();
+    await fill("Hotel", "100");
+    await openTab(/exact/i);
+    const inputs = screen.getAllByPlaceholderText("0.00").slice(1);
+    await userEvent.type(inputs[0], "33.33");
+    await userEvent.type(inputs[1], "33.33");
+    await userEvent.type(inputs[2], "33.33");
+    expect(screen.getByText(/must sum to 100\.00 \(currently 99\.99\)/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^add expense$/i })).toBeDisabled();
+    await userEvent.clear(inputs[2]);
+    await userEvent.type(inputs[2], "33.34");
+    expect(screen.queryByText(/must sum to/i)).not.toBeInTheDocument();
   });
 
   it("percentage: must sum to 100", async () => {

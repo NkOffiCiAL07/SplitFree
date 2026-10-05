@@ -3,11 +3,12 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, Mail, Lock, User, ShieldCheck, Phone } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User, ShieldCheck } from "lucide-react";
+import { PhoneField } from "@/components/ui/phone-field";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function GoogleIcon() {
@@ -66,13 +67,20 @@ function SignupFormContent() {
   useReportFill(formProgress([{ kind: "name", value: name }, { kind: "phone", value: phone }, { kind: "email", value: email }, { kind: "password", value: password, min: 8 }]));
 
   const onSubmit = async (values: SignupValues) => {
-    const { error, data } = await signUpWithEmail(
-      values.email,
-      values.password,
-      values.name,
-      redirectParam ? redirect : undefined,
-      normalizePhone(values.phone, region.dial) ?? undefined // stored in international format
-    );
+    let result;
+    try {
+      result = await signUpWithEmail(
+        values.email,
+        values.password,
+        values.name,
+        redirectParam ? redirect : undefined,
+        normalizePhone(values.phone, region.dial) ?? undefined // stored in international format
+      );
+    } catch {
+      toast.error("Couldn't reach the server — check your connection and try again");
+      return;
+    }
+    const { error, data } = result;
     if (error) {
       toast.error(error.message);
       return;
@@ -176,23 +184,25 @@ function SignupFormContent() {
 
         <div className="anim-fade-up space-y-1.5" style={{ animationDelay: "250ms" }}>
           <Label htmlFor="phone">Mobile number</Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder={region.phoneExample}
-            startIcon={<Phone />}
-            autoComplete="tel" inputMode="tel" autoCorrect="off" spellCheck={false} enterKeyHint="next"
-            aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? "phone-error" : "phone-hint"}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
-            // A number typed the local way is turned into international format before it is checked (when we know the country)
-            {...register("phone", { setValueAs: (v: string) => normalizePhone(v, region.dial) ?? v })}
+          <Controller
+            control={control}
+            name="phone"
+            defaultValue=""
+            render={({ field }) => (
+              <PhoneField
+                id="phone"
+                defaultCountry={region.country || "IN"}
+                onChange={field.onChange}
+                invalid={!!errors.phone}
+                describedBy={errors.phone ? "phone-error" : "phone-hint"}
+              />
+            )}
           />
           {errors.phone ? (
             <p id="phone-error" role="alert" className="text-xs text-destructive">{errors.phone.message}</p>
           ) : (
             <p id="phone-hint" className="text-xs text-muted-foreground">
-              {region.isIndia || region.dial ? "Required. Kept private — never shown to other people." : "Required. Start with your country code, like +44. Kept private — never shown to other people."}
+              {region.isIndia || region.dial ? "Required. Kept private — never shown to other people." : "Required. Choose your country code first. Kept private — never shown to other people."}
             </p>
           )}
         </div>

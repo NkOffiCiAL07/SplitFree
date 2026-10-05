@@ -14,7 +14,7 @@ const STEPS = [
     description: "Organize expenses by trip, household, or any shared activity.",
     action: "Create group",
     href: "/groups",
-    color: "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400",
+    color: "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400",
   },
   {
     icon: UserPlus,

@@ -17,7 +17,7 @@ const ICONS: Record<string, React.ElementType> = {
   MEMBER_ADDED: UserPlus, MEMBER_REMOVED: UserPlus,
 };
 const COLORS: Record<string, string> = {
-  EXPENSE_CREATED: "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400",
+  EXPENSE_CREATED: "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400",
   EXPENSE_UPDATED: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
   EXPENSE_DELETED: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
   SETTLEMENT_CREATED: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",

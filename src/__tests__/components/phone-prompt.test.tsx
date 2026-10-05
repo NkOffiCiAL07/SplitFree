@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const h = vi.hoisted(() => ({ profile: undefined as unknown, toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/hooks/use-profile", () => ({ useProfile: () => ({ data: h.profile }) }));
 vi.mock("sonner", () => ({ toast: h.toast }));
+vi.mock("@/lib/region", () => ({ browserCountry: () => "IN" })); // (the real one depends on the machine's time zone and language)
 
 import { PhonePrompt } from "@/components/auth/phone-prompt";
 import { PhoneSettings } from "@/components/settings/phone-settings";
@@ -81,12 +82,51 @@ describe("PhonePrompt (Google sign-ups skip the sign-up form)", () => {
   });
 });
 
+describe("country code picker", () => {
+  it("lets a Google sign-up from another country pick theirs, and sends the number with that code", async () => {
+    h.profile = { phone: null, createdAt: NEW };
+    wrap(<PhonePrompt />);
+    await userEvent.selectOptions(await screen.findByLabelText("Country code"), "GB");
+    await userEvent.type(screen.getByLabelText("Mobile number"), "07911 123456");
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/profile", expect.objectContaining({ body: JSON.stringify({ phone: "+447911123456" }) })));
+  });
+
+  it("changing the country re-reads what was already typed", async () => {
+    h.profile = { phone: null, createdAt: NEW };
+    wrap(<PhonePrompt />);
+    await userEvent.type(await screen.findByLabelText("Mobile number"), "415 555 2671"); // not an Indian mobile
+    expect(screen.getByRole("button", { name: /continue/i })).toBeDisabled();
+    await userEvent.selectOptions(screen.getByLabelText("Country code"), "US");
+    expect(screen.getByRole("button", { name: /continue/i })).toBeEnabled();
+  });
+
+  it("a number typed with + wins over the picker", async () => {
+    h.profile = { phone: null, createdAt: NEW };
+    wrap(<PhonePrompt />);
+    await userEvent.type(await screen.findByLabelText("Mobile number"), "+44 7911 123456");
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/profile", expect.objectContaining({ body: JSON.stringify({ phone: "+447911123456" }) })));
+  });
+
+  it("lists every country with its flag and code, India first", async () => {
+    h.profile = { phone: null, createdAt: NEW };
+    wrap(<PhonePrompt />);
+    const options = Array.from((await screen.findByLabelText("Country code")).querySelectorAll("option")).map((o) => o.textContent);
+    expect(options[0]).toBe("🇮🇳 India (+91)");
+    expect(options).toContain("🇺🇸 United States (+1)");
+    expect(options).toContain("🇬🇧 United Kingdom (+44)");
+    expect(options.length).toBeGreaterThan(40);
+  });
+});
+
 describe("PhoneSettings", () => {
   it("shows the saved number nicely grouped, and Save stays off until it changes to a valid one", async () => {
     h.profile = { phone: "+919876543210", createdAt: OLD };
     wrap(<PhoneSettings />);
     const input = screen.getByLabelText("Mobile number") as HTMLInputElement;
-    expect(input.value).toBe("+91 98765 43210");
+    expect(input.value).toBe("98765 43210");
+    expect(screen.getByLabelText("Country code")).toHaveValue("IN"); // 🇮🇳 +91
     const save = screen.getByRole("button", { name: "Save" });
     expect(save).toBeDisabled();
     await userEvent.clear(input);

@@ -33,7 +33,7 @@ export function MobileNav() {
                 className="flex flex-col items-center gap-1 px-2 relative -mt-5"
                 aria-label="Add expense"
               >
-                <div className="w-12 h-12 rounded-2xl gradient-brand flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <div className="w-12 h-12 rounded-2xl gradient-brand flex items-center justify-center shadow-lg shadow-brand-500/30">
                   <Plus className="size-5 text-white" />
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground mt-0.5">{label}</span>

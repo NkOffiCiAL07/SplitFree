@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { buildEdges, type Edge, type LedgerExpense, type LedgerSettlement } from "@/lib/ledger";
-import { visibleToUser } from "@/lib/api-helpers";
+import { visibleScope } from "@/lib/api-helpers";
 
 export const ledgerExpenseSelect = {
   id: true, paidById: true, currency: true, amount: true, groupId: true, date: true, category: true,
@@ -14,8 +14,9 @@ export async function loadUserLedger(userId: string): Promise<{
   settlements: LedgerSettlement[];
   edges: Edge[];
 }> {
+  const scope = await visibleScope(userId); // index lookups, not a scan of everybody's expenses
   const [expenses, settlements] = await Promise.all([
-    prisma.expense.findMany({ where: visibleToUser(userId), select: ledgerExpenseSelect }),
+    prisma.expense.findMany({ where: scope, select: ledgerExpenseSelect }),
     prisma.settlement.findMany({
       where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
       select: { fromUserId: true, toUserId: true, amount: true, currency: true, groupId: true },

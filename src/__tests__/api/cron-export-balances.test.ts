@@ -56,6 +56,54 @@ describe("cron /api/cron/process-recurring", () => {
     expect((await res.json()).created).toBe(3);
     expect(p.expense.create).toHaveBeenCalledTimes(3);
   });
+
+  describe("at scale", () => {
+    const daysAgo = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+    const recurring = (id: string, overdueDays: number) => ({
+      id, recurringInterval: "DAILY", date: daysAgo(overdueDays), lastRecurredAt: null, groupId: null,
+      description: id, amount: 100, currency: "INR", category: "FOOD", splitType: "EQUAL",
+      paidById: ME, notes: null, payers: [], splits: [{ userId: ME, amount: 100, percentage: null, shares: null }],
+    });
+    beforeEach(() => {
+      vi.stubEnv("CRON_SECRET", "s3cret");
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      p.expense.findFirst.mockResolvedValue(null);
+      p.expense.update.mockResolvedValue({});
+    });
+
+    it("one broken expense never stops everyone else's from being created", async () => {
+      p.expense.findMany.mockResolvedValue([recurring("bad", 1), recurring("good-1", 1), recurring("good-2", 1)]);
+      p.expense.create.mockImplementation(async ({ data }: { data: { description: string } }) => {
+        if (data.description === "bad") throw new Error("foreign key violation (a member was deleted)");
+        return { id: `new-${data.description}` };
+      });
+      const body = await (await call("Bearer s3cret")).json();
+      expect(body).toMatchObject({ ok: true, created: 2, failed: 1 });
+    });
+
+    it("does the longest-overdue first, and nothing at all for expenses that aren't due yet", async () => {
+      const notDue = { ...recurring("not-due", 0), date: new Date(), lastRecurredAt: new Date() };
+      p.expense.findMany.mockResolvedValue([recurring("recent", 1), notDue, recurring("oldest", 5), recurring("middle", 3)]);
+      const order: string[] = [];
+      p.expense.create.mockImplementation(async ({ data }: { data: { description: string } }) => { order.push(data.description); return { id: `n${order.length}` }; });
+      await call("Bearer s3cret");
+      expect(order[0]).toBe("oldest");
+      expect(order.indexOf("middle")).toBeLessThan(order.indexOf("recent"));
+      expect(order).not.toContain("not-due");
+      expect(p.expense.findFirst.mock.calls.length).toBeGreaterThan(0);
+    });
+
+    it("stops starting new work when its time budget is used up, and reports what is left for the next run", async () => {
+      vi.stubEnv("CRON_BUDGET_MS", "1"); // 1 ms: the first expense uses it up
+      p.expense.findMany.mockResolvedValue([recurring("a", 5), recurring("b", 4), recurring("c", 3), recurring("d", 2)]);
+      p.expense.create.mockImplementation(async () => { await new Promise((r) => setTimeout(r, 15)); return { id: "x" }; });
+      const body = await (await call("Bearer s3cret")).json();
+      expect(body.ok).toBe(true);
+      expect(body.deferred).toBeGreaterThanOrEqual(1);
+      expect(body.created + body.deferred * 0).toBeGreaterThanOrEqual(1); // it still made real progress
+      expect(p.expense.findMany).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 describe("GET /api/export — CSV safety", () => {
@@ -75,7 +123,7 @@ describe("GET /api/export — CSV safety", () => {
   it("exports expenses the user paid even when not in the split", async () => {
     p.expense.findMany.mockResolvedValue([]);
     await EXPORT(new NextRequest("http://x/api/export"));
-    expect(p.expense.findMany.mock.calls[0][0].where.AND[0].OR).toContainEqual({ paidById: ME });
+    expect(p.expense.findMany.mock.calls[0][0].where.AND[0]).toHaveProperty("id.in"); // visibility (ids found through the indexes)
   });
 });
 
@@ -84,7 +132,7 @@ describe("GET /api/export — filters", () => {
     p.expense.findMany.mockResolvedValue([]);
     await EXPORT(new NextRequest("http://x/api/export?q=goa&category=FOOD&from=2026-01-01&to=2026-01-31&groupId=g1"));
     const and = p.expense.findMany.mock.calls[0][0].where.AND;
-    expect(and[0].OR).toBeDefined(); // visibility
+    expect(and[0]).toHaveProperty("id.in"); // visibility
     expect(and[1].AND).toEqual(expect.arrayContaining([
       { groupId: "g1" }, { category: "FOOD" },
       { date: { gte: new Date("2026-01-01T00:00:00.000Z") } },

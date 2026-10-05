@@ -90,9 +90,17 @@ describe("POST /api/expenses — integrity", () => {
 describe("GET /api/expenses — visibility", () => {
   it("includes expenses the user paid even when they are not in the split", async () => {
     p.expense.findMany.mockResolvedValue([]);
+    p.$queryRaw.mockResolvedValue([{ id: "paid-by-me" }, { id: "in-the-split" }]);
     await GET(new NextRequest("http://x/api/expenses?limit=abc"));
     const args = p.expense.findMany.mock.calls[0][0];
-    expect(args.where.AND[0].OR).toEqual([{ splits: { some: { userId: ME } } }, { paidById: ME }, { payers: { some: { userId: ME } } }]);
+    // visibility = the ids found through the indexes (below), which cover all three ways of being involved
+    expect(args.where.AND[0]).toEqual({ id: { in: ["paid-by-me", "in-the-split"] } });
+    const [sql, ...values] = p.$queryRaw.mock.calls[0] as [string[], ...string[]];
+    const text = sql.join("?");
+    expect(text).toMatch(/FROM expense_splits WHERE user_id/);
+    expect(text).toMatch(/FROM expense_payers WHERE user_id/);
+    expect(text).toMatch(/FROM expenses WHERE paid_by_id/);
+    expect(values).toEqual([ME, ME, ME]); // always the signed-in person, passed as a parameter (never pasted into the SQL)
     expect(args.take).toBe(50); // invalid limit falls back to the default
     expect(args.orderBy).toEqual([{ date: "desc" }, { id: "desc" }]); // stable pagination
   });
@@ -168,7 +176,7 @@ describe("GET /api/expenses — search, filters and paging", () => {
       expect.objectContaining({ OR: expect.any(Array) }),
       { date: { gte: new Date("2026-01-01T00:00:00.000Z") } },
     ]));
-    expect(and[0].OR).toBeDefined(); // visibility is always applied
+    expect(and[0]).toEqual({ id: { in: [] } }); // visibility is always applied (here: nothing visible)
   });
 
   it("still returns a plain array without ?paged", async () => {

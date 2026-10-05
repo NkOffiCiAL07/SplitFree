@@ -25,6 +25,12 @@ export async function GET(req: NextRequest) {
   const today = new Date();
   const created: string[] = [];
   const skipped: string[] = [];
+  const failed: string[] = [];
+  // Serverless functions are killed at their time limit, possibly half-way through a batch. Stop starting new work while
+  // there is still time to finish cleanly; whatever is left is picked up (oldest first) by the next run.
+  const startedAt = Date.now();
+  const budgetMs = Number(process.env.CRON_BUDGET_MS) > 0 ? Number(process.env.CRON_BUDGET_MS) : 8_000;
+  let deferred = 0;
 
   try {
     // Find all root recurring expenses whose next due date has arrived
@@ -34,8 +40,17 @@ export async function GET(req: NextRequest) {
       include: { splits: true, payers: true },
     });
 
+    // The longest-overdue first, so nobody is starved when there is more work than one run can do
+    recurringExpenses.sort((a, b) => (a.lastRecurredAt ?? a.date).getTime() - (b.lastRecurredAt ?? b.date).getTime());
+
     for (const expense of recurringExpenses) {
       if (!expense.recurringInterval) continue;
+      const due = nextOccurrence(expense.lastRecurredAt ?? expense.date, expense.recurringInterval) <= today;
+      if (!due) continue; // nothing to do for this one (no database work at all)
+      if (Date.now() - startedAt > budgetMs) { deferred++; continue; }
+
+      // One broken expense (say, a deleted member) must never stop everyone else's from being created
+      try {
 
       // Catch up on every missed occurrence (e.g. after downtime), capped per run
       let cursor = expense.lastRecurredAt ?? expense.date;
@@ -94,9 +109,13 @@ export async function GET(req: NextRequest) {
         cursor = nextDue;
       }
       if (!madeAny) skipped.push(expense.id);
+      } catch (e) {
+        failed.push(expense.id);
+        console.error(`[cron] recurring expense ${expense.id} failed:`, e instanceof Error ? e.message : e);
+      }
     }
 
-    return NextResponse.json({ ok: true, created: created.length, skipped: skipped.length });
+    return NextResponse.json({ ok: true, created: created.length, skipped: skipped.length, failed: failed.length, deferred });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Unknown error" }, { status: 500 });
   }

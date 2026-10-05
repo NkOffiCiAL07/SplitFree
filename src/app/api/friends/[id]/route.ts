@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, ok, err, handleError, getKnownUserIds, visibleToUser } from "@/lib/api-helpers";
+import { requireAuth, ok, err, handleError, getKnownUserIds, visibleScope } from "@/lib/api-helpers";
 import { buildEdges, expenseDeltaBetween, pairNets, type CurrencyNet } from "@/lib/ledger";
 
 // GET — shared history with one person: balance per currency, expenses and payments between you
@@ -14,13 +14,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (friendId === me) return err("That's you", 400);
     if (!(await getKnownUserIds(me)).has(friendId)) return err("Person not found", 404);
 
+    const scope = await visibleScope(me);
     const [friend, expenses, settlements] = await Promise.all([
       prisma.user.findUnique({ where: { id: friendId }, select: { id: true, name: true, email: true, avatarUrl: true, upiId: true } }),
       // Expenses I can see that also involve the friend (as payer, one of several payers, or in the split)
       prisma.expense.findMany({
         where: {
           AND: [
-            visibleToUser(me),
+            scope,
             { OR: [{ paidById: friendId }, { splits: { some: { userId: friendId } } }, { payers: { some: { userId: friendId } } }] },
           ],
         },
