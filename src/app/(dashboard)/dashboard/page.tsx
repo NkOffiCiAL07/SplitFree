@@ -83,7 +83,7 @@ export default function DashboardPage() {
         className="flex items-start justify-between gap-3"
       >
         <div>
-          <h2 className="text-xl font-bold">
+          <h2 className="text-lg font-bold sm:text-xl">
             {timeOfDay}, {firstName} 👋
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>

@@ -57,28 +57,28 @@
 /* ─── Light mode ─────────────────────────────────────────── */
 :root {
   /* the default (violet) palette; the others are applied through <html data-accent=…> (see src/lib/themes.ts) */
-  --brand-50:250 100% 98%;--brand-100:251 91% 95%;--brand-200:251 95% 92%;--brand-300:252 95% 85%;--brand-400:255 92% 76%;--brand-500:258 90% 66%;--brand-600:262 83% 58%;--brand-700:263 70% 50%;--brand-800:263 69% 42%;--brand-900:264 67% 35%;--brand-grad-a:262 83% 58%;--brand-grad-b:243 75% 59%;
+  --brand-50:245 100% 98%;--brand-100:245 100% 96%;--brand-200:244 100% 92%;--brand-300:244 100% 86%;--brand-400:244 100% 79%;--brand-500:244 100% 72%;--brand-600:243 100% 68%;--brand-700:243 76% 59%;--brand-800:243 55% 49%;--brand-900:242 54% 36%;--brand-grad-a:243 100% 68%;--brand-grad-b:242 100% 72%;
   --radius: 0.625rem;
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
+  --background: 225 56% 98%; /* #F5F7FC: a soft canvas, with white cards on top */
+  --foreground: 228 26% 8%; /* #11131A */
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --primary: 262 83% 58%;
+  --primary: 243 100% 68%; /* #635BFF */
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 14% 96%;
+  --secondary: 225 30% 95%;
   --secondary-foreground: 222 47% 11%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 10% 38%;
-  --accent: 220 14% 96%;
+  --muted: 225 30% 95%;
+  --muted-foreground: 224 12% 40%; /* #697083-ish, AA on the canvas */
+  --accent: 225 30% 95%;
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 262 83% 58%;
-  --success: 142 71% 45%;
+  --border: 224 25% 91%;
+  --input: 224 25% 89%;
+  --ring: 243 100% 68%;
+  --success: 153 72% 33%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 100%;

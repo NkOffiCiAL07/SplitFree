@@ -22,8 +22,8 @@ const scale = (...hex: string[]): Record<Step, string> => Object.fromEntries(STE
 export const ACCENTS: Accent[] = [
   {
     id: "violet", name: "Violet",
-    scale: scale("#f5f3ff", "#ede9fe", "#ddd6fe", "#c4b5fd", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#5b21b6", "#4c1d95"),
-    gradientTo: "#4f46e5", primaryLight: "#7c3aed", primaryDark: "#a78bfa",
+    scale: scale("#f5f4ff", "#ebe9ff", "#d9d6ff", "#bdb8ff", "#9b94ff", "#7c72ff", "#635bff", "#4f48e6", "#3f39c2", "#2f2b8f"),
+    gradientTo: "#746eff", primaryLight: "#635bff", primaryDark: "#8b83ff",
   },
   {
     id: "ocean", name: "Ocean",

@@ -17,7 +17,7 @@ interface StatCardProps {
 const variantStyles = {
   green:  { icon: "bg-green-500/10 text-green-600 dark:text-green-400",  bar: "bg-green-500",  text: "text-green-600 dark:text-green-400" },
   red:    { icon: "bg-red-500/10 text-red-600 dark:text-red-400",        bar: "bg-red-500",    text: "text-red-600 dark:text-red-400" },
-  amber:  { icon: "bg-amber-500/10 text-amber-600 dark:text-amber-400",  bar: "bg-amber-500",  text: "text-amber-600 dark:text-amber-400" },
+  amber:  { icon: "bg-muted text-muted-foreground", bar: "bg-border", text: "text-foreground" }, // (colour means money here: only green and red)
   violet: { icon: "bg-brand-500/10 text-brand-600 dark:text-brand-400", bar: "bg-brand-500", text: "text-brand-600 dark:text-brand-400" },
   neutral:{ icon: "bg-muted text-muted-foreground", bar: "bg-border", text: "text-foreground" }, // nothing owed either way: no green/red
   blue:   { icon: "bg-blue-500/10 text-blue-600 dark:text-blue-400",     bar: "bg-blue-500",   text: "text-blue-600 dark:text-blue-400" },
@@ -32,7 +32,7 @@ export function StatCard({ title, value, sub, icon: Icon, variant = "violet", in
       transition={{ duration: 0.4, delay: index * 0.07, ease: "easeOut" }}
     >
       <Card className="relative overflow-hidden hover:shadow-md transition-shadow duration-200">
-        <div className={cn("absolute top-0 left-0 right-0 h-0.5", styles.bar)} />
+        <div className={cn("absolute top-0 left-0 right-0 h-0.5", variant === "green" || variant === "red" ? styles.bar : "bg-transparent")} />
         <CardContent className="p-4 md:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">

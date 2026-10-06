@@ -353,10 +353,11 @@ describe("GroupDetailPage — leaving and deleting", () => {
   });
 });
 
-describe("GroupDetailPage — balance banner in dark mode", () => {
-  it("drops its gradient in dark mode (a background colour cannot hide a gradient), leaving a quiet tinted banner", () => {
+describe("GroupDetailPage — balance banner", () => {
+  it("is a calm tinted card in both themes (soft green when you are owed, soft red when you owe), not a solid slab", () => {
     const src = readFileSync("src/app/(dashboard)/groups/[id]/page.tsx", "utf8");
-    expect(src).toContain("dark:bg-none dark:bg-emerald-500/15");
-    expect(src).toContain("dark:bg-none dark:bg-rose-500/15");
+    expect(src).toContain("border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/15");
+    expect(src).toContain("border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/25 dark:bg-rose-500/15");
+    expect(src).not.toContain("from-emerald-500 to-green-600");
   });
 });
