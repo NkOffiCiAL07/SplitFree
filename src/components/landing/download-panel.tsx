@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useState, useSyncExternalStore } from "react";
-import { Bell, Check, Copy, PlusSquare, Share, ShieldCheck, Smartphone, WifiOff } from "lucide-react";
-import { ANDROID_APP, androidSizeLabel } from "@/lib/android-app";
+import { Bell, Check, PlusSquare, Share, Smartphone, WifiOff } from "lucide-react";
+import { ANDROID_APP } from "@/lib/android-app";
 import { detectPlatform, isInAppBrowser, type Platform } from "@/lib/platform";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { cn } from "@/lib/utils";
@@ -26,10 +26,10 @@ export function DownloadPanel() {
   const inApp = useSyncExternalStore(noopSubscribe, () => isInAppBrowser(navigator.userAgent), () => false);
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
   const [choice, setChoice] = useState<Tab | null>(null);
-  const [copied, setCopied] = useState<"hash" | "link" | null>(null);
+  const [copied, setCopied] = useState<"link" | null>(null);
   const tab: Tab = choice ?? (platform === "ios" ? "iphone" : "android");
 
-  const copy = async (text: string, what: "hash" | "link") => {
+  const copy = async (text: string, what: "link") => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(what);
@@ -80,23 +80,6 @@ export function DownloadPanel() {
                 </li>
               ))}
             </ol>
-
-            <div className="lg-glass-dark rounded-xl p-3 text-xs text-white/80">
-              <p className="mb-1.5 flex items-center gap-1.5 font-medium text-white">
-                <ShieldCheck className="size-3.5 text-emerald-300" /> Signed release · {androidSizeLabel} · package {ANDROID_APP.packageName}
-              </p>
-              <div className="flex items-start gap-2">
-                <code className="min-w-0 flex-1 break-all font-mono text-[10.5px] leading-relaxed" data-testid="apk-sha256">SHA-256 {ANDROID_APP.sha256}</code>
-                <button
-                  type="button"
-                  onClick={() => copy(ANDROID_APP.sha256, "hash")}
-                  aria-label="Copy SHA-256 checksum"
-                  className="shrink-0 rounded-md border border-white/20 p-1.5 transition-colors hover:bg-white/10"
-                >
-                  {copied === "hash" ? <Check className="size-3.5 text-emerald-300" /> : <Copy className="size-3.5" />}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="flex justify-center">

@@ -40,10 +40,11 @@ describe("Landing page — Android app", () => {
     expect(screen.getByText(/Android app is here — iOS coming soon/)).toBeInTheDocument();
   });
 
-  it("explains installing, shows the checksum and gives iPhone users a working option today", () => {
+  it("explains installing and gives iPhone users a working option today — without technical noise (no checksum, package name or 'signed release' box)", () => {
     render(<LandingPage />);
     expect(screen.getByText(/Install unknown apps/i, { selector: "span" })).toBeInTheDocument();
-    expect(screen.getByTestId("apk-sha256")).toHaveTextContent(ANDROID_APP.sha256);
+    expect(screen.queryByTestId("apk-sha256")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/SHA-256|checksum|package com\.|Signed release|file is genuine/i);
     expect(screen.getAllByText(/Add to Home Screen/i).length).toBeGreaterThan(0);
   });
 
@@ -209,19 +210,12 @@ describe("DownloadPanel — tailored to the visitor", () => {
     expect(screen.queryByTestId("ios-inapp-warning")).not.toBeInTheDocument();
   });
 
-  it("copies the checksum", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    render(<DownloadPanel />);
-    await userEvent.click(screen.getByRole("button", { name: /copy sha-256/i }));
-    expect(writeText).toHaveBeenCalledWith(ANDROID_APP.sha256);
-  });
-
-  it("survives a blocked clipboard", async () => {
+  it("survives a blocked clipboard when copying the page link", async () => {
+    setUserAgent(iphone, 5);
     Object.defineProperty(navigator, "clipboard", { value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) }, configurable: true });
     render(<DownloadPanel />);
-    await userEvent.click(screen.getByRole("button", { name: /copy sha-256/i }));
-    expect(screen.getByTestId("apk-sha256")).toBeInTheDocument();
+    // (nothing to copy outside an in-app browser; the panel must simply keep working)
+    expect(screen.getAllByText(/Add to Home Screen/i).length).toBeGreaterThan(0);
   });
 });
 
@@ -294,5 +288,40 @@ describe("Landing page — join a group by scanning a QR code", () => {
   it("is mentioned in step 1 (create a group) too", () => {
     render(<LandingPage />);
     expect(document.body.textContent).toMatch(/Share an invite link or show a QR code/);
+  });
+});
+
+describe("Landing page — the new hero and callouts", () => {
+  it("has the live splitter, the tabbed phone demo, the Splitwise callout and the animated settle-up scene", () => {
+    const { container } = render(<LandingPage />);
+    expect(screen.getByTestId("split-tryout")).toBeInTheDocument();
+    expect(screen.getByRole("tablist", { name: /see the app in action/i })).toBeInTheDocument();
+    expect(container.querySelector("#from-splitwise")).not.toBeNull();
+    expect(screen.getByRole("heading", { name: /ten payments become three/i })).toBeInTheDocument();
+  });
+
+  it("the iPhone block in the hero collects an email (it used to be a dead 'coming soon' box)", () => {
+    render(<LandingPage />);
+    expect(screen.getByTestId("ios-notify")).toBeInTheDocument();
+    expect(screen.getByLabelText("Your email")).toBeInTheDocument();
+  });
+
+  it("the main download button is the one that glows", () => {
+    render(<LandingPage />);
+    expect(screen.getAllByTestId("android-download")[0]).toHaveClass("cta-glow");
+  });
+
+  it("answers 'why a direct download?' honestly, with no claim it can't back up", () => {
+    render(<LandingPage />);
+    expect(screen.getByText("Why is Android a direct download?")).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/verified (&|and) safe|clean security record|virus[- ]free/i);
+  });
+
+  it("the English page has all the same pieces (and still no India-only wording)", async () => {
+    const { default: IntlPage } = await import("@/app/intl/page");
+    const { container } = render(<IntlPage />);
+    expect(container.querySelector("#from-splitwise")).not.toBeNull();
+    expect(screen.getByTestId("split-tryout")).toHaveTextContent("$");
+    expect(container.textContent).not.toMatch(/₹|UPI/);
   });
 });

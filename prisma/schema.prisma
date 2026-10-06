@@ -399,3 +399,14 @@ model PushSubscription {
   @@index([userId])
   @@map("push_subscriptions")
 }
+
+/// People who asked to be told when the iPhone app launches (landing page). Only an email address, kept for that purpose.
+model WaitlistEntry {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  platform  String   @default("ios")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("waitlist")
+}
+

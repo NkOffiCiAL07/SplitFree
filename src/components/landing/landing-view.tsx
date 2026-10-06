@@ -10,6 +10,11 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DownloadPanel } from "@/components/landing/download-panel";
 import { Reveal } from "@/components/landing/reveal";
 import { QrJoinShowcase } from "@/components/landing/qr-join-showcase";
+import { SettleFlow } from "@/components/landing/settle-flow";
+import { SplitTryout } from "@/components/landing/split-tryout";
+import { PhoneDemo } from "@/components/landing/phone-demo";
+import { IosNotify } from "@/components/landing/ios-notify";
+import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
@@ -20,7 +25,7 @@ import { regionFor } from "@/lib/region";
 const features = [
   { icon: Users, title: "Groups & friends", description: "Trips, flats, couples, office lunches — track who owes whom, with anyone.", color: "from-violet-500 to-purple-600" },
   { icon: SplitSquareHorizontal, title: "Every way to split", description: "Equally, by exact amounts, percentages or shares — and several people can pay one bill.", color: "from-blue-500 to-indigo-600" },
-  { icon: Zap, title: "Smart settle-up", description: "Debts are simplified into the fewest possible payments, so ten transfers become three.", color: "from-amber-500 to-orange-600" },
+  { icon: Zap, title: "Smart settle-up", description: "Debts are simplified into far fewer payments, so ten transfers become three.", color: "from-amber-500 to-orange-600" },
   { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
   { icon: WifiOff, title: "Works offline", description: "No signal on the trip? Add expenses and payments anyway — they sync safely when you're back online.", color: "from-rose-500 to-pink-600" },
   { icon: Globe, title: `${CURRENCY_CODES.length} currencies`, description: "Each debt stays exact in its own currency, while your totals are shown in your home currency.", color: "from-cyan-500 to-sky-600" },
@@ -41,7 +46,7 @@ const steps = [
 const faqs = [
   { q: "Is it really free?", a: `Yes. ${APP_NAME} has no ads and no paywalls.` },
   { q: "How do I install the Android app?", a: "Tap Download for Android, open the file, and allow “Install unknown apps” for your browser when Android asks (one-time). It's a direct download for now, so Android may show a standard warning for apps installed outside the Play Store." },
-  { q: "How can I check the file is genuine?", a: "It's a signed release. The download section shows its SHA-256 checksum — compare it with the file on your device (for example with a checksum app) to be sure it's untouched." },
+  { q: "Why is Android a direct download?", a: "It is the quickest way to get the app and its updates to you. Because it is installed from this site instead of the Play Store, Android shows a standard warning for apps from outside the store — that is normal for any direct download, and it is the only reason it appears." },
   { q: "What about iPhone?", a: "A native iOS app is coming soon. Until then, open the site in Safari and tap Share → Add to Home Screen: you get the full app, offline mode included." },
   { q: "Does it work without internet?", a: "Yes. You can look at your last-seen balances and add expenses or payments offline. They're stored on your device and synced automatically when you reconnect — without ever being duplicated." },
   { q: "Will my data be the same on web and Android?", a: "Yes — it's one account. Sign in on either and everything is there." },
@@ -53,6 +58,7 @@ interface Sample {
   people: { name: string; note: string; amount: string; tone: string; bg: string }[];
   recent: { emoji: string; name: string; share: string; tone: string; amount: string }[];
   received: string; trip: string;
+  bill: { title: string; total: string; shares: { name: string; amount: string }[] };
   payments: { from: string; to: string; amount: string }[];
   payChip: string;
   chips: string[];
@@ -79,6 +85,7 @@ const SAMPLE_IN: Sample = {
     { emoji: "☕", name: "Chai at Pune station", share: "you lent ₹60", tone: GREEN, amount: "₹120" },
   ],
   received: "₹850 · UPI", trip: "Goa trip",
+  bill: { title: "Dinner at Barbeque Nation", total: "₹1,800", shares: [{ name: "You", amount: "₹600" }, { name: "Divyansh", amount: "₹600" }, { name: "Prakhar", amount: "₹600" }] },
   payments: [{ from: "Rohan", to: "Ananya", amount: "₹2,400" }, { from: "Kavya", to: "Ananya", amount: "₹1,150" }, { from: "Aditya", to: "Rohan", amount: "₹600" }],
   payChip: "UPI",
   chips: ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
@@ -102,6 +109,7 @@ const SAMPLE_INTL: Sample = {
     { emoji: "☕", name: "Coffee at the station", share: "you lent $3", tone: GREEN, amount: "$6" },
   ],
   received: "$20 · Settled", trip: "Lisbon trip",
+  bill: { title: "Dinner at Luigi's", total: "$45", shares: [{ name: "You", amount: "$15" }, { name: "Liam", amount: "$15" }, { name: "Noah", amount: "$15" }] },
   payments: [{ from: "Noah", to: "Ava", amount: "$24" }, { from: "Mia", to: "Ava", amount: "$12" }, { from: "Liam", to: "Noah", amount: "$6" }],
   payChip: "Pay",
   chips: ["WhatsApp invites", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
@@ -110,115 +118,6 @@ const SAMPLE_INTL: Sample = {
   exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
   feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
 };
-
-function PhoneMock({ s }: { s: Sample }) {
-  const { people, recent } = s;
-  return (
-    <div className="relative mx-auto w-[260px] sm:w-[290px]" aria-hidden="true">
-      <div className="absolute -inset-10 -z-10 rounded-full bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-fuchsia-500/20 blur-3xl" />
-
-      {/* Phone body: titanium-style frame, side buttons, real 9:19.5 proportions */}
-      <div className="relative rounded-[2.9rem] border-[7px] border-zinc-900 bg-zinc-900 shadow-[0_40px_90px_-20px_rgba(76,29,149,0.55)] dark:border-zinc-700 dark:bg-zinc-700">
-        <span className="absolute -left-[10px] top-24 h-9 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
-        <span className="absolute -left-[10px] top-40 h-14 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
-        <span className="absolute -left-[10px] top-[14.5rem] h-14 w-[3px] rounded-l bg-zinc-800 dark:bg-zinc-600" />
-        <span className="absolute -right-[10px] top-36 h-20 w-[3px] rounded-r bg-zinc-800 dark:bg-zinc-600" />
-
-        <div className="relative flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.3rem] bg-background">
-          {/* status bar + camera island */}
-          <div className="flex items-center justify-between px-6 pb-1 pt-3 text-[10px] font-semibold">
-            <span>9:41</span>
-            <span className="absolute left-1/2 top-2.5 h-[18px] w-[78px] -translate-x-1/2 rounded-full bg-zinc-900 dark:bg-black" />
-            <span className="flex items-center gap-1"><Signal className="size-3" /><Wifi className="size-3" /><BatteryFull className="size-3.5" /></span>
-          </div>
-
-          {/* the app screen */}
-          <div className="flex min-h-0 flex-1 flex-col gap-2.5 px-3.5 pb-2 pt-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[9px] text-muted-foreground">Good evening</p>
-                <p className="text-[13px] font-bold leading-tight">Your balances</p>
-              </div>
-              <BrandMark size={28} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2">
-                <p className="text-[8px] text-muted-foreground">Owed to you</p>
-                <p className="text-[15px] font-bold leading-tight text-green-600 dark:text-green-400">{s.owed}</p>
-              </div>
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2">
-                <p className="text-[8px] text-muted-foreground">You owe</p>
-                <p className="text-[15px] font-bold leading-tight text-red-600 dark:text-red-400">{s.owe}</p>
-              </div>
-            </div>
-
-            <div className="rounded-xl border bg-card px-2.5 py-1.5">
-              <p className="mb-0.5 text-[9px] font-semibold text-muted-foreground">Balances</p>
-              {people.map((r) => (
-                <div key={r.name} className="flex items-center gap-2 py-1">
-                  <div className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white ${r.bg}`}>{r.name[0]}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[11px] font-medium leading-tight">{r.name}</p>
-                    <p className="text-[8.5px] leading-tight text-muted-foreground">{r.note}</p>
-                  </div>
-                  <p className={`text-[11px] font-semibold ${r.tone}`}>{r.amount}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-xl border bg-card px-2.5 py-1.5">
-              <p className="mb-0.5 text-[9px] font-semibold text-muted-foreground">Recent</p>
-              {recent.map((e) => (
-                <div key={e.name} className="flex items-center gap-2 py-1">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-muted text-[12px]">{e.emoji}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[10.5px] font-medium leading-tight">{e.name}</p>
-                    <p className={`text-[8.5px] leading-tight ${e.tone}`}>{e.share}</p>
-                  </div>
-                  <p className="text-[10.5px] font-semibold">{e.amount}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-auto rounded-xl gradient-brand py-2 text-center text-[11px] font-semibold text-white">Settle up</div>
-          </div>
-
-          {/* bottom navigation + home indicator */}
-          <div className="border-t bg-background/95 px-3 pb-1.5 pt-1.5">
-            <div className="flex items-center justify-around text-[8px] text-muted-foreground">
-              {[
-                { icon: Home, label: "Home", active: true },
-                { icon: Users, label: "Groups" },
-                { icon: Receipt, label: "Expenses" },
-                { icon: UserPlus, label: "Friends" },
-              ].map(({ icon: Icon, label, active }) => (
-                <div key={label} className={`flex flex-col items-center gap-0.5 ${active ? "text-violet-600 dark:text-violet-400" : ""}`}>
-                  <Icon className="size-4" />
-                  <span className={active ? "font-semibold" : ""}>{label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mx-auto mt-1.5 h-1 w-20 rounded-full bg-zinc-900/80 dark:bg-zinc-200/80" />
-          </div>
-        </div>
-      </div>
-
-      <div className="anim-float lg-glass absolute -left-[132px] top-24 hidden rounded-2xl px-3 py-2 sm:block">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold"><Check className="size-3.5 text-green-500" /> Payment received</p>
-        <p className="text-[10px] text-muted-foreground">{s.received}</p>
-      </div>
-      <div className="anim-float-slow lg-glass absolute -right-[130px] top-64 hidden rounded-2xl px-3 py-2 sm:block">
-        <p className="flex items-center gap-1.5 text-[11px] font-semibold"><WifiOff className="size-3.5 text-violet-500" /> Offline — saved</p>
-        <p className="text-[10px] text-muted-foreground">Syncs when you&apos;re back</p>
-      </div>
-      <div className="anim-float lg-glass absolute -left-[118px] bottom-28 hidden rounded-2xl px-3 py-2 sm:block">
-        <p className="text-[11px] font-semibold">10 payments → 3</p>
-        <p className="text-[10px] text-muted-foreground">Debts simplified</p>
-      </div>
-    </div>
-  );
-}
 
 /**
  * The landing page. `international` is the English version for visitors outside India (the Hinglish lines and rupee
@@ -230,15 +129,15 @@ export function LandingView({ international = false }: { international?: boolean
   return (
     <div className="min-h-dvh overflow-x-clip bg-background">
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0720]/80 text-white backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link href="/">
-            <BrandLogo size={34} />
+            <BrandLogo size={34} tone="light" />
           </Link>
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex" aria-label="Sections">
-            <a href="#features" className="transition-colors hover:text-foreground">Features</a>
-            <a href="#download" className="transition-colors hover:text-foreground">Android app</a>
-            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
+          <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex" aria-label="Sections">
+            <a href="#features" className="transition-colors hover:text-white">Features</a>
+            <a href="#download" className="transition-colors hover:text-white">Android app</a>
+            <a href="#faq" className="transition-colors hover:text-white">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -249,23 +148,21 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative px-4 pb-20 pt-14 sm:pt-20">
-        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="lg-blob left-[8%] top-10 h-[420px] w-[420px] bg-violet-400/35" />
-          <div className="lg-blob lg-blob-2 right-[6%] top-24 h-[480px] w-[480px] bg-sky-300/35" />
-          <div className="lg-blob lg-blob-3 bottom-[-80px] left-1/3 h-[380px] w-[380px] bg-fuchsia-300/30" />
-          <div
-            className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
-            style={{ backgroundImage: "radial-gradient(circle, #6d28d9 1px, transparent 1px)", backgroundSize: "32px 32px" }}
-          />
+      {/* Hero — a deep-indigo aurora scene (same visual language as the sign-in), always dark whatever the theme */}
+      <section className="auth-canvas relative isolate px-4 pb-28 pt-14 text-white sm:pt-20">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-cyan-400/35" />
+          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-fuchsia-500/30" />
+          <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-400/35" />
+          <div className="auth-dots absolute inset-0" />
+          <div className="auth-grain absolute inset-0" />
         </div>
 
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="min-w-0 space-y-7 text-center lg:text-left">
             <a
               href="#download"
-              className="anim-fade-up inline-flex items-center gap-2 rounded-full border bg-card/70 px-3.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur transition-colors hover:bg-card"
+              className="anim-fade-up lg-glass-dark inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20"
             >
               <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">NEW</span>
               Android app is here — iOS coming soon
@@ -274,26 +171,26 @@ export function LandingView({ international = false }: { international?: boolean
 
             <h1 className="anim-fade-up text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl xl:text-7xl" style={{ animationDelay: "60ms" }}>
               {copy.line1}{" "}
-              <span className="gradient-brand-text">{copy.line2}</span>
+              <span className="lg-text-shimmer bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{copy.line2}</span>
             </h1>
 
-            <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
+            <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
               {copy.subline}
             </p>
-            <p className="anim-fade-up text-base text-muted-foreground" style={{ animationDelay: "150ms" }}>
+            <p className="anim-fade-up text-base text-white/70" style={{ animationDelay: "150ms" }}>
               Made for{" "}
-              <RotatingWords words={copy.occasions} className="font-semibold text-foreground" />
+              <RotatingWords words={copy.occasions} className="font-semibold text-white" />
             </p>
 
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
-              <AndroidDownloadButton />
-              <IosComingSoon />
+              <AndroidDownloadButton tone="light" className="cta-glow" />
+              <IosNotify />
             </div>
 
-            <div className="anim-fade-up flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground lg:justify-start" style={{ animationDelay: "300ms" }}>
+            <div className="anim-fade-up flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70 lg:justify-start" style={{ animationDelay: "300ms" }}>
               {["Free, no ads", "No credit card", "Same account on web & Android"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
-                  <Check className="size-3.5 text-green-500" />
+                  <Check className="size-3.5 text-emerald-300" />
                   {t}
                 </span>
               ))}
@@ -301,9 +198,18 @@ export function LandingView({ international = false }: { international?: boolean
           </div>
 
           <div className="anim-fade-up" style={{ animationDelay: "200ms" }}>
-            <PhoneMock s={sample} />
+            <PhoneDemo
+              // (only plain data crosses to the browser: the full sample also holds an icon component, which cannot)
+              s={{ owed: sample.owed, owe: sample.owe, people: sample.people, recent: sample.recent, received: sample.received, trip: sample.trip, payments: sample.payments, payChip: sample.payChip, bill: sample.bill }}
+            />
           </div>
         </div>
+
+        <div className="anim-fade-up mx-auto mt-20 flex max-w-6xl justify-center lg:justify-start" style={{ animationDelay: "320ms" }}>
+          <SplitTryout symbol={international ? "$" : "₹"} defaultAmount={international ? "120" : "2400"} currency={international ? "USD" : "INR"} />
+        </div>
+
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-background" />
       </section>
 
       {/* Feature ticker */}
@@ -321,6 +227,9 @@ export function LandingView({ international = false }: { international?: boolean
           ))}
         </div>
       </section>
+
+      {/* Switching from Splitwise */}
+      <SplitwiseBanner />
 
       {/* How it works */}
       <section className="px-4 py-24">
@@ -376,6 +285,9 @@ export function LandingView({ international = false }: { international?: boolean
       {/* Join by scanning a QR code */}
       <QrJoinShowcase trip={sample.trip} />
 
+      {/* Ten payments become three (animated) */}
+      <SettleFlow />
+
       {/* Features */}
       <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -394,7 +306,7 @@ export function LandingView({ international = false }: { international?: boolean
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f, i) => (f.title === SAMPLE_IN.feature4.title ? sample.feature4 : f)).map(({ icon: Icon, title, description, color }, i) => (
               <Reveal key={title} delay={(i % 4) * 80}>
-                <div className="lg-glass group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
+                <div className="lg-glass feature-card group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
                   <div className={`relative mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md shadow-black/10 ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
                     <Icon className="size-5 text-white" />
                   </div>

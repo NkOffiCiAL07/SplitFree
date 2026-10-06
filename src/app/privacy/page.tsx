@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
 };
 
-const LAST_UPDATED = "October 5, 2026";
+const LAST_UPDATED = "October 6, 2026";
 const CONTACT_EMAIL = "nishantkumar19041@gmail.com";
 
 export default function PrivacyPage() {
@@ -36,6 +36,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">Information We Collect</h2>
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
             <li><strong className="text-foreground">Account information</strong> — name, email address and mobile number when you sign up. Your mobile number is required to create an account.</li>
+            <li><strong className="text-foreground">iPhone launch list (optional)</strong> — if you ask to be notified when the iPhone app launches on our home page, we store your email address for that one purpose, and delete it once we have told you or when you ask us to.</li>
             <li><strong className="text-foreground">Payment address (optional)</strong> — your UPI ID, if you add one, so friends can pay you.</li>
             <li><strong className="text-foreground">Profile data</strong> — optional avatar/profile photo you upload.</li>
             <li><strong className="text-foreground">Expense data</strong> — expenses, amounts, groups, and splits you create.</li>

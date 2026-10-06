@@ -67,7 +67,7 @@
   --secondary: 220 14% 96%;
   --secondary-foreground: 222 47% 11%;
   --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
+  --muted-foreground: 220 10% 38%;
   --accent: 220 14% 96%;
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
@@ -94,7 +94,7 @@
   --secondary: 215 28% 17%;
   --secondary-foreground: 210 40% 98%;
   --muted: 215 28% 12%;
-  --muted-foreground: 217 10% 64%;
+  --muted-foreground: 217 12% 72%;
   --accent: 215 28% 17%;
   --accent-foreground: 210 40% 98%;
   --destructive: 0 63% 45%;
@@ -423,6 +423,33 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
     opacity: 0.08; mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
+  /* "Ten payments become three": the tangle fades as three clean arrows draw in, then it loops */
+  @keyframes settle-before { 0%, 12% { opacity: 1; } 34%, 82% { opacity: 0.06; } 96%, 100% { opacity: 1; } }
+  @keyframes settle-draw { 0%, 30% { stroke-dashoffset: 1; opacity: 0; } 34% { opacity: 1; } 52%, 82% { stroke-dashoffset: 0; opacity: 1; } 94%, 100% { stroke-dashoffset: 1; opacity: 0; } }
+  @keyframes settle-cap-a { 0%, 28% { opacity: 1; } 36%, 90% { opacity: 0; } 98%, 100% { opacity: 1; } }
+  @keyframes settle-cap-b { 0%, 30% { opacity: 0; } 40%, 86% { opacity: 1; } 96%, 100% { opacity: 0; } }
+  .settle-before { animation: settle-before 9s ease-in-out infinite; }
+  .settle-after line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: settle-draw 9s ease-in-out infinite; }
+  .settle-caption-before { animation: settle-cap-a 9s ease-in-out infinite; }
+  .settle-caption-after { opacity: 0; animation: settle-cap-b 9s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    /* no motion: show the finished picture (three payments) */
+    .settle-before { animation: none; opacity: 0.06; }
+    .settle-after line { animation: none; stroke-dashoffset: 0; }
+    .settle-caption-before { animation: none; opacity: 0; }
+    .settle-caption-after { animation: none; opacity: 1; }
+  }
+
+  /* the main download button: a soft pulsing glow, so the eye lands on the one thing to do */
+  @keyframes cta-glow { 0%, 100% { box-shadow: 0 10px 30px -8px rgb(165 243 252 / 0.35), 0 0 0 0 rgb(165 243 252 / 0.45); } 50% { box-shadow: 0 14px 40px -6px rgb(196 181 253 / 0.55), 0 0 0 9px rgb(165 243 252 / 0); } }
+  .cta-glow { animation: cta-glow 2.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .cta-glow { animation: none; } }
+
+  /* feature cards: a definite edge and a gentle tint, so each one stands on its own */
+  .feature-card { border-color: hsl(var(--brand-300) / 0.55); background: linear-gradient(160deg, hsl(0 0% 100% / 0.92), hsl(var(--brand-50) / 0.85)); }
+  .dark .feature-card { border-color: hsl(0 0% 100% / 0.16); background: linear-gradient(160deg, hsl(222 30% 16% / 0.9), hsl(222 30% 11% / 0.85)); }
+  @media (max-width: 1023px), (pointer: coarse) { .feature-card { background: linear-gradient(160deg, hsl(0 0% 100% / 0.96), hsl(var(--brand-50) / 0.9)); } .dark .feature-card { background: linear-gradient(160deg, hsl(222 30% 16% / 0.95), hsl(222 30% 11% / 0.92)); } }
+
   /* a glowing stage for the pot: soft light plus two slowly turning rings */
   .auth-orb { border-radius: 9999px; background: radial-gradient(closest-side, rgb(139 92 246 / 0.5), rgb(56 189 248 / 0.12) 62%, transparent 74%); }
   .auth-orb::before, .auth-orb::after { content: ""; position: absolute; border-radius: 9999px; }

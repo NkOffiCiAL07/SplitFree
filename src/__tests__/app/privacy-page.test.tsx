@@ -21,9 +21,14 @@ describe("Privacy policy", () => {
     expect(text).toMatch(/removes your name, email address, mobile number, photo and UPI ID/i);
   });
 
+  it("covers the optional iPhone launch list (an email stored for that one purpose)", () => {
+    const { container } = render(<PrivacyPage />);
+    expect(container.textContent).toMatch(/iPhone launch list.*store your email address for that one purpose/i);
+  });
+
   it("is dated, and has a way to contact us", () => {
     render(<PrivacyPage />);
-    expect(screen.getByText(/Last updated: October 5, 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Last updated: October 6, 2026/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /@/ })).toBeInTheDocument();
   });
 });
