@@ -25,7 +25,7 @@ export function ContinuityPill() {
     >
       <MonitorSmartphone className="size-4 shrink-0 text-violet-300" />
       <p className="min-w-0 flex-1 text-xs leading-snug text-white/85 sm:text-sm">
-        <span className="font-semibold text-white">Web, Android, iOS soon</span> — your data syncs across all your devices.
+        <span className="font-semibold text-white">Web, Android, iOS soon</span><span className="max-sm:hidden"> — your data syncs across all your devices.</span>
       </p>
       <Link href="/login" tabIndex={shown ? 0 : -1} className="shrink-0 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-900 transition-transform hover:scale-105 sm:text-sm">Launch web app</Link>
       <button type="button" tabIndex={shown ? 0 : -1} aria-label="Dismiss" onClick={() => setClosed(true)} className="flex size-7 shrink-0 items-center justify-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"><X className="size-3.5" /></button>
