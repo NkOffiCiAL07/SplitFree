@@ -145,7 +145,7 @@ function SignupFormContent() {
         <>
       <Button
         variant="outline"
-        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] h-12 rounded-xl text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
@@ -174,7 +174,7 @@ function SignupFormContent() {
             autoComplete="name" autoCapitalize="words" enterKeyHint="next"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? "name-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            className="h-12 rounded-xl"
             {...register("name")}
           />
           {errors.name && (
@@ -217,7 +217,7 @@ function SignupFormContent() {
             autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            className="h-12 rounded-xl"
             {...register("email")}
           />
           {errors.email && (
@@ -246,7 +246,7 @@ function SignupFormContent() {
             autoComplete="new-password" enterKeyHint="go"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            className="h-12 rounded-xl"
             {...register("password")}
           />
           {errors.password && (

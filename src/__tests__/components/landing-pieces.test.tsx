@@ -147,7 +147,7 @@ describe("SettleFlow and SplitwiseBanner", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(7); // three steps + what carries over
     expect(within(screen.getByTestId("import-carries")).getAllByRole("listitem").map((l) => l.textContent?.trim())).toEqual(["Groups", "Expenses", "Balances", "Friends"]);
     // (one quiet way in: the single Sign in entry — the sign-in page has the Create account tab; no sign-up buttons on the landing page)
-    expect(screen.getByRole("link", { name: /sign in and import your history/i })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: /import your history/i })).toHaveAttribute("href", "/login");
   });
 });
 
@@ -258,5 +258,59 @@ describe("Problem + real-life moments", () => {
     const at = html.indexOf('id="settle-flow-title"');
     expect(at).toBeGreaterThan(-1);
     expect(at).toBeLessThan(html.indexOf('id="download"'));
+  });
+});
+
+describe("Mobile menu, use-case amounts and feature pictures", () => {
+  it("the hamburger opens a labelled menu with the sections and both ways in, and closes on Escape or a tap", async () => {
+    const { MobileMenu } = await import("@/components/landing/mobile-menu");
+    render(<MobileMenu links={[{ href: "#product", label: "Product" }, { href: "#features", label: "Features" }]} />);
+    const btn = screen.getByRole("button", { name: /open menu/i });
+    expect(btn).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByTestId("mobile-menu")).toBeNull();
+    await userEvent.click(btn);
+    const menu = screen.getByTestId("mobile-menu");
+    expect(within(menu).getByRole("link", { name: "Product" })).toHaveAttribute("href", "#product");
+    expect(within(menu).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+    expect(within(menu).getByRole("link", { name: "Get started" })).toHaveAttribute("href", "/signup");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByTestId("mobile-menu")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    await userEvent.click(screen.getByRole("link", { name: "Features" }));
+    expect(screen.queryByTestId("mobile-menu")).toBeNull();
+  });
+
+  it("the page header links the sections: Product, How it works, Features, Download", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const nav = screen.getByRole("navigation", { name: "Sections" });
+    expect(within(nav).getAllByRole("link").map((a) => a.textContent)).toEqual(["Product", "How it works", "Features", "Download"]);
+    for (const id of ["product", "how-it-works", "features", "download"]) expect(document.getElementById(id), id).not.toBeNull();
+  });
+
+  it("each use-case chip shows its amount and group size; each feature group has a picture", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    expect(screen.getByTestId("moments")).toHaveTextContent("₹18,450 · 4 people");
+    expect(screen.getByTestId("moments")).toHaveTextContent("₹420 · 6 people");
+    const groups = screen.getByTestId("feature-groups");
+    for (const v of ["split", "settle", "anywhere", "yours"]) expect(groups.querySelector(`[data-visual="${v}"]`), v).not.toBeNull();
+  });
+
+  it("the pill steps aside near the end of the page (the closing section has its own button)", async () => {
+    const { ContinuityPill } = await import("@/components/landing/continuity-pill");
+    const { fireEvent, act } = await import("@testing-library/react");
+    Object.defineProperty(document.documentElement, "scrollHeight", { value: 6000, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+    render(<ContinuityPill />);
+    const pill = screen.getByTestId("continuity-pill");
+    Object.defineProperty(window, "scrollY", { value: 2000, configurable: true });
+    act(() => { fireEvent.scroll(window); });
+    expect(pill).toHaveAttribute("aria-hidden", "false");
+    Object.defineProperty(window, "scrollY", { value: 5000, configurable: true });
+    act(() => { fireEvent.scroll(window); });
+    expect(pill).toHaveAttribute("aria-hidden", "true");
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+    Object.defineProperty(document.documentElement, "scrollHeight", { value: 0, configurable: true });
   });
 });

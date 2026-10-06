@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -56,15 +57,19 @@ describe("Landing page — Android app", () => {
     expect(screen.getByRole("link", { name: "Support" })).toHaveAttribute("href", "/support");
   });
 
-  it("has a quiet way in — Sign in in the header (and footer) — and no demo, sign-up or 'get started' buttons", () => {
+  it("has a clear way in: Sign in (header and footer), Get started in the header, and 'Start splitting' in the hero and the closing section", () => {
     render(<LandingPage />);
     const signIn = screen.getAllByRole("link", { name: /^sign in$/i });
-    expect(signIn).toHaveLength(2); // header + footer only: no sign-in buttons in the hero or closing section
+    expect(signIn).toHaveLength(2); // header + footer
     for (const a of signIn) expect(a).toHaveAttribute("href", "/login");
     expect(screen.getByRole("banner")).toContainElement(signIn[0]);
-    expect(screen.queryByRole("link", { name: /get started|start splitting|sign up|try demo|demo/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /demo|get started|start splitting/i })).not.toBeInTheDocument();
-    expect(document.querySelector('a[href="/signup"]')).toBeNull();
+    expect(within(screen.getByRole("banner")).getByRole("link", { name: /^get started$/i })).toHaveAttribute("href", "/signup");
+    expect(screen.getByTestId("hero-primary")).toHaveAttribute("href", "/signup");
+    expect(screen.getByTestId("hero-primary")).toHaveTextContent("Start splitting");
+    expect(screen.getByTestId("hero-secondary")).toHaveAttribute("href", "#how-it-works");
+    expect(screen.getByTestId("final-cta")).toHaveAttribute("href", "/signup");
+    expect(document.querySelector("#how-it-works")).not.toBeNull(); // the secondary button has somewhere to go
+    expect(screen.queryByRole("link", { name: /try demo/i })).not.toBeInTheDocument();
   });
 
   it("answers the questions people have in an accessible accordion", async () => {
@@ -306,9 +311,12 @@ describe("Landing page — the new hero and callouts", () => {
     expect(screen.getByLabelText("Your email")).toBeInTheDocument();
   });
 
-  it("the main download button is the one that glows", () => {
+  it("'Start splitting' is the primary action: the download buttons are quieter (no glow)", () => {
     render(<LandingPage />);
-    expect(screen.getAllByTestId("android-download")[0]).toHaveClass("cta-glow");
+    expect(screen.getAllByTestId("android-download")[0]).not.toHaveClass("cta-glow");
+    expect(screen.getByTestId("hero-primary").className).toContain("bg-[#5b57e8]");
+    const css = readFileSync("src/app/globals.css", "utf8");
+    expect(css).toContain('[data-testid="hero-primary"] { color: #fff; }'); // white label on the indigo button in light mode
   });
 
   it("answers 'why a direct download?' honestly, with no claim it can't back up", () => {

@@ -29,7 +29,7 @@ export function SplitwiseBanner() {
               ))}
             </ol>
             <Link href="/login" className="mt-7 inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:-translate-y-0.5 hover:bg-violet-700">
-              Sign in and import your history <ArrowRight className="size-4" />
+              Import your history <ArrowRight className="size-4" />
             </Link>
           </div>
 

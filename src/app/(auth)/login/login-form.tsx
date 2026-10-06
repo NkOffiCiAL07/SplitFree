@@ -115,7 +115,7 @@ function LoginPageContent() {
       {/* Google */}
       <Button
         variant="outline"
-        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] h-12 rounded-xl text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
@@ -125,7 +125,7 @@ function LoginPageContent() {
         <GoogleIcon />
         Continue with Google
       </Button>
-      <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-[11px] text-muted-foreground">New here? Continuing with Google creates your account automatically.</p>
+      <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-xs leading-relaxed text-muted-foreground">New here? Continuing with Google creates your account automatically.</p>
 
       <div data-hide-in-app className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-border" />
@@ -147,7 +147,7 @@ function LoginPageContent() {
             autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" inputMode="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            className="h-12 rounded-xl"
             {...register("email")}
           />
           {errors.email && (
@@ -184,7 +184,7 @@ function LoginPageContent() {
             autoComplete="current-password" enterKeyHint="go"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
-            className="max-lg:h-[52px] max-lg:rounded-2xl"
+            className="h-12 rounded-xl"
             {...register("password")}
           />
           {errors.password && (

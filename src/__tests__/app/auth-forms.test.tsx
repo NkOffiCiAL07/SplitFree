@@ -349,11 +349,11 @@ describe("Sign-in / sign-up forms — built for phones (touch targets, keyboards
     expect(screen.getByLabelText("Password")).toHaveAttribute("autocomplete", "new-password");
   });
 
-  it("every control is a comfortable thumb target on phones (52px, vs Material's 48–56dp guidance)", () => {
+  it("every control is a comfortable target everywhere (48px, 12px corners)", () => {
     render(<LoginForm />);
     for (const el of [screen.getByLabelText("Email"), screen.getByPlaceholderText("••••••••"), screen.getByRole("button", { name: /continue with google/i })]) {
-      expect(el.className).toMatch(/max-lg:h-\[52px\]/);
-      expect(el.className).toMatch(/max-lg:rounded-2xl/);
+      expect(el.className).toMatch(/(^|\s)h-12(\s|$)/);
+      expect(el.className).toMatch(/rounded-xl/);
     }
     expect(screen.getByRole("button", { name: /^sign in$/i }).className).toMatch(/h-\[54px\]/); // the main action is the biggest
   });

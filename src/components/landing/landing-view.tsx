@@ -17,6 +17,7 @@ import { IosNotify } from "@/components/landing/ios-notify";
 import { ContinuityPill } from "@/components/landing/continuity-pill";
 import { TripCard, type TripCardData } from "@/components/landing/trip-card";
 import { ChatProblem, MomentsGrid, type ChatLine, type Moment } from "@/components/landing/moments";
+import { MobileMenu } from "@/components/landing/mobile-menu";
 import { OfflineSync } from "@/components/landing/offline-sync";
 import { MoneyStory, type StoryData } from "@/components/landing/money-story";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
@@ -27,12 +28,61 @@ import { CURRENCY_CODES } from "@/lib/currencies";
 import { brandCopy } from "@/lib/brand-copy";
 import { regionFor } from "@/lib/region";
 
+/** One small, real-looking picture per feature group (decorative) */
+function GroupVisual({ id, sample }: { id: "split" | "settle" | "anywhere" | "yours"; sample: Sample }) {
+  const box = "mt-5 rounded-2xl border bg-background/60 p-3 text-xs";
+  if (id === "split") {
+    return (
+      <div aria-hidden="true" data-visual={id} className={box}>
+        <p className="mb-2 flex justify-between font-medium text-muted-foreground"><span>{sample.bill.title}</span><span className="tabular-nums text-foreground">{sample.bill.total}</span></p>
+        <ul className="grid grid-cols-3 gap-2">
+          {sample.bill.shares.map((s) => <li key={s.name} className="rounded-lg bg-muted/60 px-2 py-1.5 text-center"><span className="block text-muted-foreground">{s.name}</span><b className="tabular-nums">{s.amount}</b></li>)}
+        </ul>
+      </div>
+    );
+  }
+  if (id === "settle") {
+    return (
+      <div aria-hidden="true" data-visual={id} className={`${box} flex items-center justify-between gap-2`}>
+        <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold tabular-nums">10 payments</span>
+        <ArrowRight className="size-4 text-violet-500" />
+        <span className="rounded-lg bg-violet-500/15 px-2.5 py-1.5 font-semibold tabular-nums text-violet-700 dark:text-violet-300">3 payments</span>
+      </div>
+    );
+  }
+  if (id === "anywhere") {
+    return (
+      <div aria-hidden="true" data-visual={id} className={`${box} flex flex-wrap items-center gap-2`}>
+        <span className="flex items-center gap-1 rounded-lg bg-amber-500/15 px-2.5 py-1.5 font-semibold text-amber-700 dark:text-amber-300"><WifiOff className="size-3.5" /> Offline</span>
+        <ArrowRight className="size-3.5 text-muted-foreground" />
+        <span className="flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-1.5 font-semibold text-emerald-700 dark:text-emerald-300"><Check className="size-3.5" /> Synced</span>
+        <span className="ml-auto tabular-nums text-muted-foreground">INR · USD · EUR</span>
+      </div>
+    );
+  }
+  return (
+    <div aria-hidden="true" data-visual={id} className={`${box} flex flex-wrap items-center gap-2`}>
+      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">No ads</span>
+      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Export my data</span>
+      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Delete account</span>
+    </div>
+  );
+}
+
 /** Four big ideas, with the smaller features inside each */
 const groupsFor = (feature4Title: string) => [
-  { icon: SplitSquareHorizontal, color: "from-violet-500 to-indigo-600", title: "Split", lead: "Any bill, any way — and it always adds up exactly.", items: ["Equal", "Exact amounts", "Percentages", "Shares", "Several payers", "Recurring expenses", "Spending insights"] },
-  { icon: Zap, color: "from-amber-500 to-orange-600", title: "Settle", lead: "Fewer payments, paid the easy way.", items: [feature4Title, "Smart settle-up", "Gentle reminders", "Group budgets"] },
-  { icon: Globe, color: "from-sky-500 to-cyan-600", title: "Anywhere", lead: "On the trip, on the train, in any currency.", items: ["Works offline", `${CURRENCY_CODES.length} currencies`, "Android app", "iPhone soon", "Join by QR", "Splitwise import"] },
-  { icon: Shield, color: "from-emerald-500 to-teal-600", title: "Yours", lead: "Your money, your data.", items: ["No ads", "No selling your data", "Edit history", "Export or delete anytime"] },
+  { id: "split" as const, icon: SplitSquareHorizontal, color: "from-violet-500 to-indigo-600", title: "Split", lead: "Any bill, any way — and it always adds up exactly.", items: ["Equal", "Exact amounts", "Percentages", "Shares", "Several payers", "Recurring expenses", "Spending insights"] },
+  { id: "settle" as const, icon: Zap, color: "from-amber-500 to-orange-600", title: "Settle", lead: "Fewer payments, paid the easy way.", items: [feature4Title, "Smart settle-up", "Gentle reminders", "Group budgets"] },
+  { id: "anywhere" as const, icon: Globe, color: "from-sky-500 to-cyan-600", title: "Anywhere", lead: "On the trip, on the train, in any currency.", items: ["Works offline", `${CURRENCY_CODES.length} currencies`, "Android app", "iPhone soon", "Join by QR", "Splitwise import"] },
+  { id: "yours" as const, icon: Shield, color: "from-emerald-500 to-teal-600", title: "Yours", lead: "Your money, your data.", items: ["No ads", "No selling your data", "Edit history", "Export or delete anytime"] },
+];
+
+/** The page's sections, for the header and the phone menu */
+const NAV = [
+  { href: "#product", label: "Product" },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#features", label: "Features" },
+  { href: "#download", label: "Download" },
 ];
 
 const steps = [
@@ -105,12 +155,12 @@ const SAMPLE_IN: Sample = {
   ],
   chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
   moments: [
-    { emoji: "🏝️", title: "Goa trip", example: "Hotel ₹8,400 ÷ 4 = ₹2,100 each" },
-    { emoji: "🏠", title: "Flat rent", example: "₹24,000 rent, added every month" },
-    { emoji: "☕", title: "Chai-nashta", example: "Chai ₹120 for the whole table" },
-    { emoji: "💍", title: "Shaadi kharcha", example: "Gifts and travel, split with cousins" },
-    { emoji: "🍕", title: "Weekend dinner", example: "Bill ₹1,800, one tap to split" },
-    { emoji: "🏏", title: "Cricket night", example: "Snacks and a turf booking, settled" },
+    { emoji: "🏝️", title: "Goa trip", meta: "₹18,450 · 4 people", example: "Hotel ₹8,400 ÷ 4 = ₹2,100 each" },
+    { emoji: "🏠", title: "Flat rent", meta: "₹32,000 · 3 people", example: "Rent added every month, split three ways" },
+    { emoji: "☕", title: "Chai-nashta", meta: "₹420 · 6 people", example: "Chai for the whole table, one tap" },
+    { emoji: "💍", title: "Shaadi kharcha", meta: "₹64,000 · 8 people", example: "Gifts and travel, split with cousins" },
+    { emoji: "🍕", title: "Weekend dinner", meta: "₹1,800 · 4 people", example: "Bill ₹1,800, ₹450 each" },
+    { emoji: "🏏", title: "Cricket night", meta: "₹2,400 · 10 people", example: "Snacks and a turf booking, settled" },
   ],
   feature4: { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
 };
@@ -146,12 +196,12 @@ const SAMPLE_INTL: Sample = {
   ],
   chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
   moments: [
-    { emoji: "🏝️", title: "Weekend trip", example: "Hotel $420 ÷ 4 = $105 each" },
-    { emoji: "🏠", title: "Flat rent", example: "$1,800 rent, added every month" },
-    { emoji: "☕", title: "Coffee runs", example: "Coffee $24 for the whole table" },
-    { emoji: "🎁", title: "Group gifts", example: "A birthday gift, split with the team" },
-    { emoji: "🍕", title: "Weekend dinner", example: "Bill $120, one tap to split" },
-    { emoji: "🚗", title: "Road trips", example: "Fuel and snacks, settled" },
+    { emoji: "🏝️", title: "Weekend trip", meta: "$920 · 4 people", example: "Hotel $420 ÷ 4 = $105 each" },
+    { emoji: "🏠", title: "Flat rent", meta: "$1,800 · 3 people", example: "Rent added every month, split three ways" },
+    { emoji: "☕", title: "Coffee runs", meta: "$24 · 6 people", example: "Coffee for the whole table" },
+    { emoji: "🎁", title: "Group gifts", meta: "$210 · 7 people", example: "A birthday gift, split with the team" },
+    { emoji: "🍕", title: "Weekend dinner", meta: "$120 · 4 people", example: "Bill $120, $30 each" },
+    { emoji: "🚗", title: "Road trips", meta: "$340 · 5 people", example: "Fuel and snacks, settled" },
   ],
   feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
 };
@@ -172,26 +222,26 @@ export function LandingView({ international = false }: { international?: boolean
           <Link href="/">
             <BrandLogo size={34} />
           </Link>
-          <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex dark:text-white/70" aria-label="Sections">
-            <a href="#features" className="transition-colors hover:text-slate-900 dark:hover:text-white">Features</a>
-            <a href="#download" className="transition-colors hover:text-slate-900 dark:hover:text-white">Android app</a>
-            <a href="#faq" className="transition-colors hover:text-slate-900 dark:hover:text-white">FAQ</a>
+          <nav className="hidden items-center gap-7 text-sm text-slate-600 md:flex dark:text-white/70" aria-label="Sections">
+            {NAV.map((l) => <a key={l.href} href={l.href} className="transition-colors hover:text-slate-900 dark:hover:text-white">{l.label}</a>)}
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="brand" size="sm" asChild>
-              <Link href="/login">Sign in</Link>
+            <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-900/5 dark:text-white/80 dark:hover:bg-white/10">Sign in</Link>
+            <Button variant="brand" size="sm" asChild className="max-sm:hidden">
+              <Link href="/signup">Get started</Link>
             </Button>
+            <MobileMenu links={NAV} />
           </div>
         </div>
       </header>
 
       {/* Hero — a soft off-white canvas lit by ambient indigo/violet light (a deep-indigo night scene in dark mode) */}
-      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-28 pt-14 text-slate-900 sm:pt-20 dark:bg-[#090a0f] dark:text-white">
+      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-24 pt-10 text-slate-900 sm:pb-28 sm:pt-20 dark:bg-[#090a0f] dark:text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(99,91,255,0.22),transparent_38%)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(99,91,255,0.20),transparent_38%)]" />
-          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/40 dark:bg-cyan-400/10" />
-          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-violet-300/40 dark:bg-indigo-500/20" />
+          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/20 sm:bg-sky-300/40 dark:bg-cyan-400/10" />
+          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-violet-300/25 sm:bg-violet-300/40 dark:bg-indigo-500/20" />
           <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-300/40 dark:bg-violet-500/15" />
         </div>
 
@@ -211,7 +261,7 @@ export function LandingView({ international = false }: { international?: boolean
               <span className="lg-text-shimmer bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-cyan-200 dark:via-white dark:to-fuchsia-200">{copy.line2}</span>
             </h1>
 
-            <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
+            <p className="anim-fade-up mx-auto max-w-xl text-base leading-relaxed text-white/75 sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
               {copy.subline}
             </p>
             <p className="anim-fade-up text-base text-white/70" style={{ animationDelay: "150ms" }}>
@@ -219,8 +269,17 @@ export function LandingView({ international = false }: { international?: boolean
               <RotatingWords words={copy.occasions} className="font-semibold text-white" />
             </p>
 
-            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
-              <AndroidDownloadButton tone="dark" className="cta-glow" />
+            <div className="anim-fade-up flex flex-wrap items-center justify-center gap-3 lg:justify-start" style={{ animationDelay: "210ms" }}>
+              <Link href="/signup" data-testid="hero-primary" className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[#5b57e8] px-5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-px hover:bg-[#4f4bd4] dark:bg-[#7c72ff] dark:text-slate-950 dark:hover:bg-[#8d84ff]">
+                Start splitting <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <a href="#how-it-works" data-testid="hero-secondary" className="inline-flex h-12 items-center rounded-xl border border-slate-300 px-5 text-base font-semibold text-slate-800 transition-colors hover:bg-slate-900/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10">
+                See how it works
+              </a>
+            </div>
+
+            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "250ms" }}>
+              <AndroidDownloadButton tone="dark" />
               <IosNotify />
             </div>
 
@@ -234,7 +293,7 @@ export function LandingView({ international = false }: { international?: boolean
             </div>
           </div>
 
-          <div className="anim-fade-up relative" style={{ animationDelay: "200ms" }}>
+          <div id="product" className="anim-fade-up relative scroll-mt-20" style={{ animationDelay: "200ms" }}>
             <div className="pointer-events-none absolute -left-52 top-36 z-10 hidden min-[1700px]:block anim-float-slow"><TripCard t={sample.tripCard} /></div>
             <PhoneDemo
               // (only plain data crosses to the browser: the full sample also holds an icon component, which cannot)
@@ -278,7 +337,7 @@ export function LandingView({ international = false }: { international?: boolean
       <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 
       {/* How it works */}
-      <section className="px-4 py-24">
+      <section id="how-it-works" className="scroll-mt-16 px-4 py-24">
         <div className="mx-auto max-w-4xl">
           <div className="mb-14 text-center">
             <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
@@ -349,7 +408,7 @@ export function LandingView({ international = false }: { international?: boolean
             <p className="mx-auto max-w-xl text-muted-foreground">{sample.featuresLead}</p>
           </div>
           <div data-testid="feature-groups" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {groups.map(({ icon: Icon, color, title, lead, items }, i) => (
+            {groups.map(({ id, icon: Icon, color, title, lead, items }, i) => (
               <Reveal key={title} delay={(i % 2) * 90}>
                 <article className="bento-card group h-full rounded-3xl border border-white/70 bg-white/70 p-7 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-white/10 dark:bg-white/5">
                   <div className={`mb-4 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-md ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
@@ -360,6 +419,7 @@ export function LandingView({ international = false }: { international?: boolean
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {items.map((it) => <li key={it} className="rounded-full border bg-background/70 px-3 py-1 text-xs font-medium">{it}</li>)}
                   </ul>
+                  <GroupVisual id={id} sample={sample} />
                 </article>
               </Reveal>
             ))}
@@ -439,7 +499,11 @@ export function LandingView({ international = false }: { international?: boolean
             </div>
             <div className="relative px-8 py-16 text-center text-white">
               <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Stop chasing your friends for money.</h2>
-              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Free on the web and Android — iOS coming soon.</p>
+              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Split it. Settle it. Move on.</p>
+              <Link href="/signup" data-testid="final-cta" className="group mb-6 inline-flex h-12 items-center gap-2 rounded-xl bg-white px-7 text-base font-semibold text-slate-900 shadow-lg transition-all hover:-translate-y-px">
+                Start splitting <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <p className="mb-4 text-sm text-white/70">Free on the web and Android — iOS coming soon.</p>
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <AndroidDownloadButton tone="light" />
                 <IosComingSoon tone="light" />

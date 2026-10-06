@@ -67,7 +67,7 @@ export function PhoneField({ id, initial = "", defaultCountry, onChange, invalid
         <span
           aria-hidden="true"
           className={cn(
-            "flex h-9 items-center gap-1 rounded-lg border border-input bg-background px-2.5 text-sm shadow-sm max-lg:h-[52px] max-lg:rounded-2xl max-lg:px-3 max-lg:text-base",
+            "flex items-center gap-1 border border-input bg-background px-2.5 text-sm shadow-sm h-12 rounded-xl px-3 text-base",
             disabled && "opacity-50",
           )}
         >
@@ -103,7 +103,7 @@ export function PhoneField({ id, initial = "", defaultCountry, onChange, invalid
         onChange={(e) => update({ country: state.country, text: e.target.value })}
         aria-invalid={invalid}
         aria-describedby={describedBy}
-        className="max-lg:h-[52px] max-lg:rounded-2xl"
+        className="h-12 rounded-xl"
       />
     </div>
   );

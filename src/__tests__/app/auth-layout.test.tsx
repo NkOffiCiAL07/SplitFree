@@ -72,6 +72,10 @@ describe("Auth layout — calm styles", () => {
     expect(css).toMatch(/\.auth-calm \.lg-ready \{ animation: none; \}/);
     expect(css).toMatch(/\.auth-calm \.btn-liquid::before, \.auth-calm \.lg-shine::after \{ display: none; \}/);
   });
+  it("keyboard users see a clear ring on the main button (light and dark)", () => {
+    expect(css).toMatch(/\.auth-calm \.btn-liquid:focus-visible \{ outline: 2px solid #5b57e8; outline-offset: 3px; \}/);
+    expect(css).toMatch(/\.dark \.auth-calm \.btn-liquid:focus-visible \{ outline-color: #a5a0ff; \}/);
+  });
   it("fields get a 1px indigo border and a soft ring on focus; invalid ones turn red quietly", () => {
     expect(css).toMatch(/\.auth-calm input:focus-visible[^{]*\{[^}]*border-color: #5b5ce2;[^}]*rgba\(91, 92, 226, 0\.18\)/);
     expect(css).toMatch(/\.auth-calm \[aria-invalid="true"\] \{ border-color: #dc2626; \}/);
@@ -99,9 +103,9 @@ describe("dark mode follows the app's theme, not the device's setting", () => {
   it("`dark:` utilities are tied to the .dark class on <html> (a class-based variant)", () => {
     expect(css).toContain("@custom-variant dark (&:where(.dark, .dark *));");
   });
-  it("and dark is the default theme for first-time visitors (they can switch to light or system)", () => {
+  it("first-time visitors get their device's theme (they can then pick light or dark and it is remembered)", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
-    expect(layout).toMatch(/defaultTheme="dark"/);
+    expect(layout).toMatch(/defaultTheme="system"/);
     expect(layout).toMatch(/enableSystem/);
   });
 });

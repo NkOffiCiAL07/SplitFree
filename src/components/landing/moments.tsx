@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/landing/reveal";
 
 export interface ChatLine { who: string; text: string }
-export interface Moment { emoji: string; title: string; example: string }
+export interface Moment { emoji: string; title: string; meta: string; example: string }
 
 /** "Still doing this in the group chat?" — the problem, in the messages everyone has sent. */
 export function ChatProblem({ lines, answer }: { lines: ChatLine[]; answer: string }) {
@@ -52,6 +52,7 @@ export function MomentsGrid({ moments, center }: { moments: Moment[]; center: { 
             >
               <span className="text-2xl" aria-hidden="true">{m.emoji}</span>
               <p className="mt-1 text-sm font-semibold">{m.title}</p>
+              <p className="text-[11px] tabular-nums text-muted-foreground">{m.meta}</p>
               <p className="mt-1 text-xs text-muted-foreground md:pointer-events-none md:absolute md:left-1/2 md:top-full md:z-10 md:mt-2 md:w-48 md:-translate-x-1/2 md:rounded-xl md:border md:bg-card md:p-2 md:opacity-0 md:shadow-lg md:transition-opacity md:duration-200 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">{m.example}</p>
             </li>
           ))}

@@ -43,9 +43,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
         {/* Soft coloured light behind the card, so the glass has something to pick up (desktop only: phones have no card) */}
         <div aria-hidden="true" data-testid="calm-light" className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden lg:block">
-          <div className="absolute -left-24 top-1/3 size-[26rem] rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-500/20" />
-          <div className="absolute -right-20 top-1/2 size-[24rem] rounded-full bg-violet-400/20 blur-3xl dark:bg-violet-500/20" />
-          <div className="absolute bottom-0 left-1/3 size-[22rem] rounded-full bg-sky-300/20 blur-3xl dark:bg-sky-500/15" />
+          <div className="absolute -left-24 top-1/3 size-[26rem] rounded-full bg-indigo-400/10 blur-[110px] dark:bg-indigo-500/20" />
+          <div className="absolute -right-20 top-1/2 size-[24rem] rounded-full bg-violet-400/10 blur-[110px] dark:bg-violet-500/20" />
+          <div className="absolute bottom-0 left-1/3 size-[22rem] rounded-full bg-sky-300/10 blur-[110px] dark:bg-sky-500/15" />
         </div>
 
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-2 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8 sm:pt-6">
