@@ -62,9 +62,8 @@ function GroupVisual({ id, sample }: { id: "split" | "settle" | "anywhere" | "yo
   }
   return (
     <div aria-hidden="true" data-visual={id} className={`${box} flex flex-wrap items-center gap-2`}>
-      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">No ads</span>
-      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Export my data</span>
-      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Delete account</span>
+      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Settings → Export my data</span>
+      <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold">Settings → Delete account</span>
     </div>
   );
 }
@@ -155,12 +154,12 @@ const SAMPLE_IN: Sample = {
   ],
   chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
   moments: [
-    { emoji: "🏝️", title: "Goa trip", meta: "₹18,450 · 4 people", example: "Hotel ₹8,400 ÷ 4 = ₹2,100 each" },
-    { emoji: "🏠", title: "Flat rent", meta: "₹32,000 · 3 people", example: "Rent added every month, split three ways" },
-    { emoji: "☕", title: "Chai-nashta", meta: "₹420 · 6 people", example: "Chai for the whole table, one tap" },
-    { emoji: "💍", title: "Shaadi kharcha", meta: "₹64,000 · 8 people", example: "Gifts and travel, split with cousins" },
-    { emoji: "🍕", title: "Weekend dinner", meta: "₹1,800 · 4 people", example: "Bill ₹1,800, ₹450 each" },
-    { emoji: "🏏", title: "Cricket night", meta: "₹2,400 · 10 people", example: "Snacks and a turf booking, settled" },
+    { emoji: "🏝️", title: "Goa trip", meta: "₹18,450 · 4 people", example: "Hotel ₹8,400 ÷ 4 = ₹2,100 each", net: "₹2,840", tone: "get" },
+    { emoji: "🏠", title: "Flat rent", meta: "₹32,000 · 3 people", example: "Rent added every month, split three ways", net: "₹10,667", tone: "owe" },
+    { emoji: "☕", title: "Chai-nashta", meta: "₹420 · 6 people", example: "Chai for the whole table, one tap", net: "₹70", tone: "owe" },
+    { emoji: "💍", title: "Shaadi kharcha", meta: "₹64,000 · 8 people", example: "Gifts and travel, split with cousins", net: "₹8,000", tone: "get" },
+    { emoji: "🍕", title: "Weekend dinner", meta: "₹1,800 · 4 people", example: "Bill ₹1,800, ₹450 each", net: "₹450", tone: "owe" },
+    { emoji: "🏏", title: "Cricket night", meta: "₹2,400 · 10 people", example: "Snacks and a turf booking, settled", net: "₹2,160", tone: "get" },
   ],
   feature4: { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
 };
@@ -196,12 +195,12 @@ const SAMPLE_INTL: Sample = {
   ],
   chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
   moments: [
-    { emoji: "🏝️", title: "Weekend trip", meta: "$920 · 4 people", example: "Hotel $420 ÷ 4 = $105 each" },
-    { emoji: "🏠", title: "Flat rent", meta: "$1,800 · 3 people", example: "Rent added every month, split three ways" },
-    { emoji: "☕", title: "Coffee runs", meta: "$24 · 6 people", example: "Coffee for the whole table" },
-    { emoji: "🎁", title: "Group gifts", meta: "$210 · 7 people", example: "A birthday gift, split with the team" },
-    { emoji: "🍕", title: "Weekend dinner", meta: "$120 · 4 people", example: "Bill $120, $30 each" },
-    { emoji: "🚗", title: "Road trips", meta: "$340 · 5 people", example: "Fuel and snacks, settled" },
+    { emoji: "🏝️", title: "Weekend trip", meta: "$920 · 4 people", example: "Hotel $420 ÷ 4 = $105 each", net: "$140", tone: "get" },
+    { emoji: "🏠", title: "Flat rent", meta: "$1,800 · 3 people", example: "Rent added every month, split three ways", net: "$600", tone: "owe" },
+    { emoji: "☕", title: "Coffee runs", meta: "$24 · 6 people", example: "Coffee for the whole table", net: "$4", tone: "owe" },
+    { emoji: "🎁", title: "Group gifts", meta: "$210 · 7 people", example: "A birthday gift, split with the team", net: "$30", tone: "owe" },
+    { emoji: "🍕", title: "Weekend dinner", meta: "$120 · 4 people", example: "Bill $120, $30 each", net: "$30", tone: "owe" },
+    { emoji: "🚗", title: "Road trips", meta: "$340 · 5 people", example: "Fuel and snacks, settled", net: "$68", tone: "owe" },
   ],
   feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
 };
@@ -332,7 +331,7 @@ export function LandingView({ international = false }: { international?: boolean
       <SettleFlow />
 
       <ChatProblem lines={sample.chat} answer={sample.chatAnswer} />
-      <MomentsGrid moments={sample.moments} center={{ title: `${sample.tripCard.name} ${sample.tripCard.emoji}`, total: sample.tripCard.total, people: `${sample.tripCard.people} people` }} />
+      <MomentsGrid moments={sample.moments} />
 
       <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 

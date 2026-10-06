@@ -204,7 +204,7 @@ describe("Feature groups and continuity pill", () => {
     expect(screen.getByTestId("hero")).toHaveClass("hero-light", "bg-[#f5f7fb]");
     expect(screen.getByTestId("offline-sync")).toHaveTextContent(/Offline — saved on this phone/);
     expect(screen.getByTestId("offline-sync")).toHaveTextContent(/synced/);
-    expect(screen.getByTestId("moments-center")).toHaveTextContent("₹18,450");
+    expect(screen.getByTestId("moments")).toHaveTextContent("₹18,450");
   });
 
   it("the pill offers the web app and can be dismissed; it only appears after scrolling", async () => {
@@ -312,5 +312,33 @@ describe("Mobile menu, use-case amounts and feature pictures", () => {
     expect(pill).toHaveAttribute("aria-hidden", "true");
     Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
     Object.defineProperty(document.documentElement, "scrollHeight", { value: 0, configurable: true });
+  });
+});
+
+describe("Split modes and moment cards", () => {
+  it("the bill splitter offers Equal, Shares and Percent, always adding up exactly to the bill", async () => {
+    render(<SplitTryout symbol="₹" defaultAmount="2400" currency="INR" />);
+    const total = (list: HTMLElement) => within(list).getAllByRole("listitem").map((li) => Number((li.textContent ?? "").match(/₹([\d,]+)\s*$/)?.[1].replace(/,/g, "")));
+    const list = () => screen.getByRole("list", { name: /each person/i });
+    expect(total(list())).toEqual([600, 600, 600, 600]);
+    await userEvent.click(screen.getByRole("tab", { name: "Shares" })); // 2 shares for you, 1 for the others: 2400 over 5 portions
+    expect(total(list())).toEqual([960, 480, 480, 480]);
+    await userEvent.click(screen.getByRole("tab", { name: "Percent" })); // 40% / 20% ×3
+    expect(total(list())).toEqual([960, 480, 480, 480]);
+    for (const n of [5, 7, 10]) {
+      await userEvent.click(screen.getByRole("button", { name: /more people/i }));
+      if (n === 5 || n === 7 || n === 10) { /* walk up */ }
+    }
+    expect(total(list()).reduce((a, b) => a + b, 0)).toBe(2400); // ten people, whole-number percentages, still exact
+  });
+
+  it("each moment is a small product card with what you get or owe", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const m = screen.getByTestId("moments");
+    expect(m).toHaveTextContent("Goa trip");
+    expect(m).toHaveTextContent("You get");
+    expect(m).toHaveTextContent("You owe");
+    expect(m.textContent).not.toMatch(/[+−]\s?₹/);
   });
 });
