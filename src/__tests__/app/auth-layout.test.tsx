@@ -15,7 +15,8 @@ describe("Auth layout — calm and trustworthy", () => {
   it("is an almost-white page (dark in dark mode) with one soft glow, and none of the old aurora, glass, coins or pot", async () => {
     const { container } = await renderLayout(<form aria-label="login form" />);
     const page = container.firstElementChild!;
-    expect(page).toHaveClass("auth-calm", "dark", "bg-[#08090d]"); // always the dark, cinematic look
+    expect(page).toHaveClass("auth-calm", "bg-[#f5f7fc]"); // light is the primary look
+    expect(page.className).toContain("dark:bg-[#08090d]"); // and dark is designed separately
     expect(screen.getByTestId("calm-glow")).toHaveAttribute("aria-hidden", "true");
     for (const old of [".auth-canvas", ".lg-blob", ".lg-coin", ".lg-glass", ".auth-grain", ".auth-orb", ".auth-card-glow", "[data-testid=activity-feed]", "[data-testid=chip-strip]"]) {
       expect(container.querySelector(old), old).toBeNull();
@@ -38,8 +39,9 @@ describe("Auth layout — calm and trustworthy", () => {
     expect(card).toContainElement(screen.getByRole("form", { name: "login form" }));
     expect(card.className).toContain("lg:min-h-[53rem]"); // always: the same size on both tabs
     expect(card.className).toContain("lg:border");
-    expect(card.className).toContain("lg:bg-white/[0.055]"); // dark glass
-    expect(card.className).toContain("lg:backdrop-blur-[30px]");
+    expect(card.className).toContain("lg:bg-white/[0.72]"); // light glass, readable
+    expect(card.className).toContain("dark:lg:bg-white/[0.055]");
+    expect(card.className).toContain("lg:backdrop-blur-[28px]");
     expect(screen.getByTestId("calm-light")).toHaveClass("hidden", "lg:block"); // the light behind the glass exists on desktop only
     expect(card.className).not.toMatch(/(^|\s)(border|bg-white|shadow)/); // (those only apply from the desktop breakpoint up)
     expect(card).toHaveClass("flex-1"); // on a phone the form fills the screen so the footer sits at the bottom
@@ -47,7 +49,7 @@ describe("Auth layout — calm and trustworthy", () => {
 
   it("keeps the 'Sign in' title, and colours the phone's status bar like the page in light and dark", () => {
     expect(metadata.title).toBe("Sign in");
-    expect(viewport.themeColor).toBe("#08090d");
+    expect(viewport.themeColor).toEqual([{ media: "(prefers-color-scheme: light)", color: "#f5f7fc" }, { media: "(prefers-color-scheme: dark)", color: "#08090d" }]);
     expect(viewport.viewportFit).toBe("cover");
   });
 
@@ -63,8 +65,8 @@ describe("Auth layout — calm and trustworthy", () => {
 describe("Auth layout — calm styles", () => {
   const css = readFileSync("src/app/globals.css", "utf8");
   it("one solid indigo button (#5B5CE2, darker on hover) without the sweeping light or pulsing glow", () => {
-    expect(css).toMatch(/\.auth-calm \.btn-liquid \{[^}]*background: #5b5ce2 !important/);
-    expect(css).toMatch(/\.auth-calm \.btn-liquid:hover:not\(:disabled\) \{[^}]*#4f50d4/);
+    expect(css).toMatch(/\.auth-calm \.btn-liquid \{[^}]*background: #635bff !important/);
+    expect(css).toMatch(/\.auth-calm \.btn-liquid:hover:not\(:disabled\) \{[^}]*#746eff/);
     expect(css).toMatch(/\.auth-calm \.lg-ready \{ animation: none; \}/);
     expect(css).toMatch(/\.auth-calm \.btn-liquid::before, \.auth-calm \.lg-shine::after \{ display: none; \}/);
   });
@@ -73,7 +75,7 @@ describe("Auth layout — calm styles", () => {
     expect(css).toMatch(/\.dark \.auth-calm \.btn-liquid:focus-visible \{ outline-color: #a5a0ff; \}/);
   });
   it("fields get a 1px indigo border and a soft ring on focus; invalid ones turn red quietly", () => {
-    expect(css).toMatch(/\.auth-calm input:focus-visible[^{]*\{[^}]*border-color: #5b5ce2;[^}]*rgba\(91, 92, 226, 0\.18\)/);
+    expect(css).toMatch(/\.auth-calm input:focus-visible[^{]*\{[^}]*border-color: #635bff;[^}]*rgba\(99, 91, 255, 0\.10\)/);
     expect(css).toMatch(/\.auth-calm \[aria-invalid="true"\] \{ border-color: #dc2626; \}/);
   });
 });
@@ -101,7 +103,8 @@ describe("dark mode follows the app's theme, not the device's setting", () => {
   });
   it("first-time visitors get their device's theme (they can then pick light or dark and it is remembered)", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
-    expect(layout).toMatch(/defaultTheme="system"/);
+    expect(layout).toMatch(/defaultTheme="light"/); // light is the primary look
+    expect(layout).toMatch(/enableSystem/);
     expect(layout).toMatch(/enableSystem/);
   });
 });
