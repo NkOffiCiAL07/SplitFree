@@ -446,6 +446,8 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   @media (prefers-reduced-motion: reduce) { .cta-glow { animation: none; } }
 
   /* feature cards: a definite edge and a gentle tint, so each one stands on its own */
+  .bento-card { position: relative; transition-property: transform, box-shadow, border-color; }
+  .bento-card:hover { border-color: hsl(var(--brand-500) / 0.8); box-shadow: 0 0 0 1px hsl(var(--brand-500) / 0.5), 0 18px 50px -12px hsl(var(--brand-500) / 0.45); }
   .feature-card { border-color: hsl(var(--brand-300) / 0.55); background: linear-gradient(160deg, hsl(0 0% 100% / 0.92), hsl(var(--brand-50) / 0.85)); }
   .dark .feature-card { border-color: hsl(0 0% 100% / 0.16); background: linear-gradient(160deg, hsl(222 30% 16% / 0.9), hsl(222 30% 11% / 0.85)); }
   @media (max-width: 1023px), (pointer: coarse) { .feature-card { background: linear-gradient(160deg, hsl(0 0% 100% / 0.96), hsl(var(--brand-50) / 0.9)); } .dark .feature-card { background: linear-gradient(160deg, hsl(222 30% 16% / 0.95), hsl(222 30% 11% / 0.92)); } }

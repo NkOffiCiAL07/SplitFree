@@ -14,6 +14,7 @@ import { SettleFlow } from "@/components/landing/settle-flow";
 import { SplitTryout } from "@/components/landing/split-tryout";
 import { PhoneDemo } from "@/components/landing/phone-demo";
 import { IosNotify } from "@/components/landing/ios-notify";
+import { ContinuityPill } from "@/components/landing/continuity-pill";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
@@ -36,6 +37,41 @@ const features = [
   { icon: Bell, title: "Gentle reminders", description: "Nudge someone who owes you with a tap — one polite reminder a day, never spam.", color: "from-orange-500 to-red-500" },
   { icon: Shield, title: "Private by design", description: "No ads and no selling your data. Your account works the same on the web and on Android.", color: "from-green-500 to-emerald-600" },
 ];
+
+/** The wider cards in the feature grid, and which little picture each one shows */
+const WIDE = new Map<string, "offline" | "import" | "settle" | "private">([
+  ["Works offline", "offline"], ["Bring your Splitwise history", "import"], ["Smart settle-up", "settle"], ["Private by design", "private"],
+]);
+
+function BentoArt({ kind }: { kind: "offline" | "import" | "settle" | "private" }) {
+  const chip = "rounded-lg border bg-background/70 px-2.5 py-1.5 text-xs font-medium";
+  return (
+    <div aria-hidden="true" data-art={kind} className="relative mt-4 flex flex-wrap items-center gap-2 text-muted-foreground">
+      {kind === "offline" && (<>
+        <span className={`${chip} flex items-center gap-1.5`}><WifiOff className="size-3.5 text-amber-500" /> No signal</span>
+        <ArrowRight className="size-3.5" />
+        <span className={chip}>Dinner added · saved on device</span>
+        <ArrowRight className="size-3.5" />
+        <span className={`${chip} flex items-center gap-1.5 text-green-600 dark:text-green-400`}><Check className="size-3.5" /> Synced, once</span>
+      </>)}
+      {kind === "import" && (<>
+        <span className={`${chip} flex items-center gap-1.5`}><FileUp className="size-3.5" /> splitwise.csv</span>
+        <ArrowRight className="size-3.5" />
+        <span className={chip}>Match people</span>
+        <ArrowRight className="size-3.5" />
+        <span className={`${chip} flex items-center gap-1.5 text-green-600 dark:text-green-400`}><Check className="size-3.5" /> History imported</span>
+      </>)}
+      {kind === "settle" && (<>
+        <span className={chip}>10 payments</span>
+        <ArrowRight className="size-3.5" />
+        <span className={`${chip} text-violet-600 dark:text-violet-400`}>3 payments</span>
+      </>)}
+      {kind === "private" && (<>
+        <span className={chip}>No ads</span><span className={chip}>No selling data</span><span className={chip}>Export or delete anytime</span>
+      </>)}
+    </div>
+  );
+}
 
 const steps = [
   { number: "01", icon: UsersRound, title: "Create a group", description: "Add roommates, travel buddies or friends. Share an invite link or show a QR code — they join instantly." },
@@ -303,15 +339,16 @@ export function LandingView({ international = false }: { international?: boolean
             <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
             <p className="mx-auto max-w-xl text-muted-foreground">{sample.featuresLead}</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="bento">
             {features.map((f, i) => (f.title === SAMPLE_IN.feature4.title ? sample.feature4 : f)).map(({ icon: Icon, title, description, color }, i) => (
-              <Reveal key={title} delay={(i % 4) * 80}>
-                <div className="lg-glass feature-card group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
+              <Reveal key={title} delay={(i % 4) * 80} className={WIDE.has(title) ? "sm:col-span-2" : ""}>
+                <div className="lg-glass feature-card bento-card group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
                   <div className={`relative mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md shadow-black/10 ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
                     <Icon className="size-5 text-white" />
                   </div>
                   <h3 className="relative mb-1.5 font-semibold">{title}</h3>
                   <p className="relative text-sm leading-relaxed text-muted-foreground">{description}</p>
+                  {WIDE.has(title) && <BentoArt kind={WIDE.get(title)!} />}
                 </div>
               </Reveal>
             ))}
@@ -422,6 +459,7 @@ export function LandingView({ international = false }: { international?: boolean
           </div>
         </div>
       </footer>
+      <ContinuityPill />
     </div>
   );
 }

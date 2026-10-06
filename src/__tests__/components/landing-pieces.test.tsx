@@ -179,3 +179,28 @@ describe("nothing un-serialisable is handed from the server page to client compo
     expect(functions).toEqual([]);
   });
 });
+
+describe("Bento feature grid and continuity pill", () => {
+  it("the grid has wider cards with a small picture for offline, Splitwise import, settle-up and privacy", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const grid = screen.getByTestId("bento");
+    for (const kind of ["offline", "import", "settle", "private"]) expect(grid.querySelector(`[data-art="${kind}"]`)).not.toBeNull();
+    expect(grid.querySelectorAll(".sm\\:col-span-2")).toHaveLength(4);
+  });
+
+  it("the pill offers the web app and can be dismissed; it only appears after scrolling", async () => {
+    const { ContinuityPill } = await import("@/components/landing/continuity-pill");
+    const { fireEvent, act } = await import("@testing-library/react");
+    render(<ContinuityPill />);
+    const pill = screen.getByTestId("continuity-pill");
+    expect(pill).toHaveAttribute("aria-hidden", "true");
+    Object.defineProperty(window, "scrollY", { value: 900, configurable: true });
+    act(() => { fireEvent.scroll(window); });
+    expect(pill).toHaveAttribute("aria-hidden", "false");
+    expect(screen.getByRole("link", { name: /launch web app/i })).toHaveAttribute("href", "/login");
+    fireEvent.click(screen.getByRole("button", { name: /dismiss/i }));
+    expect(screen.queryByTestId("continuity-pill")).toBeNull();
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+  });
+});
