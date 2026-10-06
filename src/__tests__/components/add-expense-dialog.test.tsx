@@ -227,7 +227,8 @@ describe("AddExpenseDialog — standalone (no group)", () => {
     state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }, { friendId: "b", friend: { name: "Leo Park" } }];
     render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
     expect(screen.queryByTestId("quick-tags")).not.toBeInTheDocument(); // nothing typed, nothing shown
-    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Dinner at Luigi's $90 with Asha and Leo split equally");
+    await userEvent.click(screen.getByPlaceholderText(/dinner 1200 with rahul/i));
+    await userEvent.paste("Dinner at Luigi's $90 with Asha and Leo split equally");
     const tags = within(screen.getByTestId("quick-tags")).getAllByRole("listitem");
     expect(tags.map((t) => t.getAttribute("data-kind"))).toEqual(["title", "amount", "person", "person", "rule"]);
     expect(tags.map((t) => t.textContent?.replace(/^(Title|Amount|With|Rule)\s*/, ""))).toEqual(["Dinner at Luigi's", "$90", "Asha", "Leo", "Split equally"]);
@@ -237,7 +238,8 @@ describe("AddExpenseDialog — standalone (no group)", () => {
   it("flags a name it can't find (amber, with a ?) while you are still typing", async () => {
     state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }];
     render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
-    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Movie 400 with Asha and Zed");
+    await userEvent.click(screen.getByPlaceholderText(/dinner 1200 with rahul/i));
+    await userEvent.paste("Movie 400 with Asha and Zed");
     const tags = within(screen.getByTestId("quick-tags")).getAllByRole("listitem");
     const zed = tags.find((t) => /Zed/.test(t.textContent ?? ""))!;
     expect(zed).toHaveAttribute("data-missing", "true");
@@ -248,7 +250,9 @@ describe("AddExpenseDialog — standalone (no group)", () => {
   it("applying it fills the form, keeps the split equal, and takes the currency from the symbol", async () => {
     state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }];
     render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
-    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Pub £25 with Asha split equally{Enter}");
+    await userEvent.click(screen.getByPlaceholderText(/dinner 1200 with rahul/i));
+    await userEvent.paste("Pub £25 with Asha split equally");
+    await userEvent.keyboard("{Enter}");
     expect(screen.getByPlaceholderText(/dinner, groceries, rent/i)).toHaveValue("Pub");
     expect(screen.getByPlaceholderText("0.00")).toHaveValue(25);
     expect(screen.getAllByText(/12\.50 GBP/).length).toBeGreaterThan(0); // 25 split between two, in pounds (the € / £ / $ symbol chose the currency)
