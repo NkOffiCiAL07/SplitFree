@@ -16,7 +16,7 @@ describe("Auth layout — calm and trustworthy", () => {
     const { container } = await renderLayout(<form aria-label="login form" />);
     const page = container.firstElementChild!;
     expect(page).toHaveClass("auth-calm", "bg-[#f7f8fc]");
-    expect(page.className).toContain("dark:bg-[#0b0d14]");
+    expect(page.className).toContain("dark:bg-[#090a0f]");
     expect(screen.getByTestId("calm-glow")).toHaveAttribute("aria-hidden", "true");
     for (const old of [".auth-canvas", ".lg-blob", ".lg-coin", ".lg-glass", ".auth-grain", ".auth-orb", ".auth-card-glow", "[data-testid=activity-feed]", "[data-testid=chip-strip]"]) {
       expect(container.querySelector(old), old).toBeNull();
@@ -50,7 +50,7 @@ describe("Auth layout — calm and trustworthy", () => {
     expect(metadata.title).toBe("Sign in");
     expect(viewport.themeColor).toEqual([
       { media: "(prefers-color-scheme: light)", color: "#f7f8fc" },
-      { media: "(prefers-color-scheme: dark)", color: "#0b0d14" },
+      { media: "(prefers-color-scheme: dark)", color: "#090a0f" },
     ]);
     expect(viewport.viewportFit).toBe("cover");
   });
@@ -93,3 +93,15 @@ describe("phones get a lighter sign-in and cards (smooth scrolling on mid-range 
   });
 });
 
+
+describe("dark mode follows the app's theme, not the device's setting", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  it("`dark:` utilities are tied to the .dark class on <html> (a class-based variant)", () => {
+    expect(css).toContain("@custom-variant dark (&:where(.dark, .dark *));");
+  });
+  it("and dark is the default theme for first-time visitors (they can switch to light or system)", () => {
+    const layout = readFileSync("src/app/layout.tsx", "utf8");
+    expect(layout).toMatch(/defaultTheme="dark"/);
+    expect(layout).toMatch(/enableSystem/);
+  });
+});

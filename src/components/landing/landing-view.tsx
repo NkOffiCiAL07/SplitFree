@@ -71,8 +71,8 @@ interface Sample {
   moments: Moment[];
 }
 
-const RED = "text-red-600 dark:text-red-400";
-const GREEN = "text-green-600 dark:text-green-400";
+const RED = "text-red-600 dark:text-rose-400";
+const GREEN = "text-green-600 dark:text-emerald-400";
 
 const SAMPLE_IN: Sample = {
   owed: "₹1,190", owe: "₹1,200",
@@ -187,14 +187,12 @@ export function LandingView({ international = false }: { international?: boolean
       </header>
 
       {/* Hero — a soft off-white canvas lit by ambient indigo/violet light (a deep-indigo night scene in dark mode) */}
-      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-28 pt-14 text-slate-900 sm:pt-20 dark:auth-canvas dark:bg-transparent dark:text-white">
+      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-28 pt-14 text-slate-900 sm:pt-20 dark:bg-[#090a0f] dark:text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(99,91,255,0.22),transparent_38%)] dark:hidden" />
-          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/40 dark:bg-cyan-400/35" />
-          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-violet-300/40 dark:bg-fuchsia-500/30" />
-          <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-300/40 dark:bg-indigo-400/35" />
-          <div className="auth-dots absolute inset-0 hidden dark:block" />
-          <div className="auth-grain absolute inset-0 hidden dark:block" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(99,91,255,0.22),transparent_38%)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(99,91,255,0.20),transparent_38%)]" />
+          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/40 dark:bg-cyan-400/10" />
+          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-violet-300/40 dark:bg-indigo-500/20" />
+          <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-300/40 dark:bg-violet-500/15" />
         </div>
 
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
@@ -385,7 +383,7 @@ export function LandingView({ international = false }: { international?: boolean
                 "Green means you're owed, red means you owe — clear at a glance.",
               ].map((t) => (
                 <li key={t} className="flex gap-3">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-green-600 dark:text-green-400" /></span>
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-green-600 dark:text-emerald-400" /></span>
                   <span className="text-sm leading-relaxed sm:text-base">{t}</span>
                 </li>
               ))}
@@ -397,7 +395,7 @@ export function LandingView({ international = false }: { international?: boolean
               <div key={d.from} className="flex items-center gap-3 border-b py-3 last:border-0">
                 <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-600 dark:text-violet-300">{d.from[0]}</div>
                 <p className="flex-1 text-sm"><span className="font-medium">{d.from}</span> pays <span className="font-medium">{d.to}</span></p>
-                <p className="text-sm font-semibold text-red-600 dark:text-red-400">{d.amount}</p>
+                <p className="text-sm font-semibold text-red-600 dark:text-rose-400">{d.amount}</p>
                 <span className="hidden items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium sm:flex"><QrCode className="size-3" /> {sample.payChip}</span>
               </div>
             ))}

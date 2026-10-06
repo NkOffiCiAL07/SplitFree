@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+/* `dark:` follows the app's theme (the .dark class next-themes puts on <html>), not the device's setting: someone who picks Dark in the app while their phone is in light mode must get the dark styles, and the other way round */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   /* Brand colors — violet-indigo inspired by Linear */
   --color-brand-50: hsl(var(--brand-50));
@@ -83,24 +86,24 @@
 
 /* ─── Dark mode ──────────────────────────────────────────── */
 .dark {
-  --background: 224 71% 4%;
+  --background: 230 25% 5%; /* #090A0F: near-black with a hint of indigo */
   --foreground: 210 40% 98%;
-  --card: 224 71% 6%;
+  --card: 228 23% 9%; /* #11131B */
   --card-foreground: 210 40% 98%;
-  --popover: 224 71% 6%;
+  --popover: 228 23% 9%;
   --popover-foreground: 210 40% 98%;
   --primary: 263 70% 68%;
   --primary-foreground: 224 71% 4%;
-  --secondary: 215 28% 17%;
+  --secondary: 228 18% 15%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 215 28% 12%;
-  --muted-foreground: 217 12% 72%;
-  --accent: 215 28% 17%;
+  --muted: 228 20% 12%;
+  --muted-foreground: 224 11% 66%;
+  --accent: 228 18% 15%;
   --accent-foreground: 210 40% 98%;
   --destructive: 0 63% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 215 28% 17%;
-  --input: 215 28% 17%;
+  --border: 230 13% 19%;
+  --input: 230 13% 19%;
   --ring: 263 70% 68%;
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
@@ -359,6 +362,14 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   @media (prefers-reduced-motion: reduce) { .os-offline { animation: none; opacity: 0; } .os-online { animation: none; opacity: 1; } }
 
   /* The landing hero in light mode: the dark-glass pieces inside it (written for a night scene) turn into readable light glass */
+  /* The landing hero at night: neutral translucent glass (not tinted purple), with a thin top highlight */
+  .dark .hero-light .lg-glass-dark {
+    background: rgba(255, 255, 255, 0.065);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
   html:not(.dark) .hero-light .lg-glass-dark {
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid rgba(255, 255, 255, 0.75);
@@ -390,6 +401,9 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   .auth-calm .lg-ready { animation: none; }
   .auth-calm .btn-liquid:hover:not(:disabled) { filter: none; background: #4f50d4 !important; transform: translateY(-1px); box-shadow: 0 6px 16px -6px rgba(91, 92, 226, 0.55); }
   .auth-calm .btn-liquid:active:not(:disabled) { transform: translateY(0); filter: none; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12); }
+  .dark .auth-calm .btn-liquid { background: #7c72ff !important; color: #0b0d14; font-weight: 700; }
+  .dark .auth-calm .btn-liquid:hover:not(:disabled) { background: #8d84ff !important; box-shadow: 0 6px 22px -6px rgba(124, 114, 255, 0.55); }
+  .dark .auth-calm input:focus-visible, .dark .auth-calm select:focus-visible { border-color: #7c72ff; box-shadow: 0 0 0 3px rgba(124, 114, 255, 0.22); }
   .auth-calm input:focus-visible, .auth-calm select:focus-visible {
     outline: none;
     border-color: #5b5ce2;

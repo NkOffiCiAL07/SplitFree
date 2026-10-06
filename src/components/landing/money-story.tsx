@@ -27,7 +27,7 @@ export function MoneyStory({ s, card }: { s: StoryData; card?: ReactNode }) {
           {beats.map((b, i) => (
             <Reveal key={b.n} delay={i * 90}>
               <li className="relative h-full list-none rounded-2xl border bg-card p-5 transition-transform duration-300 hover:-translate-y-1">
-                <span className="bg-gradient-to-br from-indigo-600 to-violet-500 bg-clip-text text-3xl font-extrabold text-transparent">{b.n}</span>
+                <span className="bg-gradient-to-br from-indigo-600 to-violet-500 bg-clip-text dark:from-indigo-300 dark:to-violet-300 text-3xl font-extrabold text-transparent">{b.n}</span>
                 <h3 className="mt-2 font-semibold">{b.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{b.body}</p>
               </li>

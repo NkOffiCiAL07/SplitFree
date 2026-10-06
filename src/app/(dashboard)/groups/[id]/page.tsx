@@ -360,12 +360,12 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "rounded-2xl p-5 text-white",
-          myBalance >= 0 ? "bg-green-600" : "bg-red-600"
+          myBalance >= 0 ? "bg-green-600 dark:border dark:border-emerald-400/25 dark:bg-emerald-500/15 dark:text-emerald-300" : "bg-red-600 dark:border dark:border-rose-400/25 dark:bg-rose-500/15 dark:text-rose-300"
         )}
       >
-        <p className="text-sm text-white/80">Your balance in this group</p>
+        <p className="text-sm text-white/80 dark:text-current dark:opacity-80">Your balance in this group</p>
         <p className="text-3xl font-bold mt-1">{formatCurrency(Math.abs(myBalance), group.currency)}</p>
-        <p className="text-sm mt-1 text-white/80">
+        <p className="text-sm mt-1 text-white/80 dark:text-current dark:opacity-80">
           {myBalance > 0 ? "You are owed" : myBalance < 0 ? "You owe" : "All settled up!"}
         </p>
       </m.div>

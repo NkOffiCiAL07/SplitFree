@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f7f8fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0d14" },
+    { media: "(prefers-color-scheme: dark)", color: "#090a0f" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -34,11 +34,11 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   return (
     <RegionProvider region={region}>
     <FillProvider>
-      <div className="auth-calm relative isolate flex min-h-dvh flex-col overflow-x-clip bg-[#f7f8fc] dark:bg-[#0b0d14]">
+      <div className="auth-calm relative isolate flex min-h-dvh flex-col overflow-x-clip bg-[#f7f8fc] dark:bg-[#090a0f]">
         <div
           aria-hidden="true"
           data-testid="calm-glow"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(55%_65%_at_50%_0%,rgba(91,92,226,0.10),transparent_70%)] dark:bg-[radial-gradient(55%_65%_at_50%_0%,rgba(124,127,255,0.16),transparent_70%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(55%_65%_at_50%_0%,rgba(91,92,226,0.10),transparent_70%)] dark:bg-[radial-gradient(55%_65%_at_50%_0%,rgba(99,91,255,0.20),transparent_70%)]"
         />
 
         {/* Soft coloured light behind the card, so the glass has something to pick up (desktop only: phones have no card) */}
@@ -60,7 +60,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <main className="flex flex-1 flex-col items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:pt-8 lg:px-4 lg:pb-12 lg:pt-4">
           <div
             data-testid="auth-card"
-            className="auth-card flex w-full max-w-md flex-1 flex-col lg:max-w-[28rem] lg:flex-none lg:min-h-[53rem] lg:rounded-2xl lg:border lg:border-white/70 lg:bg-white/75 lg:p-8 lg:backdrop-blur-[28px] lg:backdrop-saturate-[140%] lg:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-24px_rgba(15,23,42,0.22)] dark:lg:border-white/10 dark:lg:bg-[#12151f]/75 dark:lg:shadow-none"
+            className="auth-card flex w-full max-w-md flex-1 flex-col lg:max-w-[28rem] lg:flex-none lg:min-h-[53rem] lg:rounded-2xl lg:border lg:border-white/70 lg:bg-white/75 lg:p-8 lg:backdrop-blur-[28px] lg:backdrop-saturate-[140%] lg:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-24px_rgba(15,23,42,0.22)] dark:lg:border-white/10 dark:lg:bg-[#11131b]/75 dark:lg:shadow-[0_24px_70px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
           >
             <Suspense fallback={null}>
               <AuthTabs />
