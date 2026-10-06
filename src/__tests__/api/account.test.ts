@@ -121,7 +121,7 @@ describe("DELETE /api/account — when everything is settled", () => {
       where: { id: ME },
       data: { name: DELETED_NAME, email: deletedEmail(ME), avatarUrl: null, upiId: null, phone: null, emailNotifications: false },
     });
-    for (const m of ["groupMember", "notification", "pushSubscription", "budget", "expenseComment", "activity"]) {
+    for (const m of ["groupMember", "notification", "pushSubscription", "budget", "expenseComment", "expenseReaction", "activity"]) {
       expect(p[m].deleteMany, m).toHaveBeenCalledWith({ where: { userId: ME } });
     }
     expect(p.friendship.deleteMany).toHaveBeenCalledWith({ where: { OR: [{ userId: ME }, { friendId: ME }] } });

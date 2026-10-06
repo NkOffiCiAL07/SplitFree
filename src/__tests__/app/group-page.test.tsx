@@ -42,6 +42,7 @@ vi.mock("@/components/groups/group-debts-card", () => ({ GroupDebtsCard: () => <
 vi.mock("@/components/groups/group-stats-card", () => ({ GroupStatsCard: () => <div data-testid="stats-card" /> }));
 vi.mock("@/components/expenses/expense-comments", () => ({ ExpenseComments: () => <div /> }));
 vi.mock("@/components/expenses/expense-history", () => ({ ExpenseHistory: () => <div /> }));
+vi.mock("@/components/expenses/reaction-bar", async (orig) => ({ ...(await orig<typeof import("@/components/expenses/reaction-bar")>()), ReactionBar: ({ expenseId }: { expenseId: string }) => <div data-testid="reaction-bar-stub" data-expense={expenseId} /> })); // (the real bar needs a QueryClient; the chips on rows are real)
 
 import { toast } from "sonner";
 import GroupDetailPage from "@/app/(dashboard)/groups/[id]/page";

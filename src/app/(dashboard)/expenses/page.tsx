@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency, formatDate, getInitials, cn } from "@/lib/utils";
 import { useUserCurrency } from "@/hooks/use-profile";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
+import { ReactionBar, ReactionChips } from "@/components/expenses/reaction-bar";
 import { Separator } from "@/components/ui/separator";
 import type { Expense } from "@/types";
 import { PendingSyncList } from "@/components/expenses/pending-sync-list";
@@ -257,6 +258,7 @@ function ExpensesPageInner() {
               )}
 
               <Separator />
+              <ReactionBar key={selectedExpense.id} expenseId={selectedExpense.id} reactions={selectedExpense.reactions} />
               <ExpenseHistory expenseId={selectedExpense.id} />
               <ExpenseComments expenseId={selectedExpense.id} />
               <Separator />
@@ -349,6 +351,7 @@ function ExpenseRow({
           {payersLabel(expense)} · {formatDate(expense.date)}
           {expense.group && <span> · {expense.group.name}</span>}
         </p>
+        <ReactionChips reactions={expense.reactions} />
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, displayCurrency)}</p>

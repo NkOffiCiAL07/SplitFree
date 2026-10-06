@@ -116,6 +116,7 @@ model User {
   friendOf         Friendship[]   @relation("FriendOf")
   sentInvites      GroupInvite[]  @relation("SentInvites")
   comments         ExpenseComment[]
+  reactions        ExpenseReaction[]
   budgets          Budget[]
   expensePayments  ExpensePayer[]
   revisions        ExpenseRevision[]
@@ -192,6 +193,7 @@ model Expense {
   splits            ExpenseSplit[]
   activities        Activity[]
   comments          ExpenseComment[]
+  reactions         ExpenseReaction[]
   payers            ExpensePayer[]
   revisions         ExpenseRevision[]
   recurringParent   Expense?       @relation("RecurringChildren", fields: [recurringParentId], references: [id], onDelete: SetNull)
@@ -331,6 +333,22 @@ model ExpenseComment {
 
   @@index([expenseId])
   @@map("expense_comments")
+}
+
+/// A quick emoji reaction on an expense (one row per person per emoji)
+model ExpenseReaction {
+  id        String   @id @default(uuid())
+  expenseId String   @map("expense_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId, emoji])
+  @@index([expenseId])
+  @@map("expense_reactions")
 }
 
 model Budget {

@@ -3,6 +3,7 @@ import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { attachReactions } from "@/lib/reactions-db";
 import { requireAuth, ok, err, handleError, visibleToUser, getKnownUserIds, isGroupArchived, ARCHIVED_MESSAGE, tooManyRequests, expenseResponseInclude } from "@/lib/api-helpers";
 import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
@@ -30,7 +31,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       include: expenseResponseInclude,
     });
     if (!expense) return err("Expense not found", 404);
-    return ok(expense);
+    const [withReactions] = await attachReactions([expense], user!.id);
+    return ok(withReactions);
   } catch (e) {
     return handleError(e);
   }

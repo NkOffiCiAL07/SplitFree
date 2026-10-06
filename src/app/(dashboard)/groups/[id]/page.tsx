@@ -14,6 +14,7 @@ import { useDebounceValue } from "usehooks-ts";
 import { useSettleUp } from "@/hooks/use-settlements";
 import { useAuth } from "@/hooks/use-auth";
 import { ExpenseComments } from "@/components/expenses/expense-comments";
+import { ReactionBar, ReactionChips } from "@/components/expenses/reaction-bar";
 import { BudgetCard } from "@/components/groups/budget-card";
 import { netForUser, payersLabel } from "@/lib/expense-display";
 import { ExpenseHistory } from "@/components/expenses/expense-history";
@@ -791,6 +792,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
                 <Separator />
+                <ReactionBar key={viewingExpense.id} expenseId={viewingExpense.id} reactions={viewingExpense.reactions} />
                 <ExpenseHistory expenseId={viewingExpense.id} />
                 <ExpenseComments expenseId={viewingExpense.id} />
                 <Separator />
@@ -845,6 +847,7 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
         <p className="text-xs text-muted-foreground">
           {payersLabel(expense)} · {formatDate(expense.date)}
         </p>
+        <ReactionChips reactions={expense.reactions} />
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>

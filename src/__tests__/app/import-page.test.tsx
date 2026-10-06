@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const { useGroups, useGroup, useFriendContacts, toast } = vi.hoisted(() => ({
@@ -22,6 +22,8 @@ const CSV = [
 
 const upload = async (csv = CSV, name = "splitwise.csv") =>
   userEvent.upload(screen.getByLabelText(/splitwise csv file/i), new File([csv], name, { type: "text/csv" }));
+
+const toReview = async () => userEvent.click(await screen.findByRole("button", { name: /continue to review/i }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -50,7 +52,7 @@ describe("ImportPage", () => {
   it("blocks the import until every person is matched, and says who is missing", async () => {
     render(<ImportPage />);
     await upload();
-    const button = await screen.findByRole("button", { name: /import 1 expense/i });
+    const button = await screen.findByRole("button", { name: /continue to review/i });
     expect(button).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("Choose who Zed is");
     await userEvent.selectOptions(screen.getByLabelText("Zed"), "b");
@@ -62,6 +64,7 @@ describe("ImportPage", () => {
     render(<ImportPage />);
     await upload();
     await userEvent.selectOptions(await screen.findByLabelText("Zed"), "b");
+    await toReview();
     await userEvent.click(screen.getByRole("button", { name: /import 1 expense/i }));
 
     const [url, init] = vi.mocked(fetch).mock.calls[0];
@@ -84,6 +87,7 @@ describe("ImportPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /re-match automatically/i }));
     expect(screen.getByLabelText("Asha Rao")).toHaveValue("m2");
     expect(screen.getByLabelText("Zed")).toHaveValue("m3");
+    await toReview();
     await userEvent.click(screen.getByRole("button", { name: /import 1 expense/i }));
     expect(JSON.parse((vi.mocked(fetch).mock.calls[0][1] as RequestInit).body as string).groupId).toBe("g1");
   });
@@ -93,6 +97,7 @@ describe("ImportPage", () => {
     render(<ImportPage />);
     await upload();
     await userEvent.selectOptions(await screen.findByLabelText("Zed"), "b");
+    await toReview();
     await userEvent.click(screen.getByRole("button", { name: /import 1 expense/i }));
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/must be a member/)));
     expect(screen.queryByTestId("import-result")).not.toBeInTheDocument();
@@ -103,5 +108,65 @@ describe("ImportPage", () => {
     await upload("foo,bar\n1,2", "random.csv");
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/doesn't look like a Splitwise export/)));
     expect(screen.queryByLabelText(/destination/i)).not.toBeInTheDocument();
+  });
+
+  it("is a guided flow: Upload → Match → Import, with the current step marked", async () => {
+    render(<ImportPage />);
+    const steps = () => screen.getAllByRole("listitem").filter((li) => ["Upload", "Match", "Import"].some((t) => li.textContent === t || li.textContent?.endsWith(t)));
+    expect(steps().find((li) => li.getAttribute("aria-current") === "step")?.textContent).toMatch(/Upload/);
+    await upload();
+    await screen.findByLabelText("Zed");
+    expect(steps().find((li) => li.getAttribute("aria-current") === "step")?.textContent).toMatch(/Match/);
+    await userEvent.selectOptions(screen.getByLabelText("Zed"), "b");
+    await toReview();
+    expect(steps().find((li) => li.getAttribute("aria-current") === "step")?.textContent).toMatch(/Import/);
+  });
+
+  it("shows live how many people are matched", async () => {
+    render(<ImportPage />);
+    await upload();
+    expect(await screen.findByText("2 of 3 matched")).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText("Zed"), "b");
+    expect(screen.getByText("3 of 3 matched")).toBeInTheDocument();
+  });
+
+  it("accepts a file dropped onto the drop zone", async () => {
+    render(<ImportPage />);
+    const zone = screen.getByText(/drop your csv here/i).closest("label")!;
+    const file = new File([CSV], "dropped.csv", { type: "text/csv" });
+    const { fireEvent } = await import("@testing-library/react");
+    fireEvent.dragOver(zone);
+    fireEvent.drop(zone, { dataTransfer: { files: [file] } });
+    expect(await screen.findByTestId("import-summary")).toHaveTextContent("1 expense and 1 payment");
+  });
+
+  it("the review step recaps what is about to happen, and Back goes to matching without losing the choices", async () => {
+    render(<ImportPage />);
+    await upload();
+    await userEvent.selectOptions(await screen.findByLabelText("Zed"), "b");
+    await toReview();
+    const review = screen.getByTestId("import-review");
+    expect(review).toHaveTextContent("splitwise.csv");
+    expect(review).toHaveTextContent("1 expense and 1 payment");
+    expect(review).toHaveTextContent("between you and your friends");
+    expect(review).toHaveTextContent("3 matched");
+    expect(fetch).not.toHaveBeenCalled(); // nothing is saved until the button is pressed
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(screen.getByLabelText("Zed")).toHaveValue("b");
+  });
+
+  it("celebrates with the counts, and 'Import another file' starts over", async () => {
+    render(<ImportPage />);
+    await upload();
+    await userEvent.selectOptions(await screen.findByLabelText("Zed"), "b");
+    await toReview();
+    await userEvent.click(screen.getByRole("button", { name: /import 1 expense/i }));
+    const done = await screen.findByTestId("import-result");
+    expect(done).toHaveTextContent("Imported 1 expense and 1 payment");
+    expect(within(done).getByRole("link", { name: /view expenses/i })).toHaveAttribute("href", "/expenses");
+    expect(within(done).getByRole("link", { name: /who owes whom/i })).toHaveAttribute("href", "/settle");
+    await userEvent.click(screen.getByRole("button", { name: /import another file/i }));
+    expect(screen.getByText(/drop your csv here/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("import-result")).not.toBeInTheDocument();
   });
 });

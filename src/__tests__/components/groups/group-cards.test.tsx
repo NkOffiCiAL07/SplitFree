@@ -108,3 +108,31 @@ describe("GroupDebtsCard", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });
+
+describe("GroupDebtsCard — list or graph", () => {
+  beforeEach(() => useGroupDebts.mockReset());
+
+  it("has a List | Graph switch; Graph draws the same payments as the list, and Pay in the graph opens the same payment", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const onPay = vi.fn();
+    const simplified = [{ fromUserId: "me", toUserId: "a", amount: 24000, currency: "INR" }, { fromUserId: "b", toUserId: "me", amount: 11500, currency: "INR" }];
+    useGroupDebts.mockReturnValue({ isLoading: false, data: { simplified } });
+    render(<GroupDebtsCard groupId="g" names={{ me: "Nishant", a: "Asha", b: "Bhanu" }} currentUserId="me" onPay={onPay} />);
+    expect(screen.getByRole("button", { name: "list" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByTestId("debt-graph")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "graph" }));
+    const graph = screen.getByTestId("debt-graph");
+    expect(graph.querySelectorAll("[data-edge]")).toHaveLength(2);
+    await userEvent.click(graph.querySelector("[data-edge='me>a']") as Element);
+    await userEvent.click(screen.getByRole("button", { name: /^pay asha/i }));
+    expect(onPay).toHaveBeenCalledWith(simplified[0]);
+    await userEvent.click(screen.getByRole("button", { name: "list" }));
+    expect(screen.queryByTestId("debt-graph")).toBeNull();
+  });
+
+  it("no switch when everyone is settled", () => {
+    useGroupDebts.mockReturnValue({ isLoading: false, data: { simplified: [] } });
+    render(<GroupDebtsCard groupId="g" names={{}} currentUserId="me" onPay={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "graph" })).toBeNull();
+  });
+});

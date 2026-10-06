@@ -14,6 +14,7 @@ vi.mock("@/hooks/use-profile", () => ({ useUserCurrency: () => "INR" }));
 vi.mock("@/components/expenses/lazy-add-expense-dialog", () => ({ LazyAddExpenseDialog: ({ open }: { open?: boolean }) => (open ? <div data-testid="add-dialog" /> : null) }));
 vi.mock("@/components/expenses/expense-comments", () => ({ ExpenseComments: () => <div /> }));
 vi.mock("@/components/expenses/expense-history", () => ({ ExpenseHistory: () => <div /> }));
+vi.mock("@/components/expenses/reaction-bar", async (orig) => ({ ...(await orig<typeof import("@/components/expenses/reaction-bar")>()), ReactionBar: ({ expenseId }: { expenseId: string }) => <div data-testid="reaction-bar-stub" data-expense={expenseId} /> })); // (the real bar needs a QueryClient; the chips on rows are real)
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 
 import ExpensesPage from "@/app/(dashboard)/expenses/page";
@@ -112,3 +113,21 @@ describe("ExpensesPage — full history", () => {
     expect(screen.queryByText("No expenses yet")).not.toBeInTheDocument();
   });
 });
+
+describe("ExpensesPage — emoji reactions", () => {
+  it("each row shows its reactions as small chips; rows without any show none", () => {
+    useInfiniteExpenses.mockReturnValue(state({ expenses: [{ ...exp("1"), reactions: [{ emoji: "🍕", count: 2, mine: true }] }, exp("2")] }));
+    render(<ExpensesPage />);
+    const chips = screen.getAllByTestId("reaction-chips");
+    expect(chips).toHaveLength(1);
+    expect(chips[0]).toHaveTextContent("🍕2");
+  });
+
+  it("opening an expense shows the reaction bar for THAT expense", async () => {
+    useInfiniteExpenses.mockReturnValue(state());
+    render(<ExpensesPage />);
+    await userEvent.click(screen.getByText("Expense 2"));
+    expect(await screen.findByTestId("reaction-bar-stub")).toHaveAttribute("data-expense", "2");
+  });
+});
+

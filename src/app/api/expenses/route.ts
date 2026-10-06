@@ -2,6 +2,7 @@ import { storedUnitFor } from "@/lib/currencies";
 import { createNotifications } from "@/lib/notify";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { attachReactions } from "@/lib/reactions-db";
 import { requireAuth, ensureUserProfile, ok, err, handleError, rateLimit, visibleToUser, visibleScope, expenseResponseInclude, isUniqueViolation, getKnownUserIds, parseLimit, clientIp, isGroupArchived, ARCHIVED_MESSAGE, tooManyRequests } from "@/lib/api-helpers";
 import { createExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
@@ -29,9 +30,10 @@ export async function GET(req: NextRequest) {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
-    if (!paged) return ok(expenses);
-    const hasMore = expenses.length > limit;
-    const items = hasMore ? expenses.slice(0, limit) : expenses;
+    const hasMore = paged && expenses.length > limit;
+    const page = hasMore ? expenses.slice(0, limit) : expenses;
+    const items = await attachReactions(page, user!.id); // one extra query for the whole page
+    if (!paged) return ok(items);
     return ok({ items, nextCursor: hasMore ? items[items.length - 1].id : null });
   } catch (e) {
     return handleError(e);

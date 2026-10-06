@@ -145,6 +145,8 @@ export interface Expense {
   /** Present only when several people paid; otherwise `paidById` paid it all */
   payers?: ExpensePayer[];
   group?: Group;
+  /** emoji reactions (counts per emoji; `mine` = you gave it) */
+  reactions?: { emoji: string; count: number; mine: boolean }[];
 }
 
 export interface ExpensePayer {

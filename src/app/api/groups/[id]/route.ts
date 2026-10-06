@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err, handleError, expensePeople } from "@/lib/api-helpers";
+import { attachReactions } from "@/lib/reactions-db";
 import { updateGroupSchema } from "@/lib/validations/group";
 import { computeGroupStats } from "@/lib/group-stats";
 import { loadGroupLedger } from "@/lib/ledger-db";
@@ -64,7 +65,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const conv = await loadConverter(home, groupLedger.expenses.some((e) => e.currency !== home));
     const stats = computeGroupStats(groupLedger.expenses.map((e) => ({ ...e, category: e.category ?? "OTHER" })), user!.id, conv);
 
-    return ok({ ...group, memberBalances, stats });
+    const expenses = await attachReactions(group.expenses, user!.id); // the recent expenses carry their emoji reactions
+    return ok({ ...group, expenses, memberBalances, stats });
   } catch (e) {
     return handleError(e);
   }

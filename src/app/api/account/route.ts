@@ -60,6 +60,7 @@ export async function DELETE(req: NextRequest) {
       await tx.pushSubscription.deleteMany({ where: { userId } });
       await tx.budget.deleteMany({ where: { userId } });
       await tx.expenseComment.deleteMany({ where: { userId } });
+      await tx.expenseReaction.deleteMany({ where: { userId } });
       await tx.activity.deleteMany({ where: { userId } });
       await tx.groupInvite.deleteMany({ where: { OR: [{ invitedBy: userId }, { email: user!.email! }] } });
 
