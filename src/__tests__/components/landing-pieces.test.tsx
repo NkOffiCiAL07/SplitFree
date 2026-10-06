@@ -217,3 +217,28 @@ describe("Hero trip card and money story", () => {
     expect(story).toHaveTextContent("2 payments instead of 6");
   });
 });
+
+describe("Problem + real-life moments", () => {
+  it("shows the group-chat problem and six moments (India flavour on the Indian page, none of it on the English one)", async () => {
+    const { default: Page } = await import("@/app/page");
+    const { default: Intl } = await import("@/app/intl/page");
+    render(await Page());
+    expect(within(screen.getByTestId("chat-problem")).getAllByRole("listitem")).toHaveLength(4);
+    expect(screen.getByTestId("moments")).toHaveTextContent("Shaadi kharcha");
+    expect(within(screen.getByTestId("moments")).getAllByRole("listitem")).toHaveLength(6);
+    document.body.innerHTML = "";
+    render(await Intl());
+    expect(screen.getByTestId("moments")).toHaveTextContent("Road trips");
+    expect(screen.getByTestId("moments").textContent).not.toMatch(/₹|shaadi|chai/i);
+    expect(screen.getByTestId("chat-problem").textContent).not.toMatch(/₹|bhai/i);
+  });
+
+  it("the settle-up scene now comes before the Android download section", async () => {
+    const { default: Page } = await import("@/app/page");
+    const { container } = render(await Page());
+    const html = container.innerHTML;
+    const at = html.indexOf('id="settle-flow-title"');
+    expect(at).toBeGreaterThan(-1);
+    expect(at).toBeLessThan(html.indexOf('id="download"'));
+  });
+});

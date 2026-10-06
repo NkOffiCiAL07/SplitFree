@@ -16,6 +16,7 @@ import { PhoneDemo } from "@/components/landing/phone-demo";
 import { IosNotify } from "@/components/landing/ios-notify";
 import { ContinuityPill } from "@/components/landing/continuity-pill";
 import { TripCard, type TripCardData } from "@/components/landing/trip-card";
+import { ChatProblem, MomentsGrid, type ChatLine, type Moment } from "@/components/landing/moments";
 import { MoneyStory, type StoryData } from "@/components/landing/money-story";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
@@ -106,6 +107,9 @@ interface Sample {
   feature4: (typeof features)[number];
   tripCard: TripCardData;
   story: StoryData;
+  chat: ChatLine[];
+  chatAnswer: string;
+  moments: Moment[];
 }
 
 const RED = "text-red-600 dark:text-red-400";
@@ -134,6 +138,21 @@ const SAMPLE_IN: Sample = {
   exactLine: "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
   tripCard: { name: "Goa trip", emoji: "🏝️", total: "₹18,450", people: 4, youGet: "₹2,840", from: "from 3 people" },
   story: { group: "Goa 2026 🏝️", expense: "Hotel — ₹8,400", people: "You, Rahul, Aman and Kunal", result: "You get ₹2,840", before: 6, after: 2 },
+  chat: [
+    { who: "Rohan", text: "Guys, who paid for the hotel?" },
+    { who: "Kavya", text: "Bhai ₹650 bhej dena, yaad se" },
+    { who: "Aditya", text: "Wait, who owes me from the cab?" },
+    { who: "Ananya", text: "I'll make a spreadsheet 😩" },
+  ],
+  chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
+  moments: [
+    { emoji: "🏝️", title: "Goa trip", example: "Hotel ₹8,400 ÷ 4 = ₹2,100 each" },
+    { emoji: "🏠", title: "Flat rent", example: "₹24,000 rent, added every month" },
+    { emoji: "☕", title: "Chai-nashta", example: "Chai ₹120 for the whole table" },
+    { emoji: "💍", title: "Shaadi kharcha", example: "Gifts and travel, split with cousins" },
+    { emoji: "🍕", title: "Weekend dinner", example: "Bill ₹1,800, one tap to split" },
+    { emoji: "🏏", title: "Cricket night", example: "Snacks and a turf booking, settled" },
+  ],
   feature4: { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
 };
 
@@ -160,6 +179,21 @@ const SAMPLE_INTL: Sample = {
   exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
   tripCard: { name: "Lisbon trip", emoji: "🏝️", total: "$920", people: 4, youGet: "$140", from: "from 3 people" },
   story: { group: "Lisbon 2026 🏝️", expense: "Hotel — $420", people: "You, Mia, Liam and Noah", result: "You get $140", before: 6, after: 2 },
+  chat: [
+    { who: "Mia", text: "Wait, who paid for the hotel?" },
+    { who: "Liam", text: "Can you Venmo me $42? Thanks!" },
+    { who: "Noah", text: "Who owes me from the cab?" },
+    { who: "Ava", text: "I'll make a spreadsheet 😩" },
+  ],
+  chatAnswer: "Splitr keeps the tally, does the awkward math, and tells everyone exactly what to pay — so nobody has to ask.",
+  moments: [
+    { emoji: "🏝️", title: "Weekend trip", example: "Hotel $420 ÷ 4 = $105 each" },
+    { emoji: "🏠", title: "Flat rent", example: "$1,800 rent, added every month" },
+    { emoji: "☕", title: "Coffee runs", example: "Coffee $24 for the whole table" },
+    { emoji: "🎁", title: "Group gifts", example: "A birthday gift, split with the team" },
+    { emoji: "🍕", title: "Weekend dinner", example: "Bill $120, one tap to split" },
+    { emoji: "🚗", title: "Road trips", example: "Fuel and snacks, settled" },
+  ],
   feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
 };
 
@@ -276,6 +310,12 @@ export function LandingView({ international = false }: { international?: boolean
       {/* Switching from Splitwise */}
       <SplitwiseBanner />
 
+      {/* Ten payments become three (animated): one of the strongest points, so it comes early */}
+      <SettleFlow />
+
+      <ChatProblem lines={sample.chat} answer={sample.chatAnswer} />
+      <MomentsGrid moments={sample.moments} />
+
       <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 
       {/* How it works */}
@@ -331,9 +371,6 @@ export function LandingView({ international = false }: { international?: boolean
 
       {/* Join by scanning a QR code */}
       <QrJoinShowcase trip={sample.trip} />
-
-      {/* Ten payments become three (animated) */}
-      <SettleFlow />
 
       {/* Features */}
       <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
