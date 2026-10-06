@@ -17,6 +17,7 @@ import { IosNotify } from "@/components/landing/ios-notify";
 import { ContinuityPill } from "@/components/landing/continuity-pill";
 import { TripCard, type TripCardData } from "@/components/landing/trip-card";
 import { ChatProblem, MomentsGrid, type ChatLine, type Moment } from "@/components/landing/moments";
+import { OfflineSync } from "@/components/landing/offline-sync";
 import { MoneyStory, type StoryData } from "@/components/landing/money-story";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
@@ -26,55 +27,13 @@ import { CURRENCY_CODES } from "@/lib/currencies";
 import { brandCopy } from "@/lib/brand-copy";
 import { regionFor } from "@/lib/region";
 
-const features = [
-  { icon: Users, title: "Groups & friends", description: "Trips, flats, couples, office lunches — track who owes whom, with anyone.", color: "from-violet-500 to-purple-600" },
-  { icon: SplitSquareHorizontal, title: "Every way to split", description: "Equally, by exact amounts, percentages or shares — and several people can pay one bill.", color: "from-blue-500 to-indigo-600" },
-  { icon: Zap, title: "Smart settle-up", description: "Debts are simplified into far fewer payments, so ten transfers become three.", color: "from-amber-500 to-orange-600" },
-  { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
-  { icon: WifiOff, title: "Works offline", description: "No signal on the trip? Add expenses and payments anyway — they sync safely when you're back online.", color: "from-rose-500 to-pink-600" },
-  { icon: Globe, title: `${CURRENCY_CODES.length} currencies`, description: "Each debt stays exact in its own currency, while your totals are shown in your home currency.", color: "from-cyan-500 to-sky-600" },
-  { icon: FileUp, title: "Bring your Splitwise history", description: "Import your Splitwise CSV export and carry on where you left off.", color: "from-indigo-500 to-violet-600" },
-  { icon: History, title: "Nothing is a mystery", description: "Every expense has its edit history, comments and who changed what.", color: "from-fuchsia-500 to-purple-600" },
-  { icon: RefreshCw, title: "Recurring expenses", description: "Rent, Wi-Fi, subscriptions and EMIs added automatically every month.", color: "from-lime-500 to-green-600" },
-  { icon: BarChart3, title: "Spending insights", description: "See where the money goes by month and category, plus group budgets.", color: "from-sky-500 to-blue-600" },
-  { icon: Bell, title: "Gentle reminders", description: "Nudge someone who owes you with a tap — one polite reminder a day, never spam.", color: "from-orange-500 to-red-500" },
-  { icon: Shield, title: "Private by design", description: "No ads and no selling your data. Your account works the same on the web and on Android.", color: "from-green-500 to-emerald-600" },
+/** Four big ideas, with the smaller features inside each */
+const groupsFor = (feature4Title: string) => [
+  { icon: SplitSquareHorizontal, color: "from-violet-500 to-indigo-600", title: "Split", lead: "Any bill, any way — and it always adds up exactly.", items: ["Equal", "Exact amounts", "Percentages", "Shares", "Several payers", "Recurring expenses", "Spending insights"] },
+  { icon: Zap, color: "from-amber-500 to-orange-600", title: "Settle", lead: "Fewer payments, paid the easy way.", items: [feature4Title, "Smart settle-up", "Gentle reminders", "Group budgets"] },
+  { icon: Globe, color: "from-sky-500 to-cyan-600", title: "Anywhere", lead: "On the trip, on the train, in any currency.", items: ["Works offline", `${CURRENCY_CODES.length} currencies`, "Android app", "iPhone soon", "Join by QR", "Splitwise import"] },
+  { icon: Shield, color: "from-emerald-500 to-teal-600", title: "Yours", lead: "Your money, your data.", items: ["No ads", "No selling your data", "Edit history", "Export or delete anytime"] },
 ];
-
-/** The wider cards in the feature grid, and which little picture each one shows */
-const WIDE = new Map<string, "offline" | "import" | "settle" | "private">([
-  ["Works offline", "offline"], ["Bring your Splitwise history", "import"], ["Smart settle-up", "settle"], ["Private by design", "private"],
-]);
-
-function BentoArt({ kind }: { kind: "offline" | "import" | "settle" | "private" }) {
-  const chip = "rounded-lg border bg-background/70 px-2.5 py-1.5 text-xs font-medium";
-  return (
-    <div aria-hidden="true" data-art={kind} className="relative mt-4 flex flex-wrap items-center gap-2 text-muted-foreground">
-      {kind === "offline" && (<>
-        <span className={`${chip} flex items-center gap-1.5`}><WifiOff className="size-3.5 text-amber-500" /> No signal</span>
-        <ArrowRight className="size-3.5" />
-        <span className={chip}>Dinner added · saved on device</span>
-        <ArrowRight className="size-3.5" />
-        <span className={`${chip} flex items-center gap-1.5 text-green-600 dark:text-green-400`}><Check className="size-3.5" /> Synced, once</span>
-      </>)}
-      {kind === "import" && (<>
-        <span className={`${chip} flex items-center gap-1.5`}><FileUp className="size-3.5" /> splitwise.csv</span>
-        <ArrowRight className="size-3.5" />
-        <span className={chip}>Match people</span>
-        <ArrowRight className="size-3.5" />
-        <span className={`${chip} flex items-center gap-1.5 text-green-600 dark:text-green-400`}><Check className="size-3.5" /> History imported</span>
-      </>)}
-      {kind === "settle" && (<>
-        <span className={chip}>10 payments</span>
-        <ArrowRight className="size-3.5" />
-        <span className={`${chip} text-violet-600 dark:text-violet-400`}>3 payments</span>
-      </>)}
-      {kind === "private" && (<>
-        <span className={chip}>No ads</span><span className={chip}>No selling data</span><span className={chip}>Export or delete anytime</span>
-      </>)}
-    </div>
-  );
-}
 
 const steps = [
   { number: "01", icon: UsersRound, title: "Create a group", description: "Add roommates, travel buddies or friends. Share an invite link or show a QR code — they join instantly." },
@@ -104,7 +63,7 @@ interface Sample {
   step3: string;
   featuresLead: string;
   exactLine: string;
-  feature4: (typeof features)[number];
+  feature4: { icon: React.ElementType; title: string; description: string; color: string };
   tripCard: TripCardData;
   story: StoryData;
   chat: ChatLine[];
@@ -204,18 +163,19 @@ const SAMPLE_INTL: Sample = {
 export function LandingView({ international = false }: { international?: boolean }) {
   const copy = brandCopy(regionFor(international ? "US" : null));
   const sample = international ? SAMPLE_INTL : SAMPLE_IN;
+  const groups = groupsFor(sample.feature4.title);
   return (
     <div className="min-h-dvh overflow-x-clip bg-background">
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0720]/80 text-white backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f5f7fb]/80 text-slate-900 backdrop-blur-xl dark:border-white/10 dark:bg-[#0a0720]/80 dark:text-white">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link href="/">
-            <BrandLogo size={34} tone="light" />
+            <BrandLogo size={34} />
           </Link>
-          <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex" aria-label="Sections">
-            <a href="#features" className="transition-colors hover:text-white">Features</a>
-            <a href="#download" className="transition-colors hover:text-white">Android app</a>
-            <a href="#faq" className="transition-colors hover:text-white">FAQ</a>
+          <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex dark:text-white/70" aria-label="Sections">
+            <a href="#features" className="transition-colors hover:text-slate-900 dark:hover:text-white">Features</a>
+            <a href="#download" className="transition-colors hover:text-slate-900 dark:hover:text-white">Android app</a>
+            <a href="#faq" className="transition-colors hover:text-slate-900 dark:hover:text-white">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -226,14 +186,15 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
       </header>
 
-      {/* Hero — a deep-indigo aurora scene (same visual language as the sign-in), always dark whatever the theme */}
-      <section className="auth-canvas relative isolate px-4 pb-28 pt-14 text-white sm:pt-20">
+      {/* Hero — a soft off-white canvas lit by ambient indigo/violet light (a deep-indigo night scene in dark mode) */}
+      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-28 pt-14 text-slate-900 sm:pt-20 dark:auth-canvas dark:bg-transparent dark:text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-cyan-400/35" />
-          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-fuchsia-500/30" />
-          <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-400/35" />
-          <div className="auth-dots absolute inset-0" />
-          <div className="auth-grain absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(99,91,255,0.22),transparent_38%)] dark:hidden" />
+          <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/40 dark:bg-cyan-400/35" />
+          <div className="lg-blob lg-blob-2 -right-20 top-1/4 h-[520px] w-[520px] bg-violet-300/40 dark:bg-fuchsia-500/30" />
+          <div className="lg-blob lg-blob-3 bottom-[-120px] left-1/4 h-[420px] w-[420px] bg-indigo-300/40 dark:bg-indigo-400/35" />
+          <div className="auth-dots absolute inset-0 hidden dark:block" />
+          <div className="auth-grain absolute inset-0 hidden dark:block" />
         </div>
 
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
@@ -249,7 +210,7 @@ export function LandingView({ international = false }: { international?: boolean
 
             <h1 className="anim-fade-up text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl xl:text-7xl" style={{ animationDelay: "60ms" }}>
               {copy.line1}{" "}
-              <span className="lg-text-shimmer bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">{copy.line2}</span>
+              <span className="lg-text-shimmer bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-cyan-200 dark:via-white dark:to-fuchsia-200">{copy.line2}</span>
             </h1>
 
             <p className="anim-fade-up mx-auto max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl lg:mx-0" style={{ animationDelay: "120ms" }}>
@@ -261,7 +222,7 @@ export function LandingView({ international = false }: { international?: boolean
             </p>
 
             <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "240ms" }}>
-              <AndroidDownloadButton tone="light" className="cta-glow" />
+              <AndroidDownloadButton tone="dark" className="cta-glow" />
               <IosNotify />
             </div>
 
@@ -295,8 +256,8 @@ export function LandingView({ international = false }: { international?: boolean
       <section className="relative overflow-hidden border-y bg-muted/30 py-5" aria-label="Highlights">
         <div className="flex w-max lg-marquee gap-3 px-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
           {[0, 1].map((copy) => (
-            <ul key={copy} className="flex shrink-0 gap-3" aria-hidden={copy === 1 ? "true" : undefined}>
-              {[...sample.chips, ...sample.chips].map((c, i) => (
+            <ul key={copy} className="flex min-w-[100vw] shrink-0 justify-around gap-3" aria-hidden={copy === 1 ? "true" : undefined}>
+              {sample.chips.map((c, i) => (
                 <li key={`${c}-${i}`} className="lg-glass flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/80">
                   <Sparkles className="size-3.5 text-violet-500" />
                   {c}
@@ -314,7 +275,7 @@ export function LandingView({ international = false }: { international?: boolean
       <SettleFlow />
 
       <ChatProblem lines={sample.chat} answer={sample.chatAnswer} />
-      <MomentsGrid moments={sample.moments} />
+      <MomentsGrid moments={sample.moments} center={{ title: `${sample.tripCard.name} ${sample.tripCard.emoji}`, total: sample.tripCard.total, people: `${sample.tripCard.people} people` }} />
 
       <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 
@@ -343,6 +304,8 @@ export function LandingView({ international = false }: { international?: boolean
           </div>
         </div>
       </section>
+
+      <OfflineSync />
 
       {/* Android download */}
       <section id="download" className="scroll-mt-16 px-4 pb-24">
@@ -387,17 +350,19 @@ export function LandingView({ international = false }: { international?: boolean
             <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
             <p className="mx-auto max-w-xl text-muted-foreground">{sample.featuresLead}</p>
           </div>
-          <div className="grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="bento">
-            {features.map((f, i) => (f.title === SAMPLE_IN.feature4.title ? sample.feature4 : f)).map(({ icon: Icon, title, description, color }, i) => (
-              <Reveal key={title} delay={(i % 4) * 80} className={WIDE.has(title) ? "sm:col-span-2" : ""}>
-                <div className="lg-glass feature-card bento-card group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl">
-                  <div className={`relative mb-4 flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${color} shadow-md shadow-black/10 ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
-                    <Icon className="size-5 text-white" />
+          <div data-testid="feature-groups" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {groups.map(({ icon: Icon, color, title, lead, items }, i) => (
+              <Reveal key={title} delay={(i % 2) * 90}>
+                <article className="bento-card group h-full rounded-3xl border border-white/70 bg-white/70 p-7 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-white/10 dark:bg-white/5">
+                  <div className={`mb-4 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-md ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
+                    <Icon className="size-6 text-white" />
                   </div>
-                  <h3 className="relative mb-1.5 font-semibold">{title}</h3>
-                  <p className="relative text-sm leading-relaxed text-muted-foreground">{description}</p>
-                  {WIDE.has(title) && <BentoArt kind={WIDE.get(title)!} />}
-                </div>
+                  <h3 className="text-xl font-bold">{title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{lead}</p>
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {items.map((it) => <li key={it} className="rounded-full border bg-background/70 px-3 py-1 text-xs font-medium">{it}</li>)}
+                  </ul>
+                </article>
               </Reveal>
             ))}
           </div>

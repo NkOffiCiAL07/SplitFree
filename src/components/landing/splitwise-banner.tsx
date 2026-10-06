@@ -18,8 +18,8 @@ export function SplitwiseBanner() {
         <div className="relative grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <p className="mb-2 text-sm font-semibold text-violet-700 dark:text-violet-300">Switching apps?</p>
-            <h2 id="from-splitwise-title" className="text-balance text-3xl font-bold sm:text-4xl">Coming from Splitwise? Bring your whole history.</h2>
-            <p className="mt-3 max-w-md text-muted-foreground">Import your Splitwise export and keep every group, every expense and every balance — nothing to re-enter, no one to chase.</p>
+            <h2 id="from-splitwise-title" className="text-balance text-3xl font-bold sm:text-4xl">Switch without starting over.</h2>
+            <p className="mt-3 max-w-md text-muted-foreground">Coming from Splitwise? Bring your whole history. Import your export and keep every group, every expense and every balance — nothing to re-enter, no one to chase.</p>
             <ol className="mt-6 space-y-3">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex gap-3">
@@ -33,7 +33,7 @@ export function SplitwiseBanner() {
             </Link>
           </div>
 
-          <div aria-hidden="true" className="relative mx-auto flex w-full max-w-sm items-center justify-between gap-3">
+          <div className="space-y-4"><div aria-hidden="true" className="relative mx-auto flex w-full max-w-sm items-center justify-between gap-3">
             <div className="lg-float flex flex-col items-center gap-2 rounded-2xl border bg-card p-4 shadow-lg">
               <FileSpreadsheet className="size-10 text-emerald-600" />
               <span className="text-[11px] font-medium text-muted-foreground">splitwise-export.csv</span>
@@ -46,6 +46,12 @@ export function SplitwiseBanner() {
               <span className="text-[11px] font-medium text-muted-foreground">Splitr Pro</span>
               <CheckCircle2 className="absolute -right-2 -top-2 size-6 rounded-full bg-background text-emerald-500" />
             </div>
+          </div>
+          <ul data-testid="import-carries" className="mx-auto grid max-w-sm grid-cols-2 gap-2 text-sm font-medium">
+            {["Groups", "Expenses", "Balances", "Friends"].map((t) => (
+              <li key={t} className="flex items-center gap-1.5 rounded-xl border bg-card px-3 py-2"><CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" /> {t}</li>
+            ))}
+          </ul>
           </div>
         </div>
       </Reveal>

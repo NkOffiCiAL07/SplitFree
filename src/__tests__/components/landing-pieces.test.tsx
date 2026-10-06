@@ -143,8 +143,9 @@ describe("SettleFlow and SplitwiseBanner", () => {
 
   it("SplitwiseBanner is a clear call to bring your history, with the three steps and a way to start", () => {
     render(<SplitwiseBanner />);
-    expect(screen.getByRole("heading", { name: /coming from splitwise/i })).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: /switch without starting over/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(7); // three steps + what carries over
+    expect(within(screen.getByTestId("import-carries")).getAllByRole("listitem").map((l) => l.textContent?.trim())).toEqual(["Groups", "Expenses", "Balances", "Friends"]);
     // (one quiet way in: the single Sign in entry — the sign-in page has the Create account tab; no sign-up buttons on the landing page)
     expect(screen.getByRole("link", { name: /sign in and import your history/i })).toHaveAttribute("href", "/login");
   });
@@ -180,13 +181,30 @@ describe("nothing un-serialisable is handed from the server page to client compo
   });
 });
 
-describe("Bento feature grid and continuity pill", () => {
-  it("the grid has wider cards with a small picture for offline, Splitwise import, settle-up and privacy", async () => {
+describe("Feature groups and continuity pill", () => {
+  it("the features are four big ideas — Split, Settle, Anywhere, Yours — with the smaller features inside", async () => {
     const { default: Page } = await import("@/app/page");
     render(await Page());
-    const grid = screen.getByTestId("bento");
-    for (const kind of ["offline", "import", "settle", "private"]) expect(grid.querySelector(`[data-art="${kind}"]`)).not.toBeNull();
-    expect(grid.querySelectorAll(".sm\\:col-span-2")).toHaveLength(4);
+    const groups = screen.getByTestId("feature-groups");
+    expect(within(groups).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Split", "Settle", "Anywhere", "Yours"]);
+    for (const t of ["Smart settle-up", "Works offline", "Splitwise import", "No ads", "Export or delete anytime", "Percentages"]) expect(groups).toHaveTextContent(t);
+  });
+
+  it("the ticker shows each highlight once per screen-width copy (not four times)", async () => {
+    const { default: Page } = await import("@/app/page");
+    const { container } = render(await Page());
+    const lists = container.querySelectorAll(".lg-marquee ul");
+    expect(lists).toHaveLength(2); // one visible, one hidden copy for the seamless loop
+    expect(lists[0].querySelectorAll("li")).toHaveLength(7);
+  });
+
+  it("the light hero, the offline phone and the glass moment chips are there", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    expect(screen.getByTestId("hero")).toHaveClass("hero-light", "bg-[#f5f7fb]");
+    expect(screen.getByTestId("offline-sync")).toHaveTextContent(/Offline — saved on this phone/);
+    expect(screen.getByTestId("offline-sync")).toHaveTextContent(/synced/);
+    expect(screen.getByTestId("moments-center")).toHaveTextContent("₹18,450");
   });
 
   it("the pill offers the web app and can be dismissed; it only appears after scrolling", async () => {

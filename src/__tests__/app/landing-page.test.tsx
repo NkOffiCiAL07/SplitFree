@@ -108,7 +108,7 @@ describe("Landing page — voice and liquid-glass design", () => {
 
   it("feature cards and FAQ items are frosted glass, and the highlights strip is a moving marquee with a hidden duplicate", () => {
     const { container } = render(<LandingPage />);
-    expect(container.querySelectorAll("#features .lg-glass").length).toBeGreaterThanOrEqual(12);
+    expect(container.querySelectorAll("#features article")).toHaveLength(4); // four big ideas, the smaller features inside them
     expect(container.querySelectorAll("#faq details.lg-glass").length).toBeGreaterThanOrEqual(5);
     const marquee = container.querySelector(".lg-marquee")!;
     expect(marquee).not.toBeNull();
