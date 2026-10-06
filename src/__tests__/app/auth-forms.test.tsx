@@ -58,6 +58,13 @@ describe("LoginForm", () => {
     expect(h.toast.success).toHaveBeenCalledWith("Welcome back!");
   });
 
+  it("the button turns into \"You're in\" (and can't be pressed twice) while the app opens", async () => {
+    render(<LoginForm />);
+    await fill("me@x.com", "secret1");
+    const done = await screen.findByRole("button", { name: /you.re in/i });
+    expect(done).toBeDisabled();
+  });
+
   it("returns to the page they were trying to open", async () => {
     h.search.value = "redirect=/groups/abc";
     render(<LoginForm />);

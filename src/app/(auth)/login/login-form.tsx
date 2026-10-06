@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { m } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { loginSchema } from "@/lib/validations/auth";
 
@@ -42,6 +42,7 @@ function LoginPageContent() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [signedIn, setSignedIn] = useState(false); // the button turns into "You're in" while the app opens
 
   // The sign-in callback sends people back here with ?error=auth_failed when Google (or an email link) did not complete.
   // It used to show nothing at all, which looked like the button simply didn't work.
@@ -77,6 +78,7 @@ function LoginPageContent() {
       toast.error("Couldn't reach the server — check your connection and try again");
       return;
     }
+    setSignedIn(true);
     toast.success("Welcome back!");
     router.push(redirect);
   };
@@ -196,10 +198,17 @@ function LoginPageContent() {
           className={`anim-fade-up btn-liquid group w-full lg-shine h-[54px] text-base font-semibold ${ready ? "lg-ready" : ""}`}
           variant="brand"
           size="lg"
-          loading={isSubmitting}
+          loading={isSubmitting && !signedIn}
+          disabled={signedIn}
         >
-          Sign in
-          <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+          {signedIn ? (
+            <><Check className="size-5" aria-hidden="true" /> You&apos;re in</>
+          ) : (
+            <>
+              Sign in
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+            </>
+          )}
         </Button>
       </form>
 
