@@ -111,13 +111,11 @@ describe("Landing page — voice and liquid-glass design", () => {
     expect(screen.getByText(/Goa trips, flat rent, office lunches/, { selector: ".sr-only" })).toBeInTheDocument();
   });
 
-  it("feature cards and FAQ items are frosted glass, and the highlights strip is a moving marquee with a hidden duplicate", () => {
+  it("the four feature groups and the FAQ items are cards; the repeated highlights marquee is gone", () => {
     const { container } = render(<LandingPage />);
     expect(container.querySelectorAll("#features article")).toHaveLength(4); // four big ideas, the smaller features inside them
     expect(container.querySelectorAll("#faq details.lg-glass").length).toBeGreaterThanOrEqual(5);
-    const marquee = container.querySelector(".lg-marquee")!;
-    expect(marquee).not.toBeNull();
-    expect(marquee.querySelectorAll("ul[aria-hidden='true']")).toHaveLength(1); // the looped copy isn't read twice
+    expect(container.querySelector(".lg-marquee")).toBeNull(); // the features are said once, in the four groups
   });
 
   it("decorative colour blobs are hidden from assistive tech", () => {
@@ -278,20 +276,11 @@ describe("Landing page — the English version has no India-only wording", () =>
   });
 });
 
-describe("Landing page — join a group by scanning a QR code", () => {
-  it("has its own section with a real QR code, three reasons it's easy, and a link target for the menu", () => {
+describe("Landing page — joining by QR code", () => {
+  it("the QR join feature is named once among the features and in step 1, without a section of its own", () => {
     const { container } = render(<LandingPage />);
-    const section = container.querySelector("#scan-to-join")!;
-    expect(section).not.toBeNull();
-    expect(within(section as HTMLElement).getByRole("heading", { name: /join a group by scanning a qr code/i })).toBeInTheDocument();
-    expect(section.textContent).toMatch(/Works with the normal camera app/);
-    expect(section.textContent).toMatch(/sign up and land straight in your group/);
-    expect(section.textContent).toMatch(/Save the code as an image/);
-    expect(section.querySelectorAll("li")).toHaveLength(3);
-  });
-
-  it("is mentioned in step 1 (create a group) too", () => {
-    render(<LandingPage />);
+    expect(container.querySelector("#scan-to-join")).toBeNull();
+    expect(container.querySelector("#features")!.textContent).toMatch(/Join by QR/);
     expect(document.body.textContent).toMatch(/Share an invite link or show a QR code/);
   });
 });
@@ -302,7 +291,7 @@ describe("Landing page — the new hero and callouts", () => {
     expect(screen.getByTestId("split-tryout")).toBeInTheDocument();
     expect(screen.getByRole("tablist", { name: /see the app in action/i })).toBeInTheDocument();
     expect(container.querySelector("#from-splitwise")).not.toBeNull();
-    expect(screen.getByRole("heading", { name: /ten payments become three/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /ten payments\. three transfers\. done/i })).toBeInTheDocument();
   });
 
   it("the iPhone block in the hero collects an email (it used to be a dead 'coming soon' box)", () => {

@@ -135,8 +135,12 @@ describe("PhoneDemo — the phone screen changes with the tabs", () => {
 describe("SettleFlow and SplitwiseBanner", () => {
   it("SettleFlow explains ten payments becoming three, with an accessible description of the diagram", () => {
     render(<SettleFlow />);
-    expect(screen.getByRole("heading", { name: /ten payments become three/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /ten payments\. three transfers\. done/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/ten payments between five friends become three/i)).toBeInTheDocument();
+    const lists = screen.getByTestId("settle-lists"); // the same story in words: five of the ten, then the three that remain, with amounts
+    expect(within(lists).getByLabelText("Before: ten payments")).toHaveTextContent("+ 5 more payments");
+    expect(within(lists).getByLabelText("After: three payments")).toHaveTextContent("₹2,400");
+    expect(within(lists).getAllByRole("listitem").length).toBeGreaterThan(8);
     expect(document.querySelectorAll(".settle-before line")).toHaveLength(10);
     expect(document.querySelectorAll(".settle-after line")).toHaveLength(3);
   });
@@ -190,14 +194,6 @@ describe("Feature groups and continuity pill", () => {
     for (const t of ["Smart settle-up", "Works offline", "Splitwise import", "No ads", "Export or delete anytime", "Percentages"]) expect(groups).toHaveTextContent(t);
   });
 
-  it("the ticker shows each highlight once per screen-width copy (not four times)", async () => {
-    const { default: Page } = await import("@/app/page");
-    const { container } = render(await Page());
-    const lists = container.querySelectorAll(".lg-marquee ul");
-    expect(lists).toHaveLength(2); // one visible, one hidden copy for the seamless loop
-    expect(lists[0].querySelectorAll("li")).toHaveLength(7);
-  });
-
   it("the light hero, the offline phone and the glass moment chips are there", async () => {
     const { default: Page } = await import("@/app/page");
     render(await Page());
@@ -223,16 +219,21 @@ describe("Feature groups and continuity pill", () => {
   });
 });
 
-describe("Hero trip card and money story", () => {
-  it("the Indian page shows the Goa card with the big 'you get' number, and the five-step story", async () => {
+describe("Hero trip card", () => {
+  it("the Indian page shows the Goa card with the big 'you get' number (wide screens, by the hero phone)", async () => {
     const { default: Page } = await import("@/app/page");
     render(await Page());
-    const cards = screen.getAllByTestId("trip-card"); // one floating by the hero phone (wide screens), one beside the story
-    expect(cards).toHaveLength(2);
-    for (const c of cards) { expect(c).toHaveTextContent("Goa trip"); expect(c).toHaveTextContent("₹2,840"); }
-    const story = screen.getByTestId("money-story");
-    expect(within(story).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Create a group", "Add expenses", "Split", "Splitr calculates", "Settle"]);
-    expect(story).toHaveTextContent("2 payments instead of 6");
+    const card = screen.getByTestId("trip-card");
+    expect(card).toHaveTextContent("Goa trip");
+    expect(card).toHaveTextContent("₹2,840");
+  });
+
+  it("the page is tighter: no highlights marquee, no five-step story, no separate QR section", async () => {
+    const { default: Page } = await import("@/app/page");
+    const { container } = render(await Page());
+    expect(container.querySelector(".lg-marquee")).toBeNull();
+    expect(screen.queryByTestId("money-story")).toBeNull();
+    expect(container.querySelector("#scan-to-join")).toBeNull();
   });
 });
 

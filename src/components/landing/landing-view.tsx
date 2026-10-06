@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { DownloadPanel } from "@/components/landing/download-panel";
 import { Reveal } from "@/components/landing/reveal";
-import { QrJoinShowcase } from "@/components/landing/qr-join-showcase";
 import { SettleFlow } from "@/components/landing/settle-flow";
 import { SplitTryout } from "@/components/landing/split-tryout";
 import { PhoneDemo } from "@/components/landing/phone-demo";
@@ -19,7 +18,6 @@ import { TripCard, type TripCardData } from "@/components/landing/trip-card";
 import { ChatProblem, MomentsGrid, type ChatLine, type Moment } from "@/components/landing/moments";
 import { MobileMenu } from "@/components/landing/mobile-menu";
 import { OfflineSync } from "@/components/landing/offline-sync";
-import { MoneyStory, type StoryData } from "@/components/landing/money-story";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
@@ -108,13 +106,11 @@ interface Sample {
   bill: { title: string; total: string; shares: { name: string; amount: string }[] };
   payments: { from: string; to: string; amount: string }[];
   payChip: string;
-  chips: string[];
   step3: string;
   featuresLead: string;
   exactLine: string;
   feature4: { icon: React.ElementType; title: string; description: string; color: string };
   tripCard: TripCardData;
-  story: StoryData;
   chat: ChatLine[];
   chatAnswer: string;
   moments: Moment[];
@@ -140,12 +136,10 @@ const SAMPLE_IN: Sample = {
   bill: { title: "Dinner at Barbeque Nation", total: "₹1,800", shares: [{ name: "You", amount: "₹600" }, { name: "Divyansh", amount: "₹600" }, { name: "Prakhar", amount: "₹600" }] },
   payments: [{ from: "Rohan", to: "Ananya", amount: "₹2,400" }, { from: "Kavya", to: "Ananya", amount: "₹1,150" }, { from: "Aditya", to: "Rohan", amount: "₹600" }],
   payChip: "UPI",
-  chips: ["UPI pay links", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
   step3: "See exactly who pays whom. Pay by UPI, record it, and the balance clears.",
   featuresLead: "Built around how people in India actually share money — and it handles the awkward cases too.",
   exactLine: "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
   tripCard: { name: "Goa trip", emoji: "🏝️", total: "₹18,450", people: 4, youGet: "₹2,840", from: "from 3 people" },
-  story: { group: "Goa 2026 🏝️", expense: "Hotel — ₹8,400", people: "You, Rahul, Aman and Kunal", result: "You get ₹2,840", before: 6, after: 2 },
   chat: [
     { who: "Rohan", text: "Guys, who paid for the hotel?" },
     { who: "Kavya", text: "Bhai ₹650 bhej dena, yaad se" },
@@ -181,12 +175,10 @@ const SAMPLE_INTL: Sample = {
   bill: { title: "Dinner at Luigi's", total: "$45", shares: [{ name: "You", amount: "$15" }, { name: "Liam", amount: "$15" }, { name: "Noah", amount: "$15" }] },
   payments: [{ from: "Noah", to: "Ava", amount: "$24" }, { from: "Mia", to: "Ava", amount: "$12" }, { from: "Liam", to: "Noah", amount: "$6" }],
   payChip: "Pay",
-  chips: ["WhatsApp invites", "Offline mode", "Multi-currency", "Smart settle-up", "Splitwise import", "Android app", "No ads"],
   step3: "See exactly who pays whom. Pay however you like, record it, and the balance clears.",
   featuresLead: "Built around how friends actually share money — and it handles the awkward cases too.",
   exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
   tripCard: { name: "Lisbon trip", emoji: "🏝️", total: "$920", people: 4, youGet: "$140", from: "from 3 people" },
-  story: { group: "Lisbon 2026 🏝️", expense: "Hotel — $420", people: "You, Mia, Liam and Noah", result: "You get $140", before: 6, after: 2 },
   chat: [
     { who: "Mia", text: "Wait, who paid for the hotel?" },
     { who: "Liam", text: "Can you Venmo me $42? Thanks!" },
@@ -308,32 +300,15 @@ export function LandingView({ international = false }: { international?: boolean
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-background" />
       </section>
 
-      {/* Feature ticker */}
-      <section className="relative overflow-hidden border-y bg-muted/30 py-5" aria-label="Highlights">
-        <div className="flex w-max lg-marquee gap-3 px-3 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-          {[0, 1].map((copy) => (
-            <ul key={copy} className="flex min-w-[100vw] shrink-0 justify-around gap-3" aria-hidden={copy === 1 ? "true" : undefined}>
-              {sample.chips.map((c, i) => (
-                <li key={`${c}-${i}`} className="lg-glass flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/80">
-                  <Sparkles className="size-3.5 text-violet-500" />
-                  {c}
-                </li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </section>
-
       {/* Switching from Splitwise */}
       <SplitwiseBanner />
 
       {/* Ten payments become three (animated): one of the strongest points, so it comes early */}
-      <SettleFlow />
+      <SettleFlow symbol={international ? "$" : "₹"} />
 
       <ChatProblem lines={sample.chat} answer={sample.chatAnswer} />
       <MomentsGrid moments={sample.moments} />
 
-      <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 
       {/* How it works */}
       <section id="how-it-works" className="scroll-mt-16 px-4 py-24">
@@ -388,9 +363,6 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
       </section>
 
-      {/* Join by scanning a QR code */}
-      <QrJoinShowcase trip={sample.trip} />
-
       {/* Features */}
       <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -428,7 +400,7 @@ export function LandingView({ international = false }: { international?: boolean
 
       {/* Money you can trust */}
       <section className="px-4 py-24">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
+        <div className="mx-auto max-w-3xl">
           <div>
             <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
               <span className="h-px w-4 bg-violet-500/50" /> Careful with money
@@ -447,18 +419,6 @@ export function LandingView({ international = false }: { international?: boolean
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="lg-glass rounded-3xl p-6">
-            <p className="mb-4 text-xs font-medium text-muted-foreground">{sample.trip} · simplified</p>
-            {sample.payments.map((d) => (
-              <div key={d.from} className="flex items-center gap-3 border-b py-3 last:border-0">
-                <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-600 dark:text-violet-300">{d.from[0]}</div>
-                <p className="flex-1 text-sm"><span className="font-medium">{d.from}</span> pays <span className="font-medium">{d.to}</span></p>
-                <p className="text-sm font-semibold text-red-600 dark:text-rose-400">{d.amount}</p>
-                <span className="hidden items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium sm:flex"><QrCode className="size-3" /> {sample.payChip}</span>
-              </div>
-            ))}
-            <p className="mt-4 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">Seven payments between four friends became three. <span className="text-foreground">Example for illustration.</span></p>
           </div>
         </div>
       </section>

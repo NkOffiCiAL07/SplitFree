@@ -14,7 +14,10 @@ const AFTER: [number, number][] = [[4, 0], [3, 1], [2, 1]];
 const line = (a: number, b: number) => ({ x1: NODES[a].x, y1: NODES[a].y, x2: NODES[b].x, y2: NODES[b].y });
 
 /** "Ten payments become three": a looping, purely visual explanation (no numbers to get wrong). Still shows the end state without motion. */
-export function SettleFlow({ noun = "payments" }: { noun?: string }) {
+const BEFORE_LIST = ["Asha → Rohan", "Mia → Asha", "Liam → Noah", "Rohan → Mia", "Noah → Asha"];
+const AFTER_LIST: [string, string, number][] = [["Noah", "Asha", 2400], ["Liam", "Rohan", 1150], ["Mia", "Rohan", 600]];
+
+export function SettleFlow({ noun = "payments", symbol = "₹" }: { noun?: string; symbol?: string }) {
   return (
     <section aria-labelledby="settle-flow-title" className="auth-canvas relative isolate overflow-hidden px-4 py-24 text-white">
       <div aria-hidden="true" className="auth-dots pointer-events-none absolute inset-0" />
@@ -24,7 +27,7 @@ export function SettleFlow({ noun = "payments" }: { noun?: string }) {
             <span className="h-px w-4 bg-cyan-200/50" /> Smart settle-up
           </p>
           <h2 id="settle-flow-title" className="text-balance text-3xl font-bold sm:text-5xl">
-            Ten {noun} become <span className="lg-text-shimmer bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">three.</span>
+            Ten {noun}. <span className="lg-text-shimmer bg-gradient-to-r from-cyan-200 via-white to-fuchsia-200 bg-clip-text text-transparent">Three transfers.</span> Done.
           </h2>
           <p className="mt-4 max-w-md text-lg leading-relaxed text-white/75">
             Everyone owes everyone a little. Splitr works out who really needs to pay whom, so a whole trip settles in a handful of transfers — not a group chat full of reminders.
@@ -55,6 +58,19 @@ export function SettleFlow({ noun = "payments" }: { noun?: string }) {
               <span className="settle-caption-after absolute rounded-full bg-cyan-200 px-3 py-1 text-xs font-bold text-zinc-900">3 payments</span>
             </figcaption>
           </figure>
+
+          <div data-testid="settle-lists" className="relative mt-5 min-h-[9.5rem]">
+            <ul className="settle-caption-before lg-glass-dark absolute inset-0 space-y-1.5 rounded-2xl p-4 text-sm" aria-label="Before: ten payments">
+              {BEFORE_LIST.map((l) => <li key={l} className="text-white/80">{l}</li>)}
+              <li className="text-white/50">+ 5 more payments…</li>
+            </ul>
+            <ul className="settle-caption-after absolute inset-0 space-y-1.5 rounded-2xl bg-cyan-200/10 p-4 text-sm ring-1 ring-cyan-200/30" aria-label="After: three payments">
+              {AFTER_LIST.map(([from, to, amt]) => (
+                <li key={from} className="flex items-center justify-between"><span>{from} → {to}</span><b className="tabular-nums text-cyan-100">{symbol}{amt.toLocaleString(symbol === "₹" ? "en-IN" : "en-US")}</b></li>
+              ))}
+              <li className="pt-1 text-xs text-white/60">Example for illustration.</li>
+            </ul>
+          </div>
         </Reveal>
       </div>
     </section>
