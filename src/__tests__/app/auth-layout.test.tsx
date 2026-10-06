@@ -39,6 +39,9 @@ describe("Auth layout — calm and trustworthy", () => {
     expect(card).toContainElement(screen.getByRole("form", { name: "login form" }));
     expect(card.className).toContain("lg:min-h-[53rem]"); // always: the same size on both tabs
     expect(card.className).toContain("lg:border");
+    expect(card.className).toContain("lg:bg-white/75"); // glass, but readable: about 75% opaque, never see-through
+    expect(card.className).toContain("lg:backdrop-blur-[28px]");
+    expect(screen.getByTestId("calm-light")).toHaveClass("hidden", "lg:block"); // the light behind the glass exists on desktop only
     expect(card.className).not.toMatch(/(^|\s)(border|bg-white|shadow)/); // (those only apply from the desktop breakpoint up)
     expect(card).toHaveClass("flex-1"); // on a phone the form fills the screen so the footer sits at the bottom
   });
