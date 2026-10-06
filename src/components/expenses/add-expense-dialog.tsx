@@ -25,7 +25,7 @@ import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { storedUnitFor } from "@/lib/currencies";
 import { toast } from "sonner";
 import type { GroupMember } from "@/types";
-import { parseQuickExpense, matchPeople } from "@/lib/quick-add";
+import { analyseQuickText, matchPeople, type QuickTagKind } from "@/lib/quick-add";
 import { PayersEditor } from "@/components/expenses/payers-editor";
 import { parsePayers, payersProblem, type PayerAmounts } from "@/lib/payers";
 
@@ -71,6 +71,14 @@ interface Props {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
+
+const QUICK_TAG_LABEL: Record<QuickTagKind, string> = { title: "Title", amount: "Amount", person: "With", rule: "Rule" };
+const QUICK_TAG_STYLE: Record<QuickTagKind, string> = {
+  title: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+  amount: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  person: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
+  rule: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
+};
 
 export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, members = [], children, open: controlledOpen, onOpenChange }: Props) {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -212,13 +220,20 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
 
   // "Dinner 1200 with Rahul and Priya" → fills description, amount and the people
   const [quickText, setQuickText] = useState("");
+  const quickPeople = (friendships ?? []).map((f) => ({ id: f.friendId, name: f.friend?.name }));
+  const analysis = analyseQuickText(quickText);
+  // names the bar could not find among your friends (shown amber, as you type)
+  const unmatchedNames = new Set(matchPeople(analysis.names, quickPeople).unmatched.map((n) => n.toLowerCase()));
   const applyQuickAdd = () => {
-    const parsed = parseQuickExpense(quickText);
+    const parsed = analysis;
     if (!parsed.description && parsed.amount === null) return;
     if (parsed.description) setValue("description", parsed.description);
     if (parsed.amount !== null) setValue("amount", String(parsed.amount));
+    if (parsed.rule === "EQUAL") setSplitType("EQUAL");
+    // "$90" outside a group means dollars (inside a group the group's currency applies, as always)
+    if (parsed.currency && isGlobalMode && !localGroupData?.currency && (CURRENCIES as readonly string[]).includes(parsed.currency)) setValue("currency", parsed.currency);
     if (parsed.names.length > 0) {
-      const people = (friendships ?? []).map((f) => ({ id: f.friendId, name: f.friend?.name }));
+      const people = quickPeople;
       const { matched, unmatched } = matchPeople(parsed.names, people);
       if (matched.length > 0) {
         setSplitContext("friends");
@@ -334,6 +349,19 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
                 }}
                 onBlur={() => { if (quickText.trim()) applyQuickAdd(); }}
               />
+              {/* live: what the bar understood, piece by piece */}
+              {analysis.tags.length > 0 && (
+                <ul data-testid="quick-tags" aria-label="What was understood" className="flex flex-wrap gap-1.5 pt-1">
+                  {analysis.tags.map((t, i) => {
+                    const missing = t.kind === "person" && unmatchedNames.has(t.text.toLowerCase());
+                    return (
+                      <li key={`${t.kind}-${i}`} data-kind={t.kind} data-missing={missing || undefined} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${QUICK_TAG_STYLE[t.kind]} ${missing ? "!bg-amber-100 !text-amber-800 dark:!bg-amber-900/30 dark:!text-amber-300" : ""}`}>
+                        <span className="opacity-60">{QUICK_TAG_LABEL[t.kind]}</span> {t.text}{missing ? " ?" : ""}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           )}
 

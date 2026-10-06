@@ -60,3 +60,40 @@ export function matchPeople<T extends { id: string; name?: string | null }>(name
   }
   return { matched, unmatched };
 }
+
+// ── live tags: what the quick-add bar understood, piece by piece ─────────────────────────────────────────────────
+
+export type QuickTagKind = "title" | "amount" | "person" | "rule";
+export interface QuickTag { kind: QuickTagKind; text: string }
+
+export interface QuickAnalysis extends QuickExpense {
+  /** "split equally" / "evenly" was said */
+  rule: "EQUAL" | null;
+  /** currency implied by a symbol next to the amount (₹ → INR …), or null */
+  currency: string | null;
+  /** the pieces, in reading order, for showing as coloured tags */
+  tags: QuickTag[];
+}
+
+const RULE_RE = /\b(?:(?:split|divide)\s+(?:it\s+)?)?(?:equally|evenly)\b/i;
+const SYMBOL_TO_CURRENCY: Record<string, string> = { "₹": "INR", "$": "USD", "€": "EUR", "£": "GBP" };
+
+/**
+ * Everything parseQuickExpense understands, plus the split rule ("split equally"), a currency from a symbol, and the pieces
+ * as tags — so the bar can show, as you type, what it heard: Title · Amount · People · Rule.
+ */
+export function analyseQuickText(input: string): QuickAnalysis {
+  const text = input.trim().replace(/\s+/g, " ");
+  const rule = RULE_RE.test(text) ? "EQUAL" : null;
+  // The rule phrase is removed before parsing so it can't end up inside a name ("Asha and Leo split equally" → Leo)
+  const parsed = parseQuickExpense(text.replace(RULE_RE, " "));
+  const symbol = /([₹$€£])\s?\d/.exec(text)?.[1];
+  const currency = symbol ? SYMBOL_TO_CURRENCY[symbol] ?? null : null;
+
+  const tags: QuickTag[] = [];
+  if (parsed.description) tags.push({ kind: "title", text: parsed.description });
+  if (parsed.amount !== null) tags.push({ kind: "amount", text: `${symbol ?? ""}${parsed.amount.toLocaleString("en-US", { maximumFractionDigits: 2 })}` });
+  for (const n of parsed.names) tags.push({ kind: "person", text: n });
+  if (rule) tags.push({ kind: "rule", text: "Split equally" });
+  return { ...parsed, rule, currency, tags };
+}

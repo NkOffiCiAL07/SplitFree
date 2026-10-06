@@ -223,6 +223,38 @@ describe("AddExpenseDialog — standalone (no group)", () => {
     expect(toast.info).toHaveBeenCalledWith("Couldn't find: Zed");
   });
 
+  it("shows what it understood, live, as coloured tags: Title · Amount · With · Rule", async () => {
+    state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }, { friendId: "b", friend: { name: "Leo Park" } }];
+    render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
+    expect(screen.queryByTestId("quick-tags")).not.toBeInTheDocument(); // nothing typed, nothing shown
+    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Dinner at Luigi's $90 with Asha and Leo split equally");
+    const tags = within(screen.getByTestId("quick-tags")).getAllByRole("listitem");
+    expect(tags.map((t) => t.getAttribute("data-kind"))).toEqual(["title", "amount", "person", "person", "rule"]);
+    expect(tags.map((t) => t.textContent?.replace(/^(Title|Amount|With|Rule)\s*/, ""))).toEqual(["Dinner at Luigi's", "$90", "Asha", "Leo", "Split equally"]);
+    expect(tags.some((t) => t.hasAttribute("data-missing"))).toBe(false); // both friends were found
+  });
+
+  it("flags a name it can't find (amber, with a ?) while you are still typing", async () => {
+    state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }];
+    render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
+    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Movie 400 with Asha and Zed");
+    const tags = within(screen.getByTestId("quick-tags")).getAllByRole("listitem");
+    const zed = tags.find((t) => /Zed/.test(t.textContent ?? ""))!;
+    expect(zed).toHaveAttribute("data-missing", "true");
+    expect(zed.textContent).toMatch(/Zed \?/);
+    expect(tags.find((t) => /Asha/.test(t.textContent ?? ""))).not.toHaveAttribute("data-missing");
+  });
+
+  it("applying it fills the form, keeps the split equal, and takes the currency from the symbol", async () => {
+    state.friends = [{ friendId: "a", friend: { name: "Asha Rao" } }];
+    render(<AddExpenseDialog open onOpenChange={vi.fn()} />);
+    await userEvent.type(screen.getByPlaceholderText(/dinner 1200 with rahul/i), "Pub £25 with Asha split equally{Enter}");
+    expect(screen.getByPlaceholderText(/dinner, groceries, rent/i)).toHaveValue("Pub");
+    expect(screen.getByPlaceholderText("0.00")).toHaveValue(25);
+    expect(screen.getAllByText(/12\.50 GBP/).length).toBeGreaterThan(0); // 25 split between two, in pounds (the € / £ / $ symbol chose the currency)
+    expect(screen.queryByTestId("quick-tags")).not.toBeInTheDocument(); // the bar clears once applied
+  });
+
   it("quick add isn't shown inside a group", () => {
     renderGroup();
     expect(screen.queryByPlaceholderText(/dinner 1200 with rahul/i)).not.toBeInTheDocument();
