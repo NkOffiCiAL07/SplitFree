@@ -43,7 +43,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   return (
     <RegionProvider region={region}>
     <FillProvider>
-      <AuthStage className="auth-calm relative isolate min-h-dvh overflow-x-clip bg-[#f5f7fc] bg-[radial-gradient(circle_at_18%_35%,rgba(99,91,255,0.10),transparent_32%),radial-gradient(circle_at_80%_70%,rgba(124,92,255,0.06),transparent_28%)] lg:grid lg:grid-cols-[1.05fr_1fr] dark:bg-[#08090d] dark:bg-[radial-gradient(circle_at_20%_35%,rgba(99,91,255,0.20),transparent_38%),radial-gradient(circle_at_65%_78%,rgba(34,211,238,0.08),transparent_32%)]">
+      <AuthStage className="auth-calm relative isolate min-h-dvh overflow-x-clip bg-[#f5f7fc] bg-[radial-gradient(circle_at_18%_35%,rgba(99,91,255,0.10),transparent_32%),radial-gradient(circle_at_80%_70%,rgba(124,92,255,0.06),transparent_28%)] lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] dark:bg-[#08090d] dark:bg-[radial-gradient(circle_at_20%_35%,rgba(99,91,255,0.20),transparent_38%),radial-gradient(circle_at_65%_78%,rgba(34,211,238,0.08),transparent_32%)]">
         <AuthShowcase d={showcase} />
         <div className="relative isolate flex min-h-dvh flex-col">
         <div
@@ -73,7 +73,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <main className="flex flex-1 flex-col items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:pt-8 lg:px-4 lg:pb-12 lg:pt-4">
           <div
             data-testid="auth-card"
-            className="auth-card flex w-full max-w-md flex-1 flex-col lg:max-w-[27.5rem] lg:flex-none lg:min-h-[53rem] lg:rounded-2xl lg:border lg:border-white/80 lg:bg-white/[0.72] lg:p-10 lg:backdrop-blur-[28px] lg:backdrop-saturate-[145%] lg:shadow-[0_24px_60px_-20px_rgba(40,45,90,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] dark:lg:border-white/10 dark:lg:bg-white/[0.055] dark:lg:shadow-[0_25px_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.07)]"
+            className="auth-card flex w-full max-w-md flex-1 flex-col lg:w-[27.5rem] lg:max-w-full lg:flex-none lg:min-h-[56rem] lg:rounded-2xl lg:border lg:border-white/80 lg:bg-white/[0.72] lg:p-8 lg:backdrop-blur-[28px] lg:backdrop-saturate-[145%] lg:shadow-[0_24px_60px_-20px_rgba(40,45,90,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] dark:lg:border-white/10 dark:lg:bg-white/[0.055] dark:lg:shadow-[0_25px_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.07)]"
           >
             <Suspense fallback={null}>
               <AuthTabs />

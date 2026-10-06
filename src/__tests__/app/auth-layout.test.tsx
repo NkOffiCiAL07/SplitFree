@@ -37,7 +37,7 @@ describe("Auth layout — calm and trustworthy", () => {
     await renderLayout(<form aria-label="login form" />);
     const card = screen.getByTestId("auth-card");
     expect(card).toContainElement(screen.getByRole("form", { name: "login form" }));
-    expect(card.className).toContain("lg:min-h-[53rem]"); // always: the same size on both tabs
+    expect(card.className).toContain("lg:min-h-[56rem]"); // always: the same size on both tabs
     expect(card.className).toContain("lg:border");
     expect(card.className).toContain("lg:bg-white/[0.72]"); // light glass, readable
     expect(card.className).toContain("dark:lg:bg-white/[0.055]");
