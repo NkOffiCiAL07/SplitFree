@@ -15,6 +15,8 @@ import { SplitTryout } from "@/components/landing/split-tryout";
 import { PhoneDemo } from "@/components/landing/phone-demo";
 import { IosNotify } from "@/components/landing/ios-notify";
 import { ContinuityPill } from "@/components/landing/continuity-pill";
+import { TripCard, type TripCardData } from "@/components/landing/trip-card";
+import { MoneyStory, type StoryData } from "@/components/landing/money-story";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
 import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
@@ -102,6 +104,8 @@ interface Sample {
   featuresLead: string;
   exactLine: string;
   feature4: (typeof features)[number];
+  tripCard: TripCardData;
+  story: StoryData;
 }
 
 const RED = "text-red-600 dark:text-red-400";
@@ -128,6 +132,8 @@ const SAMPLE_IN: Sample = {
   step3: "See exactly who pays whom. Pay by UPI, record it, and the balance clears.",
   featuresLead: "Built around how people in India actually share money — and it handles the awkward cases too.",
   exactLine: "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
+  tripCard: { name: "Goa trip", emoji: "🏝️", total: "₹18,450", people: 4, youGet: "₹2,840", from: "from 3 people" },
+  story: { group: "Goa 2026 🏝️", expense: "Hotel — ₹8,400", people: "You, Rahul, Aman and Kunal", result: "You get ₹2,840", before: 6, after: 2 },
   feature4: { icon: IndianRupee, title: "UPI in one tap", description: "Save your UPI ID and friends can pay you straight from GPay, PhonePe or Paytm.", color: "from-emerald-500 to-teal-600" },
 };
 
@@ -152,6 +158,8 @@ const SAMPLE_INTL: Sample = {
   step3: "See exactly who pays whom. Pay however you like, record it, and the balance clears.",
   featuresLead: "Built around how friends actually share money — and it handles the awkward cases too.",
   exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
+  tripCard: { name: "Lisbon trip", emoji: "🏝️", total: "$920", people: 4, youGet: "$140", from: "from 3 people" },
+  story: { group: "Lisbon 2026 🏝️", expense: "Hotel — $420", people: "You, Mia, Liam and Noah", result: "You get $140", before: 6, after: 2 },
   feature4: { icon: Send, title: "Invite & remind on WhatsApp", description: "Send an invite or a friendly nudge on WhatsApp in one tap — the message is already written for you.", color: "from-emerald-500 to-teal-600" },
 };
 
@@ -233,7 +241,8 @@ export function LandingView({ international = false }: { international?: boolean
             </div>
           </div>
 
-          <div className="anim-fade-up" style={{ animationDelay: "200ms" }}>
+          <div className="anim-fade-up relative" style={{ animationDelay: "200ms" }}>
+            <div className="pointer-events-none absolute -left-52 top-36 z-10 hidden min-[1700px]:block anim-float-slow"><TripCard t={sample.tripCard} /></div>
             <PhoneDemo
               // (only plain data crosses to the browser: the full sample also holds an icon component, which cannot)
               s={{ owed: sample.owed, owe: sample.owe, people: sample.people, recent: sample.recent, received: sample.received, trip: sample.trip, payments: sample.payments, payChip: sample.payChip, bill: sample.bill }}
@@ -266,6 +275,8 @@ export function LandingView({ international = false }: { international?: boolean
 
       {/* Switching from Splitwise */}
       <SplitwiseBanner />
+
+      <MoneyStory s={sample.story} card={<TripCard t={sample.tripCard} />} />
 
       {/* How it works */}
       <section className="px-4 py-24">

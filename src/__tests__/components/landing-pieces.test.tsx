@@ -204,3 +204,16 @@ describe("Bento feature grid and continuity pill", () => {
     Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
   });
 });
+
+describe("Hero trip card and money story", () => {
+  it("the Indian page shows the Goa card with the big 'you get' number, and the five-step story", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const cards = screen.getAllByTestId("trip-card"); // one floating by the hero phone (wide screens), one beside the story
+    expect(cards).toHaveLength(2);
+    for (const c of cards) { expect(c).toHaveTextContent("Goa trip"); expect(c).toHaveTextContent("₹2,840"); }
+    const story = screen.getByTestId("money-story");
+    expect(within(story).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Create a group", "Add expenses", "Split", "Splitr calculates", "Settle"]);
+    expect(story).toHaveTextContent("2 payments instead of 6");
+  });
+});
