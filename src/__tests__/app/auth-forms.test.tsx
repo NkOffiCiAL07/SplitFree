@@ -117,6 +117,13 @@ describe("LoginForm", () => {
   });
 });
 
+describe("LoginForm — first-time visitors", () => {
+  it("says that continuing with Google creates the account, so new people don't hesitate", () => {
+    render(<LoginForm />);
+    expect(screen.getByTestId("google-new-here")).toHaveTextContent(/creates your account automatically/i);
+  });
+});
+
 describe("SignupForm", () => {
   const fill = async (name: string, email: string, password: string, phone = "98765 43210") => {
     await userEvent.type(screen.getByLabelText("Full name"), name);

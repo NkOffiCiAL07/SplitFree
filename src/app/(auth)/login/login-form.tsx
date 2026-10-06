@@ -123,6 +123,7 @@ function LoginPageContent() {
         <GoogleIcon />
         Continue with Google
       </Button>
+      <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-[11px] text-muted-foreground">New here? Continuing with Google creates your account automatically.</p>
 
       <div data-hide-in-app className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-border" />
