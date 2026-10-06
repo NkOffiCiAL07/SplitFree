@@ -131,3 +131,15 @@ describe("ExpensesPage — emoji reactions", () => {
   });
 });
 
+
+describe("ExpensesPage — date filter", () => {
+  it("the two date boxes are labelled From and To, so an empty one never looks like a chosen date", () => {
+    useInfiniteExpenses.mockReturnValue(state());
+    render(<ExpensesPage />);
+    expect(screen.getByText("From")).toBeInTheDocument();
+    expect(screen.getByText("To")).toBeInTheDocument();
+    const inputs = document.querySelectorAll("input[type=date]");
+    expect(inputs).toHaveLength(2);
+    for (const i of inputs) expect(i.className).toContain("text-muted-foreground"); // empty = muted
+  });
+});

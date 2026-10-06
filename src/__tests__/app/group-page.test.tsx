@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Suspense } from "react";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
@@ -173,6 +174,7 @@ describe("GroupDetailPage — who owes who & settling", () => {
   it("shows each person with direction and amount, and Settle only where I owe", async () => {
     await renderPage();
     expect(screen.getByText("Who owes who")).toBeInTheDocument();
+    expect(screen.getByText(/simplified plan below can route payments differently/i)).toBeInTheDocument(); // two sets of numbers, both right: say why they differ
     expect(screen.getByText("you owe")).toBeInTheDocument();
     expect(screen.getByText("owes you")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Settle" })).toHaveLength(1);
@@ -348,5 +350,13 @@ describe("GroupDetailPage — leaving and deleting", () => {
     await userEvent.click(screen.getByTitle(/leave group/i));
     await waitFor(() => expect(h.hooks.leave).toHaveBeenCalled());
     expect(h.router.push).not.toHaveBeenCalled();
+  });
+});
+
+describe("GroupDetailPage — balance banner in dark mode", () => {
+  it("drops its gradient in dark mode (a background colour cannot hide a gradient), leaving a quiet tinted banner", () => {
+    const src = readFileSync("src/app/(dashboard)/groups/[id]/page.tsx", "utf8");
+    expect(src).toContain("dark:bg-none dark:bg-emerald-500/15");
+    expect(src).toContain("dark:bg-none dark:bg-rose-500/15");
   });
 });

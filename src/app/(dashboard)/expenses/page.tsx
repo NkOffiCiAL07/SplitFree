@@ -129,21 +129,25 @@ function ExpensesPageInner() {
         {/* Date range filter */}
         <div className="flex items-center gap-2">
           <CalendarDays className="size-3.5 text-muted-foreground flex-shrink-0" />
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-8 text-xs flex-1"
-            placeholder="From"
-          />
-          <span className="text-xs text-muted-foreground">–</span>
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-8 text-xs flex-1"
-            placeholder="To"
-          />
+          <label className="flex-1 min-w-0">
+            <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">From</span>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className={cn("h-8 text-xs", !dateFrom && "text-muted-foreground")} // (an empty one must not look like a chosen date)
+            />
+          </label>
+          <span className="mt-3 text-xs text-muted-foreground">–</span>
+          <label className="flex-1 min-w-0">
+            <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">To</span>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className={cn("h-8 text-xs", !dateTo && "text-muted-foreground")}
+            />
+          </label>
           {(dateFrom || dateTo) && (
             <button
               onClick={() => { setDateFrom(""); setDateTo(""); }}

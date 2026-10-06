@@ -360,7 +360,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "rounded-2xl p-5 text-white",
-          myBalance >= 0 ? "bg-gradient-to-br from-emerald-500 to-green-600 dark:border dark:border-emerald-400/25 dark:bg-emerald-500/15 dark:text-emerald-300" : "bg-gradient-to-br from-rose-500 to-red-600 dark:border dark:border-rose-400/25 dark:bg-rose-500/15 dark:text-rose-300"
+          myBalance >= 0 ? "bg-gradient-to-br from-emerald-500 to-green-600 dark:border dark:border-emerald-400/25 dark:bg-none dark:bg-emerald-500/15 dark:text-emerald-300" : "bg-gradient-to-br from-rose-500 to-red-600 dark:border dark:border-rose-400/25 dark:bg-none dark:bg-rose-500/15 dark:text-rose-300"
         )}
       >
         <p className="text-sm text-white/80 dark:text-current dark:opacity-80">Your balance in this group</p>
@@ -551,7 +551,10 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         if (memberBalances.length === 0) return null;
         return (
           <div className="space-y-3">
-            <h3 className="font-semibold text-sm">Who owes who</h3>
+            <div>
+              <h3 className="font-semibold text-sm">Who owes who</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Direct totals between you and each person. The simplified plan below can route payments differently to need fewer of them, so a person&apos;s amount there may not match.</p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {memberBalances.map((mb) => (
                 <m.div
