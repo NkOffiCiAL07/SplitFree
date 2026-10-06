@@ -108,7 +108,7 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       <Link href="/settings" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-3.5" /> Settings
       </Link>

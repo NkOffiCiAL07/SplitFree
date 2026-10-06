@@ -102,7 +102,7 @@ export default function SettlePage() {
 
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Settle Up</h2>
@@ -192,16 +192,16 @@ export default function SettlePage() {
       {/* Summary pills */}
       {!balanceLoading && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 p-4">
+          <div className={cn("rounded-xl border p-4", myDebts.length > 0 ? "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30" : "bg-card")}>
             <p className="text-xs text-muted-foreground mb-1">You owe</p>
-            <p className="text-xl font-bold text-red-600 dark:text-red-400">
+            <p className={cn("text-xl font-bold", myDebts.length > 0 ? "text-red-600 dark:text-red-400" : "text-foreground")}>
               {totalsLabel(myDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{myDebts.length} payment{myDebts.length !== 1 ? "s" : ""}</p>
           </div>
-          <div className="rounded-xl border bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30 p-4">
+          <div className={cn("rounded-xl border p-4", othersDebts.length > 0 ? "bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30" : "bg-card")}>
             <p className="text-xs text-muted-foreground mb-1">Owed to you</p>
-            <p className="text-xl font-bold text-green-600 dark:text-green-400">
+            <p className={cn("text-xl font-bold", othersDebts.length > 0 ? "text-green-600 dark:text-green-400" : "text-foreground")}>
               {totalsLabel(othersDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{othersDebts.length} payment{othersDebts.length !== 1 ? "s" : ""}</p>
@@ -243,7 +243,7 @@ export default function SettlePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06 }}
                   className={cn(
-                    "flex items-center gap-3 p-4 rounded-xl border",
+                    "flex flex-wrap items-center gap-x-3 gap-y-2 p-4 rounded-xl border",
                     isMyDebt
                       ? "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30"
                       : "bg-card"
@@ -252,7 +252,7 @@ export default function SettlePage() {
                   <Avatar className="size-8 shrink-0">
                     <AvatarFallback className="text-xs">{getInitials(isMyDebt ? (debt.toUser?.name ?? "?") : (debt.fromUser?.name ?? "?"))}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                  <div className="flex-1 flex items-center gap-2 min-w-[7rem]">
                     <span className={cn("text-sm font-medium truncate", isMyDebt ? "text-red-700 dark:text-red-400" : "")}>
                       {isMyDebt ? "You" : (debt.fromUser?.name ?? "Someone")}
                     </span>
@@ -264,6 +264,7 @@ export default function SettlePage() {
                   <span className={cn("text-sm font-bold shrink-0", isMyDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
                     {formatCurrency(debt.amount, debt.currency ?? userCurrency)}
                   </span>
+                  <div className="flex shrink-0 items-center gap-2 max-sm:basis-full max-sm:justify-end">
                   {isMyDebt && (
                     <UpiPayLink vpa={debt.toUser?.upiId} payeeName={debt.toUser?.name} amountCents={debt.amount} currency={debt.currency ?? userCurrency} className="h-7 gap-1 px-2 text-xs shrink-0" />
                   )}
@@ -291,6 +292,7 @@ export default function SettlePage() {
                   {!isMyDebt && (
                     <WhatsAppRemindButton debtorName={debt.fromUser?.name} amount={debt.amount} currency={debt.currency ?? userCurrency} className="text-xs h-7 px-3 gap-1 shrink-0" />
                   )}
+                  </div>
                 </m.div>
               );
             })}

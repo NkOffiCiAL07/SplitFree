@@ -84,7 +84,7 @@ export function UpdatePasswordContent() {
           )}
         </div>
 
-        <Button type="submit" variant="brand" className="w-full" loading={loading}>
+        <Button type="submit" variant="brand" className="btn-liquid group h-[54px] w-full text-base font-semibold" loading={loading}>
           Update password
         </Button>
       </form>

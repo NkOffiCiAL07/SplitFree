@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { APP_NAME } from "@/lib/app-config";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 export const metadata: Metadata = {
   title: "Support",
@@ -47,7 +48,7 @@ export default function SupportPage() {
   return (
     <div className="safe-top min-h-dvh bg-background text-foreground">
       <header className="border-b px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
-        <Link href="/" className="font-bold text-lg">{APP_NAME}</Link>
+        <Link href="/" aria-label={`${APP_NAME} home`}><BrandLogo size={28} /></Link>
         <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
       </header>
 

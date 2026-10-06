@@ -105,7 +105,7 @@ export default function ActivityPage() {
   const groupKeys = GROUP_ORDER.filter((g) => grouped[g]?.length > 0);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Activity</h2>
@@ -156,7 +156,7 @@ export default function ActivityPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-medium">{item.title}</p>
-                        {isOwn && (
+                        {isOwn && !/^you\b/i.test(item.title ?? "") && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0">
                             You
                           </span>

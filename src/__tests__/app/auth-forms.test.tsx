@@ -256,6 +256,11 @@ describe("ResetPasswordForm", () => {
     await userEvent.click(screen.getByRole("button", { name: /send|reset/i }));
   };
 
+  it("its button is the same calm solid button as sign-in (not the old glossy one)", () => {
+    render(<ResetPasswordForm />);
+    expect(screen.getByRole("button", { name: /send reset link/i })).toHaveClass("btn-liquid", "h-[54px]");
+  });
+
   it("validates the email", async () => {
     render(<ResetPasswordForm />);
     await submit("a@b");

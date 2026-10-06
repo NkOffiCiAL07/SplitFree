@@ -66,7 +66,7 @@ export default function ProfilePage() {
   const avatarUrl = user?.user_metadata?.avatar_url ?? generateAvatarUrl(displayName);
 
   return (
-    <div className="p-4 md:p-6 max-w-xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       <div>
         <h2 className="text-xl font-bold">Profile</h2>
         <p className="text-sm text-muted-foreground">Manage your account details</p>

@@ -40,7 +40,7 @@ export default function RecurringPage() {
   const monthly = useMemo(() => monthlyByCurrency(recurring), [recurring]);
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

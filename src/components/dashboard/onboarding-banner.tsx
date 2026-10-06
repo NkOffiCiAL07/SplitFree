@@ -7,8 +7,9 @@ import { APP_NAME } from "@/lib/app-config";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-const STEPS = [
+const ALL_STEPS = [
   {
+    id: "group" as const,
     icon: Users,
     title: "Create your first group",
     description: "Organize expenses by trip, household, or any shared activity.",
@@ -17,6 +18,7 @@ const STEPS = [
     color: "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400",
   },
   {
+    id: "friend" as const,
     icon: UserPlus,
     title: "Add friends",
     description: "Connect with friends so you can split expenses together.",
@@ -25,6 +27,7 @@ const STEPS = [
     color: "bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400",
   },
   {
+    id: "expense" as const,
     icon: Receipt,
     title: "Log your first expense",
     description: `Add an expense and ${APP_NAME} will calculate who owes what.`,
@@ -36,7 +39,9 @@ const STEPS = [
 
 const STORAGE_KEY = "splitfree_onboarding_dismissed";
 
-export function OnboardingBanner() {
+/** `done` says which of the three things the person has already done (left out while that is still loading): only the rest are suggested. */
+export function OnboardingBanner({ done }: { done?: { group: boolean; friend: boolean; expense: boolean } }) {
+  const STEPS = done ? ALL_STEPS.filter((s) => !done[s.id]) : ALL_STEPS;
   // localStorage is only readable on the client; the server snapshot says "already dismissed"
   const stored = useSyncExternalStore(
     () => () => {},
@@ -46,7 +51,7 @@ export function OnboardingBanner() {
     () => "1"
   );
   const [hidden, setHidden] = useState(false);
-  const visible = !stored && !hidden;
+  const visible = !stored && !hidden && STEPS.length > 0;
   const [step, setStep] = useState(0);
   const router = useRouter();
 
@@ -55,7 +60,8 @@ export function OnboardingBanner() {
     setHidden(true);
   };
 
-  const current = STEPS[step];
+  const current = STEPS[Math.min(step, STEPS.length - 1)];
+  if (!current) return null;
   const Icon = current.icon;
 
   return (

@@ -47,7 +47,7 @@ export function GroupCard({ group, index = 0, balance }: GroupCardProps) {
               </Badge>
               {balance && balance.net !== 0 && (
                 <span className={cn(
-                  "ml-auto text-[10px] font-semibold shrink-0",
+                  "ml-auto text-xs font-semibold shrink-0",
                   balance.net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                 )}>
                   {balance.net > 0

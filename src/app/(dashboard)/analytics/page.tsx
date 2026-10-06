@@ -21,9 +21,10 @@ const CategoryPieChart = dynamic(
 );
 
 const CATEGORY_COLORS: Record<string, string> = {
-  FOOD:"#8b5cf6", TRANSPORT:"#3b82f6", ACCOMMODATION:"#10b981",
-  ENTERTAINMENT:"#f59e0b", UTILITIES:"#ef4444", SHOPPING:"#ec4899",
-  HEALTH:"#06b6d4", TRAVEL:"#84cc16", EDUCATION:"#a855f7", OTHER:"#6b7280",
+  // (no red or green here: those colours mean "you owe" and "you're owed" everywhere else in the app)
+  FOOD:"#7c72ff", TRANSPORT:"#38bdf8", ACCOMMODATION:"#2dd4bf",
+  ENTERTAINMENT:"#fbbf24", UTILITIES:"#a78bfa", SHOPPING:"#f472b6",
+  HEALTH:"#22d3ee", TRAVEL:"#6366f1", EDUCATION:"#c084fc", OTHER:"#94a3b8",
 };
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -97,7 +98,7 @@ export default function AnalyticsPage() {
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className={`text-lg md:text-xl font-bold mt-1 leading-tight ${positive ? "text-green-600 dark:text-green-400" : negative ? "text-red-600 dark:text-red-400" : ""}`}>
+                  <p className={`text-lg md:text-xl font-bold mt-1 leading-tight ${positive && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-green-600 dark:text-green-400" : negative && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-red-600 dark:text-red-400" : ""}`}>
                     {value}
                   </p>
                 </CardContent>

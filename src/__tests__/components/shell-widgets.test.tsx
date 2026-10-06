@@ -180,3 +180,19 @@ describe("GlobalAddExpenseDialog", () => {
     expect(screen.getByTestId("add-expense-dialog")).toHaveAttribute("data-open", "false");
   });
 });
+
+describe("OnboardingBanner — only what is still to do", () => {
+  it("suggests just the steps the person has not done yet", async () => {
+    localStorage.clear();
+    render(<OnboardingBanner done={{ group: true, friend: false, expense: false }} />);
+    expect(await screen.findByText("Add friends")).toBeInTheDocument();
+    expect(screen.queryByText("Create your first group")).not.toBeInTheDocument();
+    expect(screen.getByText(/getting started · 1\/2/i)).toBeInTheDocument();
+  });
+
+  it("is gone altogether once everything is done", () => {
+    localStorage.clear();
+    const { container } = render(<OnboardingBanner done={{ group: true, friend: true, expense: true }} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});

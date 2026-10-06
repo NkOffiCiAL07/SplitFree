@@ -72,7 +72,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       <div>
         <h2 className="text-xl font-bold">Settings</h2>
         <p className="text-sm text-muted-foreground">Manage your preferences</p>

@@ -450,7 +450,7 @@ export function LandingView({ international = false }: { international?: boolean
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/20 px-4 py-10">
+      <footer className="border-t bg-muted/20 px-4 pb-24 pt-10">
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <Link href="/" className="flex items-center gap-3">

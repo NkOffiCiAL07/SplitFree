@@ -51,14 +51,14 @@ export default function DashboardPage() {
       value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwed ?? 0, currency),
       sub: data?.stats?.approximate ? "others owe you · ≈" : "others owe you",
       icon: TrendingUp,
-      variant: "green" as const,
+      variant: (data?.stats?.totalOwed ?? 0) > 0 ? "green" as const : "neutral" as const,
     },
     {
       title: "You Owe",
       value: isLoading ? "—" : formatCompactCurrency(data?.stats?.totalOwing ?? 0, currency),
       sub: data?.stats?.approximate ? "settle up soon · ≈" : "settle up soon",
       icon: TrendingDown,
-      variant: "red" as const,
+      variant: (data?.stats?.totalOwing ?? 0) > 0 ? "red" as const : "neutral" as const,
     },
     {
       title: "Active Groups",
@@ -72,7 +72,7 @@ export default function DashboardPage() {
       value: isLoading ? "—" : formatCompactCurrency(Math.abs(netBalance), currency), // direction is shown by colour + the words below, not a minus sign
       sub: netBalance >= 0 ? "you're ahead" : "you're behind",
       icon: Wallet,
-      variant: netBalance >= 0 ? "violet" as const : "red" as const,
+      variant: netBalance === 0 ? "neutral" as const : netBalance > 0 ? "violet" as const : "red" as const,
     },
   ];
 
@@ -84,7 +84,7 @@ export default function DashboardPage() {
       >
         <div>
           <h2 className="text-xl font-bold">
-            {timeOfDay}, {firstName} 👋
+            {timeOfDay}, {firstName} 👋
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s your financial snapshot.</p>
         </div>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
       </m.div>
 
       {/* Onboarding */}
-      <OnboardingBanner />
+      <OnboardingBanner done={isLoading ? undefined : { group: (data?.stats?.groupCount ?? 0) > 0, friend: (data?.personBalances?.length ?? 0) > 0, expense: (data?.recentActivity?.length ?? 0) > 0 }} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

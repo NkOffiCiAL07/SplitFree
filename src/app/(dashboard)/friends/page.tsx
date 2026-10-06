@@ -109,12 +109,12 @@ export default function FriendsPage() {
   }, [expenseFriend, user]);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Friends</h2>
           <p className="text-sm text-muted-foreground">
-            {friendships?.length ?? 0} friends
+            {(friendships?.length ?? 0) + groupContacts.length === 0 ? "0 friends" : (friendships?.length ?? 0) > 0 ? `${friendships!.length} friend${friendships!.length === 1 ? "" : "s"}` : `${groupContacts.length} ${groupContacts.length === 1 ? "person" : "people"} from your groups`}
             {(pending?.length ?? 0) > 0 && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">· {pending!.length} pending</span>
             )}

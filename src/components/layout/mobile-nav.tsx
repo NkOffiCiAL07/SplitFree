@@ -22,7 +22,7 @@ export function MobileNav() {
   const intent = usePrefetchOnIntent();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/90 backdrop-blur-xl safe-area-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map(({ href, label, icon: Icon, isFab }) => {
           if (isFab) {
