@@ -145,7 +145,7 @@ function SignupFormContent() {
         <>
       <Button
         variant="outline"
-        data-hide-in-app className="anim-fade-up w-full gap-2 max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base"
+        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] max-lg:h-[52px] max-lg:rounded-2xl max-lg:text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
