@@ -405,8 +405,15 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   /* a clear focus ring for keyboard users (the calm button replaces the default one) */
   .auth-calm .btn-liquid:focus-visible { outline: 2px solid #5b57e8; outline-offset: 3px; }
   .dark .auth-calm .btn-liquid:focus-visible { outline-color: #a5a0ff; }
-  .dark .auth-calm .btn-liquid { background: #7c72ff !important; color: #0b0d14; font-weight: 700; }
-  .dark .auth-calm .btn-liquid:hover:not(:disabled) { background: #8d84ff !important; box-shadow: 0 6px 22px -6px rgba(124, 114, 255, 0.55); }
+  .dark .auth-calm .btn-liquid { background: #635bff !important; color: #fff; font-weight: 600; box-shadow: 0 8px 24px -10px rgba(99, 91, 255, 0.7); }
+  .dark .auth-calm .btn-liquid:hover:not(:disabled) { background: #746eff !important; box-shadow: 0 10px 28px -10px rgba(116, 110, 255, 0.75); }
+  .dark .auth-calm input { background-color: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.10); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+  .dark .auth-calm input:focus-visible { box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.14); }
+  /* the floating cards react to what the person is doing (set on the page wrapper by AuthStage) */
+  .showcase-card { transition: opacity 0.6s ease, filter 0.6s ease, translate 0.6s ease; }
+  [data-stage="email"] .showcase-stage .showcase-card { opacity: 1; filter: brightness(1.12); translate: 0 -4px; }
+  [data-stage="password"] .showcase-stage .showcase-card { opacity: 0.55; filter: blur(3px); }
+  [data-stage="leaving"] .showcase-stage .showcase-card { opacity: 0; translate: -16px 0; }
   .dark .auth-calm input:focus-visible, .dark .auth-calm select:focus-visible { border-color: #7c72ff; box-shadow: 0 0 0 3px rgba(124, 114, 255, 0.22); }
   .auth-calm input:focus-visible, .auth-calm select:focus-visible {
     outline: none;

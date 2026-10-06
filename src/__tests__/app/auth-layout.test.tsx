@@ -15,8 +15,7 @@ describe("Auth layout — calm and trustworthy", () => {
   it("is an almost-white page (dark in dark mode) with one soft glow, and none of the old aurora, glass, coins or pot", async () => {
     const { container } = await renderLayout(<form aria-label="login form" />);
     const page = container.firstElementChild!;
-    expect(page).toHaveClass("auth-calm", "bg-[#f7f8fc]");
-    expect(page.className).toContain("dark:bg-[#090a0f]");
+    expect(page).toHaveClass("auth-calm", "dark", "bg-[#08090d]"); // always the dark, cinematic look
     expect(screen.getByTestId("calm-glow")).toHaveAttribute("aria-hidden", "true");
     for (const old of [".auth-canvas", ".lg-blob", ".lg-coin", ".lg-glass", ".auth-grain", ".auth-orb", ".auth-card-glow", "[data-testid=activity-feed]", "[data-testid=chip-strip]"]) {
       expect(container.querySelector(old), old).toBeNull();
@@ -39,8 +38,8 @@ describe("Auth layout — calm and trustworthy", () => {
     expect(card).toContainElement(screen.getByRole("form", { name: "login form" }));
     expect(card.className).toContain("lg:min-h-[53rem]"); // always: the same size on both tabs
     expect(card.className).toContain("lg:border");
-    expect(card.className).toContain("lg:bg-white/75"); // glass, but readable: about 75% opaque, never see-through
-    expect(card.className).toContain("lg:backdrop-blur-[28px]");
+    expect(card.className).toContain("lg:bg-white/[0.055]"); // dark glass
+    expect(card.className).toContain("lg:backdrop-blur-[30px]");
     expect(screen.getByTestId("calm-light")).toHaveClass("hidden", "lg:block"); // the light behind the glass exists on desktop only
     expect(card.className).not.toMatch(/(^|\s)(border|bg-white|shadow)/); // (those only apply from the desktop breakpoint up)
     expect(card).toHaveClass("flex-1"); // on a phone the form fills the screen so the footer sits at the bottom
@@ -48,10 +47,7 @@ describe("Auth layout — calm and trustworthy", () => {
 
   it("keeps the 'Sign in' title, and colours the phone's status bar like the page in light and dark", () => {
     expect(metadata.title).toBe("Sign in");
-    expect(viewport.themeColor).toEqual([
-      { media: "(prefers-color-scheme: light)", color: "#f7f8fc" },
-      { media: "(prefers-color-scheme: dark)", color: "#090a0f" },
-    ]);
+    expect(viewport.themeColor).toBe("#08090d");
     expect(viewport.viewportFit).toBe("cover");
   });
 
@@ -107,5 +103,48 @@ describe("dark mode follows the app's theme, not the device's setting", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
     expect(layout).toMatch(/defaultTheme="system"/);
     expect(layout).toMatch(/enableSystem/);
+  });
+});
+
+describe("Auth layout — cinematic split", () => {
+  it("desktop shows the product story with three floating cards; phones get a slim one-card version", async () => {
+    await renderLayout(<form aria-label="login form" />);
+    const showcase = screen.getByTestId("auth-showcase");
+    expect(showcase).toHaveClass("hidden", "lg:flex");
+    expect(showcase).toHaveTextContent("Hisaab saaf.");
+    expect(showcase).toHaveTextContent("Dosti barkaraar.");
+    expect(showcase).toHaveTextContent(/bhai, paise kab doge/);
+    expect(showcase).toHaveTextContent("₹18,450");
+    expect(showcase).toHaveTextContent("+ ₹2,840");
+    expect(showcase).toHaveTextContent("₹640");
+    expect(showcase).toHaveTextContent("10 payments");
+    expect(screen.getByTestId("showcase-cards")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByTestId("auth-mobile-hero")).toHaveClass("lg:hidden");
+  });
+
+  it("outside India the cards and words carry no rupees or Hindi", async () => {
+    await renderLayout(<div />, "US");
+    const text = (screen.getByTestId("auth-showcase").textContent ?? "") + (screen.getByTestId("auth-mobile-hero").textContent ?? "");
+    expect(text).not.toMatch(/₹|bhai|Hisaab|Dosti/);
+    expect(text).toContain("$920");
+  });
+
+  it("the page tells the cards what the person is doing: email → closer, password → softer, submit → away", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const { container } = await renderLayout(<form aria-label="login form" onSubmit={(e) => e.preventDefault()}><input id="email" aria-label="e" /><input id="password" aria-label="p" /><button type="submit">go</button></form>);
+    const stage = container.firstElementChild!;
+    expect(stage).toHaveAttribute("data-stage", "idle");
+    await userEvent.click(screen.getByLabelText("e"));
+    expect(stage).toHaveAttribute("data-stage", "email");
+    await userEvent.click(screen.getByLabelText("p"));
+    expect(stage).toHaveAttribute("data-stage", "password");
+    await userEvent.click(screen.getByRole("button", { name: "go" }));
+    expect(stage).toHaveAttribute("data-stage", "leaving");
+  });
+
+  it("the card reactions and floating are plain CSS, and the floating stops for reduced motion", () => {
+    const css = readFileSync("src/app/globals.css", "utf8");
+    expect(css).toContain('[data-stage="password"] .showcase-stage .showcase-card { opacity: 0.55; filter: blur(3px); }');
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)[\s\S]*anim-float-slow/);
   });
 });

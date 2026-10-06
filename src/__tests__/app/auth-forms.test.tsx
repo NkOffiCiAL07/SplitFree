@@ -58,10 +58,10 @@ describe("LoginForm", () => {
     expect(h.toast.success).toHaveBeenCalledWith("Welcome back!");
   });
 
-  it("the button turns into \"You're in\" (and can't be pressed twice) while the app opens", async () => {
+  it("the button turns into \"Welcome back\" (and can't be pressed twice) while the app opens", async () => {
     render(<LoginForm />);
     await fill("me@x.com", "secret1");
-    const done = await screen.findByRole("button", { name: /you.re in/i });
+    const done = await screen.findByRole("button", { name: /welcome back/i });
     expect(done).toBeDisabled();
   });
 
@@ -419,7 +419,7 @@ describe("Sign-in polish", () => {
 
   it("the subtitle is one short line (it used to wrap and leave 'them.' alone)", () => {
     render(<LoginForm />);
-    expect(screen.getByText("Your groups and balances are waiting.")).toBeInTheDocument();
+    expect(screen.getByText("Your groups are waiting.")).toBeInTheDocument();
   });
 });
 

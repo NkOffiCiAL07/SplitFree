@@ -102,9 +102,9 @@ function LoginPageContent() {
     >
       {/* Header */}
       <div className="anim-fade-up space-y-1" style={{ animationDelay: "60ms" }}>
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back 👋</h1>
+        <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Welcome back 👋</h1>
         <p className="text-sm text-muted-foreground">
-          Your groups and balances are waiting.
+          Your groups are waiting.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ function LoginPageContent() {
       {/* Google */}
       <Button
         variant="outline"
-        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] h-12 rounded-xl text-base dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+        data-hide-in-app className="anim-fade-up w-full gap-2 border-[#d9dce5] bg-white text-slate-900 shadow-none hover:bg-[#f8f9fc] h-12 rounded-xl text-base dark:border-transparent dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
         style={{ animationDelay: "120ms" }}
         onClick={handleGoogle}
         loading={googleLoading}
@@ -128,9 +128,9 @@ function LoginPageContent() {
       <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-xs leading-relaxed text-muted-foreground">New here? Continuing with Google creates your account automatically.</p>
 
       <div data-hide-in-app className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
-        <span className="h-px flex-1 bg-border" />
-        or
-        <span className="h-px flex-1 bg-border" />
+        <span className="h-px flex-1 bg-white/10" />
+        or continue with email
+        <span className="h-px flex-1 bg-white/10" />
       </div>
         </>
       )}
@@ -202,7 +202,9 @@ function LoginPageContent() {
           disabled={signedIn}
         >
           {signedIn ? (
-            <><Check className="size-5" aria-hidden="true" /> You&apos;re in</>
+            <><Check className="size-5" aria-hidden="true" /> Welcome back</>
+          ) : isSubmitting ? (
+            <>Signing you in…</>
           ) : (
             <>
               Sign in
