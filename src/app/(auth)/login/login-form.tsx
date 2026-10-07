@@ -104,7 +104,7 @@ function LoginPageContent() {
       <div className="anim-fade-up space-y-1" style={{ animationDelay: "60ms" }}>
         <h1 className="text-2xl font-bold tracking-tight lg:text-3xl [@media(max-height:700px)]:text-xl">Welcome back 👋</h1>
         <p className="text-sm text-muted-foreground">
-          Your groups are waiting.
+          Your groups and balances are waiting.
         </p>
       </div>
 

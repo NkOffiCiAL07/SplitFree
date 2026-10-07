@@ -33,18 +33,21 @@ export function AuthShowcase({ d }: { d: ShowcaseData }) {
       </div>
 
       <div aria-hidden="true" data-testid="showcase-cards" className="showcase-stage relative h-[22rem] w-full max-w-lg">
-        <div className={`${glass} anim-float-slow absolute bottom-8 right-10 w-52 rotate-2 scale-95 p-4 opacity-90`}>
+        {/* back: a small dinner card peeking out behind the hero card */}
+        <div className={`${glass} anim-float-slow absolute right-6 top-8 z-0 w-48 rotate-3 scale-90 p-4 opacity-80`} style={{ animationDelay: "-1s" }}>
           <p className="text-sm font-semibold">{d.dinner.name} <span>{d.dinner.emoji}</span></p>
           <p className={`mt-2 text-[11px] uppercase tracking-wide ${LABEL}`}>You owe</p>
           <p className={`text-2xl font-bold ${OWE}`}>{d.dinner.owe}</p>
         </div>
 
-        <div className={`${glass} anim-float absolute bottom-0 left-0 flex items-center gap-2 -rotate-1 scale-95 px-4 py-3 text-sm opacity-90`}>
+        {/* middle: smart settle-up, tucked under the hero card's lower edge */}
+        <div className={`${glass} anim-float absolute bottom-6 left-24 z-10 flex items-center gap-2 rounded-2xl px-4 py-3 text-sm`}>
           <span aria-hidden="true">✨</span><b>Smart settle-up</b>
-          <span className={`ml-2 flex items-center gap-1.5 ${MUTED}`}>{d.before} payments <ArrowRight className="size-3.5 text-[#635bff] dark:text-violet-300" /> <b className="text-[#635bff] dark:text-violet-300">{d.after}</b></span>
+          <span className={`ml-2 flex items-center gap-1.5 ${MUTED}`}>{d.before} <ArrowRight className="size-3.5 text-[#635bff] dark:text-violet-300" /> <b className="text-[#635bff] dark:text-violet-300">{d.after}</b></span>
         </div>
 
-        <div className={`${glass} anim-float-slow absolute left-4 top-0 w-72 -rotate-2 p-6`} style={{ animationDelay: "-2s" }}>
+        {/* front: the hero card */}
+        <div className={`${glass} anim-float-slow absolute left-0 top-0 z-20 w-72 -rotate-2 p-6`} style={{ animationDelay: "-2s" }}>
           <p className="text-sm font-semibold">{d.trip.name} <span>{d.trip.emoji}</span></p>
           <p className="mt-3 text-4xl font-extrabold tracking-tight">{d.trip.total}</p>
           <p className={`text-xs ${MUTED}`}>{d.trip.people} people</p>

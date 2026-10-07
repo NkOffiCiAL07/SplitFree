@@ -262,16 +262,11 @@ export function LandingView({ international = false }: { international?: boolean
 
             <div className="anim-fade-up flex flex-wrap items-center justify-center gap-3 lg:justify-start" style={{ animationDelay: "210ms" }}>
               <Link href="/signup" data-testid="hero-primary" className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[#5b57e8] px-5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-px hover:bg-[#4f4bd4] dark:bg-[#7c72ff] dark:text-slate-950 dark:hover:bg-[#8d84ff]">
-                Start splitting <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                Start splitting free <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <a href="#how-it-works" data-testid="hero-secondary" className="inline-flex h-12 items-center rounded-xl border border-slate-300 px-5 text-base font-semibold text-slate-800 transition-colors hover:bg-slate-900/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10">
                 See how it works
               </a>
-            </div>
-
-            <div className="anim-fade-up flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ animationDelay: "250ms" }}>
-              <AndroidDownloadButton tone="dark" />
-              <IosNotify />
             </div>
 
             <div className="anim-fade-up flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70 lg:justify-start" style={{ animationDelay: "300ms" }}>
@@ -363,6 +358,7 @@ export function LandingView({ international = false }: { international?: boolean
                 </p>
               </div>
               <DownloadPanel />
+              <div className="mt-6 max-w-sm"><IosNotify /></div>
             </div>
           </Reveal>
         </div>
@@ -452,28 +448,15 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-4 py-16 sm:py-20">
+      {/* Closing statement */}
+      <section data-testid="closing" className="px-4 py-24 text-center sm:py-32">
         <div className="mx-auto max-w-3xl">
-          <div className="relative overflow-hidden rounded-3xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#4f48e6] to-[#635bff]" />
-            <div className="absolute inset-0">
-              <div className="absolute left-0 top-0 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute bottom-0 right-0 size-64 translate-x-1/2 translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
-            </div>
-            <div className="relative px-8 py-16 text-center text-white">
-              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Stop chasing your friends for money.</h2>
-              <p className="mx-auto mb-8 max-w-lg text-lg leading-relaxed text-white/80">Split it. Settle it. Move on.</p>
-              <Link href="/signup" data-testid="final-cta" className="group mb-6 inline-flex h-12 items-center gap-2 rounded-xl bg-white px-7 text-base font-semibold text-slate-900 shadow-lg transition-all hover:-translate-y-px">
-                Start splitting <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <p className="mb-4 text-sm text-white/70">Free on the web and Android — iOS coming soon.</p>
-              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <AndroidDownloadButton tone="light" />
-                <IosComingSoon tone="light" />
-              </div>
-            </div>
-          </div>
+          <h2 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">Stop chasing your friends for money.</h2>
+          <p className="mt-5 text-xl text-muted-foreground">Split it. Settle it. Move on.</p>
+          <Link href="/signup" data-testid="final-cta" className="group mt-10 inline-flex h-14 items-center gap-2 rounded-2xl bg-[#635bff] px-8 text-lg font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-px hover:bg-[#746eff]">
+            Start splitting free <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <p className="mt-4 text-sm text-muted-foreground">Free on the web and Android — iOS coming soon.</p>
         </div>
       </section>
 

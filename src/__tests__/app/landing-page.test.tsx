@@ -20,7 +20,7 @@ describe("Landing page — Android app", () => {
   it("offers a direct APK download (a plain link, so it works without JavaScript)", () => {
     render(<LandingPage />);
     const links = screen.getAllByTestId("android-download");
-    expect(links.length).toBeGreaterThanOrEqual(2); // hero and the final call to action
+    expect(links.length).toBeGreaterThanOrEqual(1); // the download section (the hero and closing statement stay about the product)
     for (const a of links) {
       expect(a).toHaveAttribute("href", ANDROID_APP.path);
       expect(a).toHaveAttribute("download", ANDROID_APP.fileName);
@@ -43,7 +43,8 @@ describe("Landing page — Android app", () => {
 
   it("explains installing and gives iPhone users a working option today — without technical noise (no checksum, package name or 'signed release' box)", () => {
     render(<LandingPage />);
-    expect(screen.getByText(/Install unknown apps/i, { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText(/Install unknown apps/i)).toBeInTheDocument(); // the install guide lives in the questions, not as a marketing section
+    expect(document.querySelector("#download")!.textContent).not.toMatch(/Install unknown apps/i);
     expect(screen.queryByTestId("apk-sha256")).toBeNull();
     expect(document.body.textContent).not.toMatch(/SHA-256|checksum|package com\.|Signed release|file is genuine/i);
     expect(screen.getAllByText(/Add to Home Screen/i).length).toBeGreaterThan(0);

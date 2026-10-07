@@ -419,7 +419,7 @@ describe("Sign-in polish", () => {
 
   it("the subtitle is one short line (it used to wrap and leave 'them.' alone)", () => {
     render(<LoginForm />);
-    expect(screen.getByText("Your groups are waiting.")).toBeInTheDocument();
+    expect(screen.getByText("Your groups and balances are waiting.")).toBeInTheDocument();
   });
 });
 

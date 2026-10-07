@@ -120,7 +120,8 @@ describe("Auth layout — cinematic split", () => {
     expect(showcase).toHaveTextContent("₹18,450");
     expect(showcase).toHaveTextContent("+ ₹2,840");
     expect(showcase).toHaveTextContent("₹640");
-    expect(showcase).toHaveTextContent("10 payments");
+    expect(showcase).toHaveTextContent("Smart settle-up");
+    expect(showcase).toHaveTextContent(/10\s*3/);
     expect(screen.getByTestId("showcase-cards")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByTestId("auth-mobile-hero")).toHaveClass("lg:hidden");
   });

@@ -14,12 +14,6 @@ const QRCodeSVG = dynamic(() => import("qrcode.react").then((m) => m.QRCodeSVG),
 const noopSubscribe = () => () => {};
 type Tab = "android" | "iphone";
 
-const ANDROID_STEPS = [
-  "Tap Download. If your browser warns about the file, choose Download anyway.",
-  "Open the file. When Android asks, allow “Install unknown apps” for your browser (one-time).",
-  "Tap Install, open Splitr Pro and sign in with your existing account.",
-];
-
 export function DownloadPanel() {
   // Read from the browser without an effect: the server render (and first paint) assume "desktop"
   const platform = useSyncExternalStore<Platform>(noopSubscribe, () => detectPlatform(navigator.userAgent, navigator.maxTouchPoints), () => "desktop");
@@ -38,7 +32,7 @@ export function DownloadPanel() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div role="tablist" aria-label="Choose your phone" className="lg-glass-dark inline-flex rounded-full p-1">
         {([["android", "Android"], ["iphone", "iPhone"]] as const).map(([id, label]) => (
           <button
@@ -69,17 +63,9 @@ export function DownloadPanel() {
             <p className="text-sm text-white/70" data-testid="platform-hint">
               {platform === "android" && "You're on Android — tap Download to install the app."}
               {platform === "ios" && "On iPhone? Switch to the iPhone tab — the full app already works from your home screen, and a native iOS app is coming soon."}
-              {platform === "desktop" && "On a computer? Scan the code with your Android phone. iPhone users can open this site in Safari and use Add to Home Screen — a native iOS app is coming soon."}
+              {platform === "desktop" && "On a computer? Scan the code with your Android phone. The step-by-step install guide is in the questions below."}
             </p>
 
-            <ol className="space-y-3">
-              {ANDROID_STEPS.map((step, i) => (
-                <li key={step} className="flex gap-3 text-sm text-white/85">
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-bold">{i + 1}</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
           </div>
 
           <div className="flex justify-center">

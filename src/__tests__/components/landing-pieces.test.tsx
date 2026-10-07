@@ -343,3 +343,26 @@ describe("Split modes and moment cards", () => {
     expect(m.textContent).not.toMatch(/[+−]\s?₹/);
   });
 });
+
+describe("Edited landing page", () => {
+  it("the closing statement is minimal: one big line, one sentence, one button, no feature grid or download badges", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const closing = screen.getByTestId("closing");
+    expect(within(closing).getByRole("heading", { name: /stop chasing your friends for money/i })).toBeInTheDocument();
+    expect(closing).toHaveTextContent("Split it. Settle it. Move on.");
+    expect(within(closing).getAllByRole("link")).toHaveLength(1);
+    expect(within(closing).getByRole("link")).toHaveAttribute("href", "/signup");
+    expect(within(closing).getByRole("link")).toHaveTextContent("Start splitting free");
+  });
+
+  it("the hero is just the message, two buttons and the product — the download buttons live in the download section", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    const hero = screen.getByTestId("hero");
+    expect(hero.querySelector('[data-testid="android-download"]')).toBeNull();
+    expect(hero.querySelector('[data-testid="ios-notify"]')).toBeNull();
+    expect(document.querySelector("#download")!.querySelector('[data-testid="android-download"]')).not.toBeNull();
+    expect(document.querySelector("#download")!.querySelector('[data-testid="ios-notify"]')).not.toBeNull();
+  });
+});
