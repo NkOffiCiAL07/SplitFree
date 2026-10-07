@@ -21,7 +21,7 @@ import ExpensesPage from "@/app/(dashboard)/expenses/page";
 
 const exp = (id: string) => ({
   id, description: `Expense ${id}`, amount: 10000, currency: "INR", category: "FOOD", date: "2026-03-01", paidById: "me",
-  paidBy: { name: "Me" }, isRecurring: false, splits: [{ userId: "me", amount: 10000 }], payers: [],
+  paidBy: { name: "Me" }, isRecurring: false, splits: [{ id: "s1", userId: "me", amount: 10000 }], payers: [],
 });
 
 const state = (over = {}) => ({
@@ -52,7 +52,7 @@ describe("ExpensesPage — app-icon shortcut", () => {
 });
 
 describe("ExpensesPage — mixed currencies", () => {
-  const usd = { ...exp("9"), description: "Hotel", currency: "USD", amount: 20000, group: { name: "Goa", currency: "INR" }, splits: [{ userId: "me", amount: 10000, user: { name: "Me" } }, { userId: "a", amount: 10000, user: { name: "Asha" } }] };
+  const usd = { ...exp("9"), description: "Hotel", currency: "USD", amount: 20000, group: { name: "Goa", currency: "INR" }, splits: [{ id: "s1", userId: "me", amount: 10000, user: { name: "Me" } }, { id: "s2", userId: "a", amount: 10000, user: { name: "Asha" } }] };
 
   it("every row shows its OWN currency, even when the group's currency differs", () => {
     useInfiniteExpenses.mockReturnValue(state({ expenses: [exp("1"), usd] }));

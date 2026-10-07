@@ -54,7 +54,7 @@ const baseGroup = (over: Record<string, unknown> = {}) => ({
   members: [member("me", "Nishant", "ADMIN"), member("a", "Asha"), member("b", "Bhanu")],
   memberBalances: [], _count: { expenses: 3, members: 3 }, stats: undefined, ...over,
 });
-const expense = (id: string) => ({ id, description: `Expense ${id}`, amount: 10000, currency: "INR", category: "FOOD", date: "2026-03-01", paidById: "me", paidBy: { name: "Nishant" }, splits: [{ userId: "me", amount: 5000 }, { userId: "a", amount: 5000 }], payers: [] });
+const expense = (id: string) => ({ id, description: `Expense ${id}`, amount: 10000, currency: "INR", category: "FOOD", date: "2026-03-01", paidById: "me", paidBy: { name: "Nishant" }, splits: [{ id: "s1", userId: "me", amount: 5000 }, { id: "s2", userId: "a", amount: 5000 }], payers: [] });
 
 async function renderPage() {
   await act(async () => {
@@ -74,7 +74,7 @@ beforeEach(() => {
 
 describe("GroupDetailPage — an expense in another currency", () => {
   it("the details dialog shows the total and each split in the EXPENSE's currency, not the group's", async () => {
-    h.expenses.expenses = [{ ...expense("1"), description: "Hotel", currency: "USD", amount: 20000, splits: [{ userId: "me", amount: 10000, user: { name: "Nishant" } }, { userId: "a", amount: 10000, user: { name: "Asha" } }] }];
+    h.expenses.expenses = [{ ...expense("1"), description: "Hotel", currency: "USD", amount: 20000, splits: [{ id: "s1", userId: "me", amount: 10000, user: { name: "Nishant" } }, { id: "s2", userId: "a", amount: 10000, user: { name: "Asha" } }] }];
     await renderPage();
     await userEvent.click(screen.getByText("Hotel"));
     const dialog = await screen.findByRole("dialog");
