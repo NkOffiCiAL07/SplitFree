@@ -1,4 +1,5 @@
-import { Apple, Download } from "lucide-react";
+import { Download } from "lucide-react";
+import { AppleLogo } from "@/components/shared/apple-logo";
 import { ANDROID_APP, androidSizeLabel } from "@/lib/android-app";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,7 @@ export function IosComingSoon({ className, tone = "dark" }: { className?: string
         className
       )}
     >
-      <Apple className="size-7 shrink-0 opacity-70" aria-hidden="true" />
+      <AppleLogo className="size-7 shrink-0 opacity-70" aria-hidden="true" />
       <span className="leading-tight">
         <span className="block text-[10px] font-medium uppercase tracking-wider opacity-70">iPhone &amp; iPad</span>
         <span className="block text-base font-semibold">Coming soon</span>

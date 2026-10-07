@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Apple, Check, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { AppleLogo } from "@/components/shared/apple-logo";
 
 /** The iPhone block of the hero: instead of a dead "coming soon" box, people can leave an email and be told at launch. */
 export function IosNotify() {
@@ -34,7 +35,7 @@ export function IosNotify() {
 
   return (
     <form onSubmit={submit} data-testid="ios-notify" className="lg-glass-dark relative flex w-full max-w-sm flex-col gap-2 rounded-2xl px-4 py-3 text-left text-white sm:w-[21rem]">
-      <p className="flex items-center gap-2 text-sm font-semibold"><Apple className="size-5 shrink-0 text-white/80" aria-hidden="true" /> iPhone &amp; iPad — get notified</p>
+      <p className="flex items-center gap-2 text-sm font-semibold"><AppleLogo className="size-5 shrink-0 text-white/80" aria-hidden="true" /> iPhone &amp; iPad — get notified</p>
       <div className="flex gap-2">
         <label className="sr-only" htmlFor="ios-notify-email">Your email</label>
         <input

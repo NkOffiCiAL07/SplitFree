@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
 import { render, screen, within, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -384,5 +385,17 @@ describe("Accessibility structure", () => {
     const { default: Page } = await import("@/app/page");
     render(await Page());
     for (const id of ["chat-problem", "moments"]) for (const child of screen.getByTestId(id).children) expect(child.tagName, id).toBe("LI");
+  });
+});
+
+describe("Apple logo", () => {
+  it("the iPhone blocks show the Apple logo (an SVG with a real logo shape), not lucide's piece of fruit", async () => {
+    const { default: Page } = await import("@/app/page");
+    const { container } = render(await Page());
+    const logos = container.querySelectorAll("[data-testid=apple-logo]");
+    expect(logos.length).toBeGreaterThanOrEqual(2); // the iPhone email box and the "Coming soon" badge
+    for (const l of logos) { expect(l).toHaveAttribute("aria-hidden", "true"); expect(l.querySelector("path")!.getAttribute("d")!.length).toBeGreaterThan(400); }
+    const src = readFileSync("src/components/landing/store-badges.tsx", "utf8") + readFileSync("src/components/landing/ios-notify.tsx", "utf8");
+    expect(src).not.toMatch(/import \{[^}]*\bApple\b[^}]*\} from "lucide-react"/);
   });
 });
