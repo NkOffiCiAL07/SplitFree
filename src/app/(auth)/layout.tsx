@@ -63,7 +63,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <Link href="/" aria-label="Splitr Pro home" className="rounded-md lg:hidden">
             <BrandLogo size={28} />
           </Link>
-          <Link href="/" data-hide-in-app className="text-sm text-[#697083] transition-colors hover:text-[#11131a] dark:text-[#a1a7b5] dark:hover:text-white">
+          <Link href="/" data-hide-in-app className="-my-3 py-3 text-sm text-[#697083] transition-colors hover:text-[#11131a] dark:text-[#a1a7b5] dark:hover:text-white">
             ← Back to home
           </Link>
         </header>

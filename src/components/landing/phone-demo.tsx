@@ -107,7 +107,7 @@ export function PhoneDemo({ s }: { s: PhoneSample }) {
             type="button"
             aria-selected={tab === id}
             onClick={() => choose(id)}
-            className={`rounded-full px-3 py-1.5 transition-colors ${tab === id ? "bg-white text-violet-700 shadow" : "text-white/85 hover:text-white"}`}
+            className={`rounded-full px-3.5 py-2.5 transition-colors ${tab === id ? "bg-white text-violet-700 shadow" : "text-white/85 hover:text-white"}`}
           >
             {label}
           </button>

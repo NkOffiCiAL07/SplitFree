@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <div className="safe-top min-h-dvh bg-background text-foreground">
       <header className="border-b px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
         <Link href="/" aria-label={`${APP_NAME} home`}><BrandLogo size={28} /></Link>
-        <Link href="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Support</Link>
+        <Link href="/support" className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Support</Link>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-10">

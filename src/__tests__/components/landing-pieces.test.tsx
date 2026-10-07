@@ -366,3 +366,15 @@ describe("Edited landing page", () => {
     expect(document.querySelector("#download")!.querySelector('[data-testid="ios-notify"]')).not.toBeNull();
   });
 });
+
+describe("Touch targets", () => {
+  it("the theme toggle, footer links and the split-demo tabs are comfortable to tap (≥ 40px / padded)", async () => {
+    const { ThemeToggle } = await import("@/components/layout/theme-toggle");
+    render(<ThemeToggle />);
+    expect(screen.getByRole("button", { name: /toggle theme/i }).className).toContain("size-10");
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    for (const name of ["Privacy", "Support"]) expect(screen.getAllByRole("link", { name })[0].className).toContain("py-2");
+    expect(screen.getByRole("tab", { name: "Shares" }).className).toContain("py-2");
+  });
+});

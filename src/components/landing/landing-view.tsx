@@ -469,10 +469,10 @@ export function LandingView({ international = false }: { international?: boolean
               <p className="hidden text-[10px] text-muted-foreground sm:block">Free expense splitting for everyone</p>
             </Link>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <Link href="/login" className="transition-colors hover:text-foreground">Sign in</Link>
-              <a href="#download" className="transition-colors hover:text-foreground">Android app</a>
-              <Link href="/privacy" className="transition-colors hover:text-foreground">Privacy</Link>
-              <Link href="/support" className="transition-colors hover:text-foreground">Support</Link>
+              <Link href="/login" className="-my-2 py-2 transition-colors hover:text-foreground">Sign in</Link>
+              <a href="#download" className="-my-2 py-2 transition-colors hover:text-foreground">Android app</a>
+              <Link href="/privacy" className="-my-2 py-2 transition-colors hover:text-foreground">Privacy</Link>
+              <Link href="/support" className="-my-2 py-2 transition-colors hover:text-foreground">Support</Link>
             </div>
           </div>
           <div className="flex flex-col items-center justify-between gap-2 border-t pt-6 text-xs text-muted-foreground sm:flex-row">

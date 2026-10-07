@@ -43,7 +43,7 @@ export function SplitTryout({ symbol = "₹", defaultAmount = "2400", currency =
 
       <div role="tablist" aria-label="How to split" className="mb-4 inline-flex rounded-full bg-white/10 p-1 text-xs font-medium">
         {MODES.map((m) => (
-          <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={`rounded-full px-3 py-1 transition-colors ${mode === m.id ? "bg-white text-violet-700 shadow" : "text-white/80 hover:text-white"}`}>{m.label}</button>
+          <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={`rounded-full px-3.5 py-2 transition-colors ${mode === m.id ? "bg-white text-violet-700 shadow" : "text-white/80 hover:text-white"}`}>{m.label}</button>
         ))}
       </div>
 

@@ -49,7 +49,7 @@ export default function SupportPage() {
     <div className="safe-top min-h-dvh bg-background text-foreground">
       <header className="border-b px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
         <Link href="/" aria-label={`${APP_NAME} home`}><BrandLogo size={28} /></Link>
-        <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+        <Link href="/privacy" className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-12">
@@ -69,7 +69,7 @@ export default function SupportPage() {
           </p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="inline-flex items-center gap-2 text-primary font-medium hover:underline underline-offset-2"
+            className="inline-flex min-h-11 items-center gap-2 text-primary font-medium hover:underline underline-offset-2"
           >
             {CONTACT_EMAIL}
           </a>
@@ -92,8 +92,8 @@ export default function SupportPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Other Links</h2>
           <div className="flex flex-wrap gap-3">
-            <Link href="/privacy" className="text-sm text-primary hover:underline underline-offset-2">Privacy Policy</Link>
-            <Link href="/dashboard" className="text-sm text-primary hover:underline underline-offset-2">Go to App</Link>
+            <Link href="/privacy" className="-my-2 py-2 text-sm text-primary hover:underline underline-offset-2">Privacy Policy</Link>
+            <Link href="/dashboard" className="-my-2 py-2 text-sm text-primary hover:underline underline-offset-2">Go to App</Link>
           </div>
         </section>
       </main>
