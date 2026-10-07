@@ -12,8 +12,8 @@ export interface ShowcaseData {
 const glass = "showcase-card rounded-3xl border border-white/70 bg-white/60 text-[#11131a] shadow-[0_24px_70px_rgba(40,45,90,0.10),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-2xl backdrop-saturate-[150%] dark:border-white/10 dark:bg-white/[0.055] dark:text-white dark:shadow-[0_25px_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.07)]";
 const MUTED = "text-[#697083] dark:text-[#a1a7b5]";
 const LABEL = "text-[#697083] dark:text-white/50";
-const GET = "text-[#16a36a] dark:text-[#34d399]";
-const OWE = "text-[#e5485d] dark:text-[#fb7185]";
+const GET = "text-[#0b7a4f] dark:text-[#34d399]";
+const OWE = "text-[#c4243b] dark:text-[#fb7185]";
 
 /** The left side of the desktop sign-in: the product story and three floating, real-looking Splitr cards. Decorative; the motion is slow and stops for reduced-motion. */
 export function AuthShowcase({ d }: { d: ShowcaseData }) {

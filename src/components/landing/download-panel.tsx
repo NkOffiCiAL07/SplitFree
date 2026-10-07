@@ -71,7 +71,7 @@ export function DownloadPanel() {
           <div className="flex justify-center">
             {platform === "desktop" && origin ? (
               <figure className="lg-float rounded-3xl bg-white p-5 text-center shadow-2xl ring-8 ring-white/20" data-testid="download-qr">
-                <QRCodeSVG value={`${origin}${ANDROID_APP.path}`} size={176} level="M" marginSize={0} />
+                <QRCodeSVG value={`${origin}${ANDROID_APP.path}`} size={176} level="M" marginSize={0} title="QR code to download the Android app" />
                 <figcaption className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-600">
                   <Smartphone className="size-3.5" /> Scan to download on Android
                 </figcaption>
@@ -129,7 +129,7 @@ export function DownloadPanel() {
           <div className="flex justify-center">
             {platform === "desktop" && origin ? (
               <figure className="lg-float rounded-3xl bg-white p-5 text-center shadow-2xl ring-8 ring-white/20" data-testid="download-qr-ios">
-                <QRCodeSVG value={origin} size={176} level="M" marginSize={0} />
+                <QRCodeSVG value={origin} size={176} level="M" marginSize={0} title="QR code to open Splitr Pro on your iPhone" />
                 <figcaption className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-600">
                   <Smartphone className="size-3.5" /> Scan with your iPhone camera
                 </figcaption>

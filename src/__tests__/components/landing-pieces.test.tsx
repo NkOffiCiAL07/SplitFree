@@ -378,3 +378,11 @@ describe("Touch targets", () => {
     expect(screen.getByRole("tab", { name: "Shares" }).className).toContain("py-2");
   });
 });
+
+describe("Accessibility structure", () => {
+  it("the chat and moment lists contain only list items, and the QR code has a name", async () => {
+    const { default: Page } = await import("@/app/page");
+    render(await Page());
+    for (const id of ["chat-problem", "moments"]) for (const child of screen.getByTestId(id).children) expect(child.tagName, id).toBe("LI");
+  });
+});

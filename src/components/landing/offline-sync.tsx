@@ -7,7 +7,7 @@ export function OfflineSync() {
     <section aria-labelledby="offline-sync-title" className="px-4 py-16 sm:py-20">
       <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-2">
         <div className="text-center lg:text-left">
-          <p className="mb-2 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">Your groups, in your pocket</p>
+          <p className="mb-2 text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">Your groups, in your pocket</p>
           <h2 id="offline-sync-title" className="mb-3 text-balance text-3xl font-bold sm:text-4xl">Your money, wherever you go.</h2>
           <p className="mx-auto max-w-md text-muted-foreground lg:mx-0">No signal on the trip? Add the bill anyway. It is saved on your phone, and the moment you are back online it syncs — once, never twice.</p>
         </div>

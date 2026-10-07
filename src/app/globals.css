@@ -386,7 +386,8 @@ a, button, summary, label, [role="button"] { touch-action: manipulation; } /* no
   html:not(.dark) .hero-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.12); }
   html:not(.dark) .hero-light .text-emerald-300, html:not(.dark) .hero-light [class*="text-emerald-200"] { color: #16a36a; }
   html:not(.dark) .hero-light .lg-text-shimmer { filter: none; }
-  html:not(.dark) .hero-light [data-testid="hero-primary"] { color: #fff; } /* white on the indigo button (the rule above would make it dark) */
+  html:not(.dark) .hero-light [data-testid="hero-primary"] { color: #fff; }
+  html:not(.dark) .hero-light .bg-emerald-700 { color: #fff; } /* white on the indigo button (the rule above would make it dark) */
   html:not(.dark) .hero-light a.bg-zinc-900, html:not(.dark) .hero-light a.bg-zinc-900 * { color: #fff; } /* the black download button keeps its white label */
 
   /* Sign in / create account: calm. One solid indigo button, a soft focus ring, no sweeping lights or pulsing glow */

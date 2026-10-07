@@ -121,7 +121,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">Contact Us</h2>
           <p className="text-muted-foreground leading-relaxed">
             If you have questions or concerns about this privacy policy or your data, contact us at:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline underline-offset-2">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#4f48e6] dark:text-primary underline underline-offset-2">
               {CONTACT_EMAIL}
             </a>
           </p>

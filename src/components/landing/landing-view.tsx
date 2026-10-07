@@ -116,8 +116,8 @@ interface Sample {
   moments: Moment[];
 }
 
-const RED = "text-[#e5485d] dark:text-rose-400";
-const GREEN = "text-[#16a36a] dark:text-emerald-400";
+const RED = "text-[#c4243b] dark:text-rose-400";
+const GREEN = "text-[#0b7a4f] dark:text-emerald-400";
 
 const SAMPLE_IN: Sample = {
   owed: "₹1,190", owe: "₹1,200",
@@ -242,7 +242,7 @@ export function LandingView({ international = false }: { international?: boolean
               href="#download"
               className="anim-fade-up lg-glass-dark inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20"
             >
-              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">NEW</span>
+              <span className="rounded-full bg-emerald-700 px-1.5 py-0.5 text-[10px] font-bold text-white">NEW</span>
               Android app is here — iOS coming soon
               <ArrowRight className="size-3" />
             </a>
@@ -291,7 +291,7 @@ export function LandingView({ international = false }: { international?: boolean
         <div className="anim-fade-up mx-auto mt-20 grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,36rem)_1fr] lg:gap-16" style={{ animationDelay: "320ms" }}>
           <SplitTryout symbol={international ? "$" : "₹"} defaultAmount={international ? "120" : "2400"} currency={international ? "USD" : "INR"} />
           <div className="text-center lg:text-left">
-            <p className="mb-2 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">Try it right here</p>
+            <p className="mb-2 text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">Try it right here</p>
             <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Split a bill in three taps.</h2>
             <p className="mx-auto mt-3 max-w-md text-muted-foreground lg:mx-0">Change the bill, the number of friends or the way you split. It&apos;s the same maths the app uses, so the shares always add up to the exact amount.</p>
           </div>
@@ -314,7 +314,7 @@ export function LandingView({ international = false }: { international?: boolean
       <section id="how-it-works" className="scroll-mt-16 px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center sm:mb-14">
-            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> How it works <span className="h-px w-4 bg-violet-500/50" />
             </p>
             <h2 className="text-3xl font-bold sm:text-4xl">Up and running in minutes</h2>
@@ -373,7 +373,7 @@ export function LandingView({ international = false }: { international?: boolean
         </div>
         <div className="relative mx-auto max-w-6xl">
           <div className="mb-14 text-center">
-            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> Features <span className="h-px w-4 bg-violet-500/50" />
             </p>
             <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
@@ -403,7 +403,7 @@ export function LandingView({ international = false }: { international?: boolean
       <section className="px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <div className="max-sm:text-center">
-            <p className="mb-2 flex items-center gap-1.5 max-sm:justify-center text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
+            <p className="mb-2 flex items-center gap-1.5 max-sm:justify-center text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> Careful with money
             </p>
             <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Because it&apos;s your money, the numbers have to be right</h2>
@@ -415,7 +415,7 @@ export function LandingView({ international = false }: { international?: boolean
                 "Green means you're owed, red means you owe — clear at a glance.",
               ].map((t) => (
                 <li key={t} className="flex gap-3">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-[#16a36a] dark:text-emerald-400" /></span>
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-[#0b7a4f] dark:text-emerald-400" /></span>
                   <span className="text-sm leading-relaxed sm:text-base">{t}</span>
                 </li>
               ))}

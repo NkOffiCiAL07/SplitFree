@@ -69,7 +69,7 @@ export default function SupportPage() {
           </p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="inline-flex min-h-11 items-center gap-2 text-primary font-medium hover:underline underline-offset-2"
+            className="inline-flex min-h-11 items-center gap-2 text-[#4f48e6] dark:text-primary font-medium hover:underline underline-offset-2"
           >
             {CONTACT_EMAIL}
           </a>
@@ -92,8 +92,8 @@ export default function SupportPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Other Links</h2>
           <div className="flex flex-wrap gap-3">
-            <Link href="/privacy" className="-my-2 py-2 text-sm text-primary hover:underline underline-offset-2">Privacy Policy</Link>
-            <Link href="/dashboard" className="-my-2 py-2 text-sm text-primary hover:underline underline-offset-2">Go to App</Link>
+            <Link href="/privacy" className="-my-2 py-2 text-sm text-[#4f48e6] dark:text-primary hover:underline underline-offset-2">Privacy Policy</Link>
+            <Link href="/dashboard" className="-my-2 py-2 text-sm text-[#4f48e6] dark:text-primary hover:underline underline-offset-2">Go to App</Link>
           </div>
         </section>
       </main>

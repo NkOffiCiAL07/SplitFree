@@ -73,7 +73,7 @@ export function PhoneDemo({ s }: { s: PhoneSample }) {
                   { icon: Receipt, label: "Expenses", active: tab === "split" },
                   { icon: UserPlus, label: "Friends", active: false },
                 ].map(({ icon: Icon, label, active }) => (
-                  <div key={label} className={`flex flex-col items-center gap-0.5 ${active ? "text-[#635bff] dark:text-[#8b83ff]" : ""}`}>
+                  <div key={label} className={`flex flex-col items-center gap-0.5 ${active ? "text-[#4f48e6] dark:text-[#8b83ff]" : ""}`}>
                     <Icon className="size-4" />
                     <span className={active ? "font-semibold" : ""}>{label}</span>
                   </div>
@@ -130,11 +130,11 @@ function HomeScreen({ s }: { s: PhoneSample }) {
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-2">
           <p className="text-[8px] text-muted-foreground">Owed to you</p>
-          <p className="text-[15px] font-bold leading-tight text-[#16a36a] dark:text-emerald-400">{s.owed}</p>
+          <p className="text-[15px] font-bold leading-tight text-[#0b7a4f] dark:text-emerald-400">{s.owed}</p>
         </div>
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-2">
           <p className="text-[8px] text-muted-foreground">You owe</p>
-          <p className="text-[15px] font-bold leading-tight text-[#e5485d] dark:text-rose-400">{s.owe}</p>
+          <p className="text-[15px] font-bold leading-tight text-[#c4243b] dark:text-rose-400">{s.owe}</p>
         </div>
       </div>
       <div className="rounded-xl border bg-card px-2.5 py-1.5">
@@ -185,7 +185,7 @@ function SettleScreen({ s }: { s: PhoneSample }) {
           <div key={p.from} className="flex items-center gap-2 border-b py-1.5 last:border-0">
             <div className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white ${TINTS[i % TINTS.length]}`}>{p.from[0]}</div>
             <p className="min-w-0 flex-1 truncate text-[10.5px] leading-tight"><b className="font-semibold">{p.from}</b> pays <b className="font-semibold">{p.to}</b></p>
-            <p className="text-[10.5px] font-semibold text-[#e5485d] dark:text-rose-400">{p.amount}</p>
+            <p className="text-[10.5px] font-semibold text-[#c4243b] dark:text-rose-400">{p.amount}</p>
           </div>
         ))}
       </div>
