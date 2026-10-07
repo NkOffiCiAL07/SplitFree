@@ -250,7 +250,7 @@ describe("Landing page — the English version has no India-only wording", () =>
     const { container } = render(<IntlPage />);
     const text = container.textContent ?? "";
     expect(text).not.toMatch(indiaOnly);
-    expect(text).toMatch(/exact cent/);
+    expect(text).toMatch(/never a cent lost or invented/);
     expect(text).toMatch(/\$20 · Settled/);
     expect(text).toMatch(/Invite & remind on WhatsApp/);
     expect(text).toMatch(/Pay however you like/);
@@ -260,7 +260,7 @@ describe("Landing page — the English version has no India-only wording", () =>
     const { container } = render(<LandingPage />);
     const text = container.textContent ?? "";
     expect(text).toMatch(/UPI in one tap/);
-    expect(text).toMatch(/exact paisa/);
+    expect(text).toMatch(/never a cent lost or invented/); // (the splitter's line; the separate "Careful with money" section was removed)
     expect(text).toMatch(/₹1,190/);
     expect(text).toMatch(/built around how people in India/i);
   });
@@ -321,5 +321,12 @@ describe("Landing page — the new hero and callouts", () => {
     expect(container.querySelector("#from-splitwise")).not.toBeNull();
     expect(screen.getByTestId("split-tryout")).toHaveTextContent("$");
     expect(container.textContent).not.toMatch(/₹|UPI/);
+  });
+});
+
+describe("Landing page — no 'Careful with money' section", () => {
+  it("is gone: the exactness claim lives in the splitter demo, not a separate text block", () => {
+    const { container } = render(<LandingPage />);
+    expect(container.textContent).not.toMatch(/Careful with money|numbers have to be right/);
   });
 });

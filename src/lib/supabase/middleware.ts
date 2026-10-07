@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname.startsWith("/signup") ||
     url.pathname.startsWith("/reset-password");
   const isApiRoute = url.pathname.startsWith("/api");
-  const isPublicRoute = url.pathname === "/" || url.pathname === "/intl" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support" || url.pathname.startsWith("/downloads/");
+  const isPublicRoute = url.pathname === "/" || url.pathname === "/intl" || url.pathname.startsWith("/auth") || url.pathname.startsWith("/join") || url.pathname === "/offline" || url.pathname === "/privacy" || url.pathname === "/support" || url.pathname === "/delete-account" || url.pathname.startsWith("/downloads/");
 
   // Visitors outside India get the English version of the home page at the same address (the Hinglish tagline and
   // rupee examples only make sense in India). Both versions are static pages; people in India, and any request

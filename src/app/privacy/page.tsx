@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
 };
 
-const LAST_UPDATED = "October 6, 2026";
+const LAST_UPDATED = "October 7, 2026";
 const CONTACT_EMAIL = "nishantkumar19041@gmail.com";
 
 export default function PrivacyPage() {
@@ -36,13 +36,17 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Information We Collect</h2>
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
-            <li><strong className="text-foreground">Account information</strong> — name, email address and mobile number when you sign up. Your mobile number is required to create an account.</li>
+            <li><strong className="text-foreground">Account information</strong> — name, email address and mobile number when you sign up. Your mobile number is required to create an account. If you sign in with Google, we receive your name, email address and Google profile photo from Google.</li>
+            <li><strong className="text-foreground">Payment address (optional)</strong> — your UPI ID, if you add one, so friends can pay you. {APP_NAME} does not move money: payments happen in your own UPI or banking app.</li>
+            <li><strong className="text-foreground">Expense and group data</strong> — the groups, friends, expenses, descriptions, notes, amounts, currencies, splits, payments you record, comments, emoji reactions, budgets and edit history you create or that other members of your groups create.</li>
+            <li><strong className="text-foreground">Notification data (optional)</strong> — if you turn on push notifications, your browser or phone gives us a push address for this device so we can send them.</li>
+            <li><strong className="text-foreground">Data stored on your device</strong> — your sign-in session, your theme and display choices, and, when you are offline, expenses and payments waiting to be saved. They are sent to us when you are back online.</li>
             <li><strong className="text-foreground">iPhone launch list (optional)</strong> — if you ask to be notified when the iPhone app launches on our home page, we store your email address for that one purpose, and delete it once we have told you or when you ask us to.</li>
-            <li><strong className="text-foreground">Payment address (optional)</strong> — your UPI ID, if you add one, so friends can pay you.</li>
-            <li><strong className="text-foreground">Profile data</strong> — optional avatar/profile photo you upload.</li>
-            <li><strong className="text-foreground">Expense data</strong> — expenses, amounts, groups, and splits you create.</li>
-            <li><strong className="text-foreground">Usage data</strong> — pages visited and actions taken within the app, used to improve the product.</li>
+            <li><strong className="text-foreground">Technical logs</strong> — our hosting provider processes standard request information (such as IP address and browser type) to deliver the service and keep it secure.</li>
           </ul>
+          <p className="text-muted-foreground leading-relaxed">
+            We do <strong className="text-foreground">not</strong> use advertising, analytics or tracking services, and we do not access your location, contacts, camera, microphone, photos or files.
+          </p>
         </section>
 
         <section className="space-y-3">
@@ -50,8 +54,8 @@ export default function PrivacyPage() {
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
             <li>To provide and operate the {APP_NAME} service.</li>
             <li>To calculate and display expense balances between you and your friends/groups.</li>
-            <li>To send notifications about friend requests, group invites, and expense activity.</li>
-            <li>To improve and maintain the app.</li>
+            <li>To send notifications and emails about friend requests, group invites, payment reminders, payments you receive and expense activity (you can turn email and push notifications off in Settings).</li>
+            <li>To keep the service secure and to fix problems.</li>
           </ul>
           <p className="text-muted-foreground leading-relaxed">
             <strong className="text-foreground">Your mobile number</strong> is kept on your account to identify you and to help us
@@ -72,12 +76,29 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Data Sharing</h2>
+          <h2 className="text-xl font-semibold">Data Sharing and Service Providers</h2>
           <p className="text-muted-foreground leading-relaxed">
             We do <strong className="text-foreground">not</strong> sell, trade, or rent your personal
-            information to third parties. Your expense data is only visible to you and the group members
-            or friends you explicitly share it with; other people cannot see your mobile number or email address through the app. We use Supabase and Vercel as infrastructure
-            providers — they process your data solely to operate the service.
+            information. Your expense data is visible to you and to the group members or friends you share it with; other people cannot see your mobile number or email address through the app.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            We use these service providers, who process data only to operate {APP_NAME}:
+          </p>
+          <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
+            <li><strong className="text-foreground">Supabase</strong> — database and sign-in (account, group and expense data).</li>
+            <li><strong className="text-foreground">Vercel</strong> — hosting of the website and app.</li>
+            <li><strong className="text-foreground">Google</strong> — only if you choose Google sign-in.</li>
+            <li><strong className="text-foreground">Resend</strong> — sends emails such as invitations and reminders (your email address and the message).</li>
+            <li><strong className="text-foreground">Push services of your browser or phone maker</strong> (for example Google, Apple, Mozilla) — deliver push notifications if you turn them on.</li>
+            <li><strong className="text-foreground">Frankfurter (exchange rates)</strong> — we fetch public exchange rates; no personal data is sent.</li>
+          </ul>
+          <p className="text-muted-foreground leading-relaxed">We may also disclose information if the law requires it.</p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">How Long We Keep Data</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            We keep your account data for as long as your account exists. Shared expenses and payments belong to every member of a group, so when someone deletes their account those shared records stay for the other members, with the deleted person shown as &quot;Deleted user&quot;. Your name, email address, mobile number, photo, payment address, notifications and push addresses are removed. Backups are overwritten on the provider&apos;s normal schedule.
           </p>
         </section>
 
@@ -85,7 +106,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">Your Rights</h2>
           <ul className="space-y-2 text-muted-foreground leading-relaxed list-disc list-inside">
             <li><strong className="text-foreground">Access</strong> — You can download your data, including your mobile number, from Settings → Download all my data.</li>
-            <li><strong className="text-foreground">Deletion</strong> — You can delete your account and all associated data from Settings → Delete Account. This removes your name, email address, mobile number, photo and UPI ID.</li>
+            <li><strong className="text-foreground">Deletion</strong> — You can delete your account in the app from Settings → Delete account, or request it without the app on our <Link href="/delete-account" className="text-[#4f48e6] underline underline-offset-2 dark:text-primary">account deletion page</Link>. It removes your name, email address, mobile number, photo, payment address, friends, notifications and sign-in. If you still owe or are owed money we ask you to settle up first, so nobody is left with a debt that cannot be traced; records of shared expenses stay for the other members of your groups (see &quot;How Long We Keep Data&quot;).</li>
             <li><strong className="text-foreground">Correction</strong> — You can update your name, profile and mobile number at any time from your Profile and Settings pages.</li>
           </ul>
         </section>

@@ -1,8 +1,8 @@
 {
   "packageId": "com.splitfree.app",
-  "host": "splitfree-xi.vercel.app",
-  "name": "Splitr Pro",
-  "launcherName": "Splitr Pro",
+  "host": "www.splitr.pro",
+  "name": "Splitr",
+  "launcherName": "Splitr",
   "display": "standalone",
   "orientation": "portrait",
   "themeColor": "#7c3aed",
@@ -12,26 +12,53 @@
   "backgroundColor": "#030712",
   "enableNotifications": true,
   "startUrl": "/dashboard",
-  "iconUrl": "https://splitfree-xi.vercel.app/icons/icon-512x512.png",
-  "maskableIconUrl": "https://splitfree-xi.vercel.app/icons/icon-512x512.png",
-  "monochromeIconUrl": "https://splitfree-xi.vercel.app/icons/icon-512x512.png",
+  "iconUrl": "https://www.splitr.pro/icons/icon-512x512.png",
+  "maskableIconUrl": "https://www.splitr.pro/icons/icon-512x512.png",
+  "monochromeIconUrl": "https://www.splitr.pro/icons/icon-monochrome-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "fallbackType": "customtabs",
   "enableSiteSettingsShortcut": false,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "shortcuts": [
-    { "name": "Add Expense", "shortName": "Add", "url": "/expenses?action=new", "icon": "https://splitfree-xi.vercel.app/icons/icon-192x192.png" },
-    { "name": "Settle up", "shortName": "Settle", "url": "/settle", "icon": "https://splitfree-xi.vercel.app/icons/icon-192x192.png" },
-    { "name": "My Groups", "shortName": "Groups", "url": "/groups", "icon": "https://splitfree-xi.vercel.app/icons/icon-192x192.png" }
+    {
+      "name": "Add Expense",
+      "shortName": "Add",
+      "url": "/expenses?action=new",
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+    },
+    {
+      "name": "Settle up",
+      "shortName": "Settle",
+      "url": "/settle",
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+    },
+    {
+      "name": "My Groups",
+      "shortName": "Groups",
+      "url": "/groups",
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+    }
   ],
-  "signingKey": { "path": "./splitfree.keystore", "alias": "my-key-a" },
-  "appVersionName": "1.1.0",
-  "appVersion": "1.1.0",
-  "appVersionCode": 2,
+  "signingKey": {
+    "path": "./upload.keystore",
+    "alias": "upload"
+  },
+  "appVersionName": "1.2.0",
+  "appVersion": "1.2.0",
+  "appVersionCode": 3,
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://splitfree-xi.vercel.app/manifest.json",
+  "webManifestUrl": "https://www.splitr.pro/manifest.json",
   "retainedBundles": [],
-  "alphaDependencies": { "enabled": false },
-  "features": { "locationDelegation": { "enabled": false }, "playBilling": { "enabled": false } }
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  }
 }

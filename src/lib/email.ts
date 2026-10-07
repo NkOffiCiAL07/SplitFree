@@ -22,7 +22,7 @@ export function renderEmail(opts: { title: string; text: string; ctaUrl: string;
 export async function sendEmail(opts: { to: string; subject: string; text: string; ctaPath: string }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://splitfree-xi.vercel.app";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.splitr.pro";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

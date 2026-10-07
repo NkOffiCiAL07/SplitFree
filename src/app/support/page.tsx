@@ -32,7 +32,7 @@ const FAQS = [
   },
   {
     q: "How do I delete my account?",
-    a: "Go to Settings → scroll to the bottom → Delete Account. This permanently removes all your data.",
+    a: "Go to Settings → scroll to the bottom → Delete account. Your name, email, mobile number, photo and sign-in are removed. If you still owe or are owed money, you'll be asked to settle up first. Expenses you shared with other people stay for them, with your name shown as \"Deleted user\". You can also request deletion without the app on the Delete account page.",
   },
   {
     q: "How do I export my expenses?",

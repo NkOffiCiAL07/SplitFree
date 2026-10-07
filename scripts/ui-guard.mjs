@@ -21,7 +21,7 @@ import { webkit, devices } from "playwright";
 
 const PORT = 3111;
 const BASE = process.env.BASE_URL?.replace(/\/$/, "") ?? `http://localhost:${PORT}`;
-const PAGES = ["/", "/intl", "/login", "/signup", "/reset-password", "/privacy", "/support"];
+const PAGES = ["/", "/intl", "/login", "/signup", "/reset-password", "/privacy", "/support", "/delete-account"];
 const WIDTHS = [360, 390, 430, 768, 1024, 1280, 1440];
 const failures = [];
 const fail = (area, msg) => { failures.push(`[${area}] ${msg}`); };

@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       // Send invite email via Supabase
       const { createAdminClient } = await import("@/lib/supabase/server");
       const admin = await createAdminClient();
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://splitfree-xi.vercel.app";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.splitr.pro";
       await admin.auth.admin.inviteUserByEmail(email, {
         redirectTo: `${appUrl}/auth/callback?next=/groups/${groupId}`,
       });

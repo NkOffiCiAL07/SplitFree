@@ -108,7 +108,6 @@ interface Sample {
   payChip: string;
   step3: string;
   featuresLead: string;
-  exactLine: string;
   feature4: { icon: React.ElementType; title: string; description: string; color: string };
   tripCard: TripCardData;
   chat: ChatLine[];
@@ -138,7 +137,6 @@ const SAMPLE_IN: Sample = {
   payChip: "UPI",
   step3: "See exactly who pays whom. Pay by UPI, record it, and the balance clears.",
   featuresLead: "Built around how people in India actually share money — and it handles the awkward cases too.",
-  exactLine: "Splits always add up to the exact paisa — no rupee ever appears or vanishes.",
   tripCard: { name: "Goa trip", emoji: "🏝️", total: "₹18,450", people: 4, youGet: "₹2,840", from: "from 3 people" },
   chat: [
     { who: "Rohan", text: "Guys, who paid for the hotel?" },
@@ -177,7 +175,6 @@ const SAMPLE_INTL: Sample = {
   payChip: "Pay",
   step3: "See exactly who pays whom. Pay however you like, record it, and the balance clears.",
   featuresLead: "Built around how friends actually share money — and it handles the awkward cases too.",
-  exactLine: "Splits always add up to the exact cent — no money ever appears or vanishes.",
   tripCard: { name: "Lisbon trip", emoji: "🏝️", total: "$920", people: 4, youGet: "$140", from: "from 3 people" },
   chat: [
     { who: "Mia", text: "Wait, who paid for the hotel?" },
@@ -395,31 +392,6 @@ export function LandingView({ international = false }: { international?: boolean
                 </article>
               </Reveal>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Money you can trust */}
-      <section className="px-4 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <div className="max-sm:text-center">
-            <p className="mb-2 flex items-center gap-1.5 max-sm:justify-center text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">
-              <span className="h-px w-4 bg-violet-500/50" /> Careful with money
-            </p>
-            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Because it&apos;s your money, the numbers have to be right</h2>
-            <ul className="space-y-3 text-muted-foreground">
-              {[
-                sample.exactLine,
-                "Mixed currencies are never added together by mistake: each debt stays in its own currency.",
-                "Offline entries are saved on your device and can't be duplicated when they sync.",
-                "Green means you're owed, red means you owe — clear at a glance.",
-              ].map((t) => (
-                <li key={t} className="flex gap-3">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-[#0b7a4f] dark:text-emerald-400" /></span>
-                  <span className="text-sm leading-relaxed sm:text-base">{t}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </section>

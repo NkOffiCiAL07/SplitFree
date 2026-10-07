@@ -94,7 +94,7 @@ describe("updateSession (page protection)", () => {
       }
     );
 
-    it.each(["/", "/login", "/signup", "/reset-password", "/auth/callback", "/join/abc", "/offline", "/privacy", "/support", "/downloads/SplitFree.apk", "/api/anything"])(
+    it.each(["/", "/login", "/signup", "/reset-password", "/auth/callback", "/join/abc", "/offline", "/privacy", "/support", "/delete-account", "/downloads/SplitFree.apk", "/api/anything"])(
       "lets %s through",
       async (path) => {
         const res = await updateSession(req(path));

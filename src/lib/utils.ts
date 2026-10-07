@@ -123,9 +123,6 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function generateAvatarUrl(name: string, size = 40): string {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=${size}&background=7c3aed&color=fff&bold=true`;
-}
 
 export function truncate(str: string, length = 30): string {
   if (str.length <= length) return str;

@@ -9,7 +9,10 @@
   "orientation": "portrait-primary",
   "theme_color": "#7c3aed",
   "background_color": "#030712",
-  "categories": ["finance", "utilities"],
+  "categories": [
+    "finance",
+    "utilities"
+  ],
   "lang": "en",
   "icons": [
     {
@@ -59,6 +62,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-monochrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
     }
   ],
   "screenshots": [
@@ -83,21 +92,36 @@
       "short_name": "Add",
       "description": "Quickly add a new expense",
       "url": "/expenses?action=new",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "My Groups",
       "short_name": "Groups",
       "description": "View your groups",
       "url": "/groups",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Settle Up",
       "short_name": "Settle",
       "description": "Record a payment",
       "url": "/settle",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

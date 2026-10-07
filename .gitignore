@@ -43,3 +43,15 @@ next-env.d.ts
 /src/generated/prisma
 .db.mjs
 ios/simulation/
+
+# Android release build: keystores, signing passwords and build output must never be committed
+*.keystore
+*.jks
+android/*.apk
+android/*.aab
+android/app/
+android/build/
+android/.gradle/
+android/gradle/
+android/local.properties
+android/*.idsig

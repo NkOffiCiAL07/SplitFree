@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { getInitials, generateAvatarUrl } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -63,7 +63,7 @@ export default function ProfilePage() {
   const displayName = user?.user_metadata?.name ?? user?.email ?? "User";
   const createdYear = user?.created_at ? new Date(user.created_at).getFullYear() : NaN;
   const memberSince = Number.isFinite(createdYear) ? createdYear : null; // never "Member since NaN"
-  const avatarUrl = user?.user_metadata?.avatar_url ?? generateAvatarUrl(displayName);
+  const avatarUrl: string | undefined = user?.user_metadata?.avatar_url; // (the initials show when there is no photo: nothing is requested from a third party)
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
