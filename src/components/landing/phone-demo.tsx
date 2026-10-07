@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Home, Receipt, Signal, UserPlus, Users, Wifi, WifiOff, BatteryFull, BatteryFull as Battery } from "lucide-react";
+import { Check, Home, Receipt, Signal, UserPlus, Users, Wifi, WifiOff, BatteryFull as Battery } from "lucide-react";
 import { BrandMark } from "@/components/shared/brand-logo";
 
 export interface PhoneSample {

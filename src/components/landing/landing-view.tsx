@@ -1,9 +1,8 @@
-import { BrandLogo, BrandMark } from "@/components/shared/brand-logo";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import Link from "next/link";
 import {
-  Zap, Users, BarChart3, Shield, ArrowRight, Check, SplitSquareHorizontal, Globe, RefreshCw, Sparkles,
-  WifiOff, QrCode, FileUp, History, Bell, UsersRound, ChevronDown, Smartphone, IndianRupee,
-  Home, Receipt, UserPlus, Signal, Wifi, BatteryFull, Send,
+  Zap, Shield, ArrowRight, Check, SplitSquareHorizontal, Globe,
+  WifiOff, UsersRound, ChevronDown, Smartphone, IndianRupee, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -20,7 +19,6 @@ import { MobileMenu } from "@/components/landing/mobile-menu";
 import { OfflineSync } from "@/components/landing/offline-sync";
 import { SplitwiseBanner } from "@/components/landing/splitwise-banner";
 import { RotatingWords } from "@/components/landing/rotating-words";
-import { AndroidDownloadButton, IosComingSoon } from "@/components/landing/store-badges";
 import { APP_NAME } from "@/lib/app-config";
 import { CURRENCY_CODES } from "@/lib/currencies";
 import { brandCopy } from "@/lib/brand-copy";

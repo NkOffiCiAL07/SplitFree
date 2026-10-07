@@ -50,7 +50,7 @@ function activityLabel(a: ActivityItem): { text: string; amount?: number; curren
   }
 }
 
-export function RecentActivity({ activities = [], currency = DEFAULT_CURRENCY, isLoading }: Props) {
+export function RecentActivity({ activities = [], isLoading }: Props) {
   return (
     <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
       <Card>
