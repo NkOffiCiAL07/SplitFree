@@ -6,17 +6,17 @@ export interface Moment { emoji: string; title: string; meta: string; example: s
 /** "Still doing this in the group chat?" — the problem, in the messages everyone has sent. */
 export function ChatProblem({ lines, answer }: { lines: ChatLine[]; answer: string }) {
   return (
-    <section aria-label="The problem" className="px-4 py-24">
+    <section aria-label="The problem" className="px-4 py-16 sm:py-20">
       <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-2">
         <div>
-          <p className="mb-2 text-sm font-medium text-violet-600 dark:text-violet-400">Sound familiar?</p>
+          <p className="mb-2 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">Sound familiar?</p>
           <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Still doing this in the group chat?</h2>
           <p className="text-muted-foreground">{answer}</p>
         </div>
         <ul data-testid="chat-problem" className="space-y-2.5">
           {lines.map((l, i) => (
             <Reveal key={l.text} delay={i * 110}>
-              <li className={`max-w-[85%] list-none rounded-2xl px-4 py-2.5 text-sm shadow-sm ${i % 2 ? "ml-auto rounded-br-sm bg-violet-600 text-white" : "rounded-bl-sm bg-muted"}`}>
+              <li className={`max-w-[85%] list-none rounded-2xl px-4 py-2.5 text-sm shadow-sm ${i % 2 ? "ml-auto rounded-br-sm bg-[#635bff] text-white" : "rounded-bl-sm bg-muted"}`}>
                 <span className={`block text-[11px] font-semibold ${i % 2 ? "text-white/70" : "text-muted-foreground"}`}>{l.who}</span>
                 {l.text}
               </li>
@@ -31,7 +31,7 @@ export function ChatProblem({ lines, answer }: { lines: ChatLine[]; answer: stri
 /** Real-life money moments as small product cards: what it was, how many, and what it means for you (green = you get, red = you owe). Hover or focus shows a tiny example. */
 export function MomentsGrid({ moments }: { moments: Moment[] }) {
   return (
-    <section aria-label="Real-life money moments" className="px-4 pb-24">
+    <section aria-label="Real-life money moments" className="px-4 pb-16 sm:pb-20">
       <div className="mx-auto max-w-4xl">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold sm:text-4xl">Made for real-life money moments</h2>
@@ -44,7 +44,7 @@ export function MomentsGrid({ moments }: { moments: Moment[] }) {
                   <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-xl sm:size-11 sm:text-2xl" aria-hidden="true">{m.emoji}</span>
                   <span className="text-right">
                     <span className="block text-[10px] uppercase tracking-wide text-muted-foreground">{m.tone === "get" ? "You get" : "You owe"}</span>
-                    <b className={`text-base tabular-nums sm:text-lg ${m.tone === "get" ? "text-green-600 dark:text-emerald-400" : "text-red-600 dark:text-rose-400"}`}>{m.net}</b>
+                    <b className={`text-base tabular-nums sm:text-lg ${m.tone === "get" ? "text-[#16a36a] dark:text-emerald-400" : "text-[#e5485d] dark:text-rose-400"}`}>{m.net}</b>
                   </span>
                 </div>
                 <p className="mt-3 text-sm font-semibold sm:text-base">{m.title}</p>

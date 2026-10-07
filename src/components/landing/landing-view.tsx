@@ -28,7 +28,7 @@ import { regionFor } from "@/lib/region";
 
 /** One small, real-looking picture per feature group (decorative) */
 function GroupVisual({ id, sample }: { id: "split" | "settle" | "anywhere" | "yours"; sample: Sample }) {
-  const box = "mt-5 rounded-2xl border bg-background/60 p-3 text-xs";
+  const box = "rounded-2xl border bg-background/60 p-3 text-xs";
   if (id === "split") {
     return (
       <div aria-hidden="true" data-visual={id} className={box}>
@@ -44,7 +44,7 @@ function GroupVisual({ id, sample }: { id: "split" | "settle" | "anywhere" | "yo
       <div aria-hidden="true" data-visual={id} className={`${box} flex items-center justify-between gap-2`}>
         <span className="rounded-lg bg-muted/60 px-2.5 py-1.5 font-semibold tabular-nums">10 payments</span>
         <ArrowRight className="size-4 text-violet-500" />
-        <span className="rounded-lg bg-violet-500/15 px-2.5 py-1.5 font-semibold tabular-nums text-violet-700 dark:text-violet-300">3 payments</span>
+        <span className="rounded-lg bg-violet-500/15 px-2.5 py-1.5 font-semibold tabular-nums text-[#4f48e6] dark:text-[#a5a0ff]">3 payments</span>
       </div>
     );
   }
@@ -116,8 +116,8 @@ interface Sample {
   moments: Moment[];
 }
 
-const RED = "text-red-600 dark:text-rose-400";
-const GREEN = "text-green-600 dark:text-emerald-400";
+const RED = "text-[#e5485d] dark:text-rose-400";
+const GREEN = "text-[#16a36a] dark:text-emerald-400";
 
 const SAMPLE_IN: Sample = {
   owed: "₹1,190", owe: "₹1,200",
@@ -293,8 +293,13 @@ export function LandingView({ international = false }: { international?: boolean
           </div>
         </div>
 
-        <div className="anim-fade-up mx-auto mt-20 flex max-w-6xl justify-center lg:justify-start" style={{ animationDelay: "320ms" }}>
+        <div className="anim-fade-up mx-auto mt-20 grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,36rem)_1fr] lg:gap-16" style={{ animationDelay: "320ms" }}>
           <SplitTryout symbol={international ? "$" : "₹"} defaultAmount={international ? "120" : "2400"} currency={international ? "USD" : "INR"} />
+          <div className="text-center lg:text-left">
+            <p className="mb-2 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">Try it right here</p>
+            <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Split a bill in three taps.</h2>
+            <p className="mx-auto mt-3 max-w-md text-muted-foreground lg:mx-0">Change the bill, the number of friends or the way you split. It&apos;s the same maths the app uses, so the shares always add up to the exact amount.</p>
+          </div>
         </div>
 
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-background" />
@@ -311,20 +316,20 @@ export function LandingView({ international = false }: { international?: boolean
 
 
       {/* How it works */}
-      <section id="how-it-works" className="scroll-mt-16 px-4 py-24">
+      <section id="how-it-works" className="scroll-mt-16 px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-14 text-center">
-            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+          <div className="mb-10 text-center sm:mb-14">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> How it works <span className="h-px w-4 bg-violet-500/50" />
             </p>
             <h2 className="text-3xl font-bold sm:text-4xl">Up and running in minutes</h2>
             <p className="mx-auto mt-3 max-w-md text-muted-foreground">No setup, no learning curve — create a group and start splitting.</p>
           </div>
-          <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="relative grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
             <div className="absolute left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] top-10 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" />
             {steps.map(({ number, icon: Icon, title, description }, i) => (
               <Reveal key={number} delay={i * 120} className="group relative text-center">
-                <div className="relative z-10 mx-auto mb-5 flex size-20 flex-col items-center justify-center rounded-2xl gradient-brand shadow-lg shadow-violet-500/25 transition-transform duration-200 group-hover:-translate-y-1">
+                <div className="relative z-10 mx-auto mb-4 flex size-16 sm:mb-5 sm:size-20 flex-col items-center justify-center rounded-2xl gradient-brand shadow-lg shadow-violet-500/25 transition-transform duration-200 group-hover:-translate-y-1">
                   <span className="text-[10px] font-bold leading-none text-white/70">{number}</span>
                   <Icon className="mt-1 size-6 text-white" />
                 </div>
@@ -339,7 +344,7 @@ export function LandingView({ international = false }: { international?: boolean
       <OfflineSync />
 
       {/* Android download */}
-      <section id="download" className="scroll-mt-16 px-4 pb-24">
+      <section id="download" className="scroll-mt-16 px-4 pb-16 sm:pb-20">
         <div className="mx-auto max-w-5xl">
           <Reveal className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-700 to-purple-800 p-8 text-white shadow-2xl shadow-violet-900/30 sm:p-12">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -366,13 +371,13 @@ export function LandingView({ international = false }: { international?: boolean
       {/* Features */}
       <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="lg-blob -left-20 top-10 h-72 w-72 bg-violet-400/40" />
-          <div className="lg-blob lg-blob-2 -right-16 top-1/2 h-80 w-80 bg-sky-300/45" />
-          <div className="lg-blob lg-blob-3 bottom-0 left-1/3 h-64 w-64 bg-fuchsia-300/35" />
+          <div className="lg-blob -left-20 top-10 h-72 w-72 bg-violet-400/20" />
+          <div className="lg-blob lg-blob-2 -right-16 top-1/2 h-80 w-80 bg-sky-300/25" />
+          <div className="lg-blob lg-blob-3 bottom-0 left-1/3 h-64 w-64 bg-fuchsia-300/20" />
         </div>
         <div className="relative mx-auto max-w-6xl">
           <div className="mb-14 text-center">
-            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+            <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> Features <span className="h-px w-4 bg-violet-500/50" />
             </p>
             <h2 className="mb-3 text-3xl font-bold sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
@@ -381,7 +386,7 @@ export function LandingView({ international = false }: { international?: boolean
           <div data-testid="feature-groups" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {groups.map(({ id, icon: Icon, color, title, lead, items }, i) => (
               <Reveal key={title} delay={(i % 2) * 90}>
-                <article className="bento-card group h-full rounded-3xl border border-white/70 bg-white/70 p-7 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-white/10 dark:bg-white/5">
+                <article className="bento-card group flex h-full flex-col rounded-3xl border border-white/70 bg-white/70 p-7 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-white/10 dark:bg-white/5">
                   <div className={`mb-4 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-md ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}>
                     <Icon className="size-6 text-white" />
                   </div>
@@ -390,7 +395,7 @@ export function LandingView({ international = false }: { international?: boolean
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {items.map((it) => <li key={it} className="rounded-full border bg-background/70 px-3 py-1 text-xs font-medium">{it}</li>)}
                   </ul>
-                  <GroupVisual id={id} sample={sample} />
+                  <div className="mt-auto pt-5"><GroupVisual id={id} sample={sample} /></div>
                 </article>
               </Reveal>
             ))}
@@ -399,10 +404,10 @@ export function LandingView({ international = false }: { international?: boolean
       </section>
 
       {/* Money you can trust */}
-      <section className="px-4 py-24">
+      <section className="px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
-          <div>
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400">
+          <div className="max-sm:text-center">
+            <p className="mb-2 flex items-center gap-1.5 max-sm:justify-center text-sm font-medium text-[#635bff] dark:text-[#8b83ff]">
               <span className="h-px w-4 bg-violet-500/50" /> Careful with money
             </p>
             <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Because it&apos;s your money, the numbers have to be right</h2>
@@ -414,7 +419,7 @@ export function LandingView({ international = false }: { international?: boolean
                 "Green means you're owed, red means you owe — clear at a glance.",
               ].map((t) => (
                 <li key={t} className="flex gap-3">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-green-600 dark:text-emerald-400" /></span>
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-500/15"><Check className="size-3 text-[#16a36a] dark:text-emerald-400" /></span>
                   <span className="text-sm leading-relaxed sm:text-base">{t}</span>
                 </li>
               ))}
@@ -448,10 +453,10 @@ export function LandingView({ international = false }: { international?: boolean
       </section>
 
       {/* CTA */}
-      <section className="px-4 py-24">
+      <section className="px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <div className="relative overflow-hidden rounded-3xl">
-            <div className="absolute inset-0 gradient-brand opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4f48e6] to-[#635bff]" />
             <div className="absolute inset-0">
               <div className="absolute left-0 top-0 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
               <div className="absolute bottom-0 right-0 size-64 translate-x-1/2 translate-y-1/2 rounded-full bg-white/10 blur-3xl" />

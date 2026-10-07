@@ -102,7 +102,7 @@ function LoginPageContent() {
     >
       {/* Header */}
       <div className="anim-fade-up space-y-1" style={{ animationDelay: "60ms" }}>
-        <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Welcome back 👋</h1>
+        <h1 className="text-2xl font-bold tracking-tight lg:text-3xl [@media(max-height:700px)]:text-xl">Welcome back 👋</h1>
         <p className="text-sm text-muted-foreground">
           Your groups are waiting.
         </p>
@@ -125,7 +125,7 @@ function LoginPageContent() {
         <GoogleIcon />
         Continue with Google
       </Button>
-      <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-xs leading-relaxed text-muted-foreground">New here? Continuing with Google creates your account automatically.</p>
+      <p data-hide-in-app data-testid="google-new-here" className="-mt-2 text-center text-xs leading-relaxed text-muted-foreground [@media(max-height:700px)]:hidden">New here? Continuing with Google creates your account automatically.</p>
 
       <div data-hide-in-app className="anim-fade-up flex items-center gap-3 text-xs text-muted-foreground" role="separator" aria-label="or" style={{ animationDelay: "170ms" }}>
         <span className="h-px flex-1 bg-black/10 dark:bg-white/10" />

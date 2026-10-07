@@ -544,3 +544,11 @@ describe("LoginForm — a sign-in that did not complete says so", () => {
     expect(h.toast.error).not.toHaveBeenCalled();
   });
 });
+
+describe("LoginForm — short phones", () => {
+  it("drops its explanatory line and shrinks the title on short screens, so Sign in stays reachable without scrolling", () => {
+    render(<LoginForm />);
+    expect(screen.getByTestId("google-new-here").className).toContain("[@media(max-height:700px)]:hidden");
+    expect(screen.getByRole("heading", { name: /welcome back/i }).className).toContain("[@media(max-height:700px)]:text-xl");
+  });
+});

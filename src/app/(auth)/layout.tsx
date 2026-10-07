@@ -70,7 +70,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
         <AuthMobileHero d={showcase} />
 
-        <main className="flex flex-1 flex-col items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:pt-8 lg:px-4 lg:pb-12 lg:pt-4">
+        <main className="flex flex-1 flex-col items-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:pt-8 [@media(max-height:700px)]:pt-2 lg:px-4 lg:pb-12 lg:pt-4">
           <div
             data-testid="auth-card"
             className="auth-card flex w-full max-w-md flex-1 flex-col lg:w-[27.5rem] lg:max-w-full lg:flex-none lg:min-h-[56rem] lg:rounded-2xl lg:border lg:border-white/80 lg:bg-white/[0.72] lg:p-8 lg:backdrop-blur-[28px] lg:backdrop-saturate-[145%] lg:shadow-[0_24px_60px_-20px_rgba(40,45,90,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] dark:lg:border-white/10 dark:lg:bg-white/[0.055] dark:lg:shadow-[0_25px_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.07)]"

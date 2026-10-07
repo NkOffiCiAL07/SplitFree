@@ -17,18 +17,18 @@ export function SplitwiseBanner() {
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-violet-400/20 blur-3xl" />
         <div className="relative grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="mb-2 text-sm font-semibold text-violet-700 dark:text-violet-300">Switching apps?</p>
+            <p className="mb-2 text-sm font-semibold text-[#4f48e6] dark:text-[#a5a0ff]">Switching apps?</p>
             <h2 id="from-splitwise-title" className="text-balance text-3xl font-bold sm:text-4xl">Switch without starting over.</h2>
             <p className="mt-3 max-w-md text-muted-foreground">Coming from Splitwise? Bring your whole history. Import your export and keep every group, every expense and every balance — nothing to re-enter, no one to chase.</p>
             <ol className="mt-6 space-y-3">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">{s.n}</span>
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#635bff] text-xs font-bold text-white">{s.n}</span>
                   <span className="text-sm"><b className="font-semibold">{s.t}</b> <span className="text-muted-foreground">— {s.d}</span></span>
                 </li>
               ))}
             </ol>
-            <Link href="/login" className="mt-7 inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:-translate-y-0.5 hover:bg-violet-700">
+            <Link href="/login" className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#635bff] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:-translate-y-0.5 hover:bg-[#746eff]">
               Import your history <ArrowRight className="size-4" />
             </Link>
           </div>

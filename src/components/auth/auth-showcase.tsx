@@ -62,7 +62,7 @@ export function AuthShowcase({ d }: { d: ShowcaseData }) {
 export function AuthMobileHero({ d }: { d: ShowcaseData }) {
   return (
     <section data-testid="auth-mobile-hero" aria-label="Splitr" className="px-6 pb-2 pt-2 lg:hidden">
-      <h2 className="text-balance text-[2.1rem] font-bold leading-[1.05] tracking-tight text-[#11131a] dark:text-white">
+      <h2 className="text-balance text-[2.1rem] font-bold leading-[1.05] tracking-tight text-[#11131a] dark:text-white [@media(max-height:700px)]:text-[1.7rem]">
         {d.line1}{" "}
         <span className="block bg-gradient-to-r from-[#635bff] via-[#7c5cff] to-[#38bdf8] bg-clip-text dark:from-indigo-300 dark:via-violet-300 dark:to-cyan-200 text-transparent">{d.line2}</span>
       </h2>
