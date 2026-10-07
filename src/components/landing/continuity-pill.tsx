@@ -25,7 +25,7 @@ export function ContinuityPill() {
     <div
       data-testid="continuity-pill"
       aria-hidden={!shown}
-      className={`fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto flex max-w-md items-center gap-3 rounded-full border border-white/15 bg-slate-900/90 py-2 pl-4 pr-2 text-white shadow-2xl shadow-black/30 transition-all duration-500 ${shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}
+      className={`fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto flex max-w-md items-center gap-3 rounded-full border border-white/15 bg-slate-900/90 py-2 pl-4 pr-2 text-white shadow-2xl shadow-black/30 transition-all duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}
     >
       <MonitorSmartphone className="size-4 shrink-0 text-violet-300" />
       <p className="min-w-0 flex-1 text-xs leading-snug text-white/85 sm:text-sm">

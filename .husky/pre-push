@@ -1,1 +1,11 @@
 npm run test:run
+
+# The browser UI guard (accessibility, overflow, card sizes, touch targets, sign-in form) runs when the push touches the UI.
+# It builds the app first (~2 min). Skip once with:  SKIP_UI_GUARD=1 git push
+if [ -z "$SKIP_UI_GUARD" ]; then
+  BASE=$(git merge-base HEAD origin/main 2>/dev/null || echo "")
+  if [ -n "$BASE" ] && git diff --name-only "$BASE" HEAD | grep -qE '^(src/(app|components)/|src/app/globals\.css|src/lib/(themes|brand-copy|region)|scripts/ui-guard)'; then
+    echo "UI files changed: running the UI guard (npm run check:ui:build)"
+    npm run check:ui:build || { echo "UI guard failed: fix the problems above (or SKIP_UI_GUARD=1 to push anyway)"; exit 1; }
+  fi
+fi
