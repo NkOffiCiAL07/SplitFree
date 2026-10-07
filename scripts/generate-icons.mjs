@@ -14,6 +14,8 @@ for (const size of bleed) {
 }
 await sharp(Buffer.from(brandMarkSvg({ size: 512, variant: "bleed" })), { density: 300 }).resize(180, 180).png().toFile("public/apple-touch-icon.png");
 await sharp(Buffer.from(brandMarkSvg({ size: 512, variant: "rounded" })), { density: 300 }).resize(32, 32).png().toFile("public/icons/icon-32x32.png");
+// Rounded tile with transparent corners: the Android splash screen shows this one (the full-bleed square would look like a hard-edged box)
+await sharp(Buffer.from(brandMarkSvg({ size: 512, variant: "rounded" })), { density: 300 }).resize(512, 512).png().toFile("public/icons/icon-rounded-512x512.png");
 // Android "themed icon": one flat shape on transparent, which Android recolours to match the wallpaper (kept inside the 66% safe zone)
 const mono = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 48 48"><g transform="translate(24 24) scale(1.35) translate(-24 -24)"><path d="${MARK.halfA}" fill="#000"/><path d="${MARK.halfB}" fill="#000" transform="translate(${MARK.gap} ${MARK.gap})"/></g></svg>`;
 await sharp(Buffer.from(mono), { density: 300 }).resize(512, 512).png().toFile("public/icons/icon-monochrome-512x512.png");

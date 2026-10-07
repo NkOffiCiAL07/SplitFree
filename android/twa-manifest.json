@@ -12,7 +12,7 @@
   "backgroundColor": "#030712",
   "enableNotifications": true,
   "startUrl": "/dashboard",
-  "iconUrl": "https://www.splitr.pro/icons/icon-512x512.png",
+  "iconUrl": "https://www.splitr.pro/icons/icon-rounded-512x512.png",
   "maskableIconUrl": "https://www.splitr.pro/icons/icon-512x512.png",
   "monochromeIconUrl": "https://www.splitr.pro/icons/icon-monochrome-512x512.png",
   "splashScreenFadeOutDuration": 300,
@@ -25,19 +25,22 @@
       "name": "Add Expense",
       "shortName": "Add",
       "url": "/expenses?action=new",
-      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png",
+      "chosenIconUrl": "https://www.splitr.pro/icons/icon-192x192.png"
     },
     {
       "name": "Settle up",
       "shortName": "Settle",
       "url": "/settle",
-      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png",
+      "chosenIconUrl": "https://www.splitr.pro/icons/icon-192x192.png"
     },
     {
       "name": "My Groups",
       "shortName": "Groups",
       "url": "/groups",
-      "icon": "https://www.splitr.pro/icons/icon-192x192.png"
+      "icon": "https://www.splitr.pro/icons/icon-192x192.png",
+      "chosenIconUrl": "https://www.splitr.pro/icons/icon-192x192.png"
     }
   ],
   "signingKey": {
