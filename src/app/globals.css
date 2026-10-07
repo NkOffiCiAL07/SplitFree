@@ -65,7 +65,7 @@
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --primary: 243 100% 68%; /* #635BFF */
+  --primary: 243 85% 61%; /* #5148F0: the brand indigo, a touch deeper so small primary-coloured text passes AA on tinted backgrounds */
   --primary-foreground: 0 0% 100%;
   --secondary: 225 30% 95%;
   --secondary-foreground: 222 47% 11%;
@@ -77,7 +77,7 @@
   --destructive-foreground: 0 0% 100%;
   --border: 224 25% 91%;
   --input: 224 25% 89%;
-  --ring: 243 100% 68%;
+  --ring: 243 85% 61%;
   --success: 153 72% 33%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;

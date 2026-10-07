@@ -34,7 +34,7 @@ function BalanceLines({ nets, inHome }: { nets?: { currency: string; net: number
           key={currency}
           className={cn(
             "text-xs font-semibold mt-0.5",
-            net > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+            net > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
           )}
         >
           {net > 0
@@ -283,7 +283,7 @@ export default function FriendsPage() {
                 <AvatarFallback>{getInitials(friendship.friend?.name ?? "?")}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <Link href={`/friends/${friendship.friendId}`} className="text-sm font-medium truncate block hover:underline">{friendship.friend?.name}</Link>
+                <Link href={`/friends/${friendship.friendId}`} className="-my-1.5 block truncate py-1.5 text-sm font-medium hover:underline">{friendship.friend?.name}</Link>
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <Mail className="size-3" /> {friendship.friend?.email}
                 </p>
@@ -334,7 +334,7 @@ export default function FriendsPage() {
                 <AvatarFallback>{getInitials(contact.name ?? "?")}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <Link href={`/friends/${contact.id}`} className="text-sm font-medium truncate block hover:underline">{contact.name ?? "Member"}</Link>
+                <Link href={`/friends/${contact.id}`} className="-my-1.5 block truncate py-1.5 text-sm font-medium hover:underline">{contact.name ?? "Member"}</Link>
                 <p className="text-xs text-muted-foreground truncate">via {contact.groupName}</p>
                 <BalanceLines nets={balances?.byPerson[contact.id]?.all} inHome={balances?.byPerson[contact.id]?.inHome} />
               </div>

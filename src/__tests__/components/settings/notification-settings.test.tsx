@@ -129,3 +129,14 @@ describe("NotificationSettings — iPhone guidance", () => {
     expect(await screen.findByText("Not supported in this browser")).toBeInTheDocument();
   });
 });
+
+describe("NotificationSettings — opening the page never waits on the service worker", () => {
+  it("does not ask the browser for a push subscription unless notifications were already allowed (the settings page froze a browser tab that way)", async () => {
+    push.isPushSupported.mockReturnValue(true);
+    vi.stubGlobal("Notification", { permission: "default" });
+    render(<NotificationSettings />);
+    await screen.findByText(/alerts on this device/i);
+    expect(push.getPushSubscription).not.toHaveBeenCalled();
+    expect(screen.getByRole("switch", { name: /push notifications/i })).not.toBeChecked();
+  });
+});

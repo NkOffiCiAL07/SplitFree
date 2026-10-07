@@ -15,11 +15,21 @@ async function registration() {
   return (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register("/sw.js"));
 }
 
-/** Whether this browser currently has an active push subscription. */
+/** Gives up (resolves with `fallback`) when a browser API never answers, so a settings page can never wait on it forever. */
+function withTimeout<T>(work: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([work, new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
+}
+
+/**
+ * Whether this browser currently has an active push subscription. Only LOOKS at the existing service-worker
+ * registration (it never registers one just to ask), and stops waiting after 3 seconds.
+ */
 export async function getPushSubscription(): Promise<PushSubscription | null> {
   if (!isPushSupported()) return null;
   try {
-    return await (await registration()).pushManager.getSubscription();
+    const reg = await withTimeout(navigator.serviceWorker.getRegistration(), 3000, undefined);
+    if (!reg) return null; // nothing registered yet, so nothing subscribed
+    return await withTimeout(reg.pushManager.getSubscription(), 3000, null);
   } catch {
     return null;
   }

@@ -29,7 +29,7 @@ describe("StatCard", () => {
   it("shows title, value and the optional subtitle", () => {
     render(<StatCard title="Owed to You" value="₹499.99" sub="others owe you" icon={TrendingUp} variant="green" />);
     expect(screen.getByText("Owed to You")).toBeInTheDocument();
-    expect(screen.getByText("₹499.99")).toHaveClass("text-green-600");
+    expect(screen.getByText("₹499.99")).toHaveClass("text-green-700");
     expect(screen.getByText("others owe you")).toBeInTheDocument();
   });
   it("omits the subtitle when not given and defaults to the theme (brand) colour", () => {
@@ -70,9 +70,9 @@ describe("DebtSummary", () => {
     render(<DebtSummary balances={people} netBalance={-1} currency="INR" />);
     expect(screen.getByText("owes you")).toBeInTheDocument();
     expect(screen.getAllByText("you owe")).toHaveLength(2);
-    expect(screen.getByText("₹499.99")).toHaveClass("text-green-600");
-    expect(screen.getByText("₹9,900.00")).toHaveClass("text-red-600"); // Indian grouping, red = you owe
-    expect(screen.getByText("$20.00")).toHaveClass("text-red-600"); // a USD debt stays in dollars
+    expect(screen.getByText("₹499.99")).toHaveClass("text-green-700");
+    expect(screen.getByText("₹9,900.00")).toHaveClass("text-red-700"); // Indian grouping, red = you owe
+    expect(screen.getByText("$20.00")).toHaveClass("text-red-700"); // a USD debt stays in dollars
     expect(document.body.textContent).not.toMatch(/[−+-]\s?[$₹]/); // no minus sign: colour + "you owe" say it
   });
 

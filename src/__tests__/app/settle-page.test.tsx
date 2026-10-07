@@ -190,8 +190,8 @@ describe("SettlePage — history", () => {
     ];
     render(<SettlePage />);
     // direction is shown by colour (red = you paid out, green = you received), never by a +/− sign
-    expect(screen.getByText("$50.00")).toHaveClass("text-red-600");
-    expect(screen.getByText("₹50.00")).toHaveClass("text-green-600");
+    expect(screen.getByText("$50.00")).toHaveClass("text-red-700");
+    expect(screen.getByText("₹50.00")).toHaveClass("text-green-700");
     expect(screen.queryByText(/[−+-]\s?[$₹]/)).not.toBeInTheDocument();
   });
 });

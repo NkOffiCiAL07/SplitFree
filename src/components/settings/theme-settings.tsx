@@ -7,7 +7,7 @@ import { setAccent, setOled, useAccent, useOled } from "@/components/shared/acce
 import { ACCENTS } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
-/** Colour theme (the app's accent colour) and "pure black" for dark mode. Saved on this device. */
+/** The app's theme (colours for the whole page) and "pure black" for dark mode. Saved on this device. */
 export function ThemeSettings() {
   const current = useAccent();
   const oled = useOled();
@@ -15,8 +15,8 @@ export function ThemeSettings() {
   return (
     <div className="space-y-5" data-testid="theme-settings">
       <div className="space-y-2.5">
-        <Label className="text-sm">Colour</Label>
-        <div role="radiogroup" aria-label="Colour theme" className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
+        <Label className="text-sm">Theme</Label>
+        <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
           {ACCENTS.map((a) => {
             const selected = a.id === current.id;
             return (

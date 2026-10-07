@@ -86,7 +86,7 @@ export function OnboardingBanner({ done }: { done?: { group: boolean; friend: bo
             </div>
             <button
               onClick={dismiss}
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0 -mt-0.5"
+              className="-m-2.5 shrink-0 p-2.5 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Dismiss"
             >
               <X className="size-4" />
@@ -140,9 +140,12 @@ export function OnboardingBanner({ done }: { done?: { group: boolean; friend: bo
               {STEPS.map((_, i) => (
                 <button
                   key={i}
+                  aria-label={`Go to step ${i + 1} of ${STEPS.length}`}
                   onClick={() => setStep(i)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === step ? "bg-primary w-4" : "bg-primary/30"}`}
-                />
+                  className="-mx-1 -my-2 flex h-7 items-center px-3"
+                >
+                  <span className={`block h-1.5 rounded-full transition-all ${i === step ? "w-4 bg-primary" : "w-1.5 bg-primary/30"}`} />
+                </button>
               ))}
             </div>
           </div>

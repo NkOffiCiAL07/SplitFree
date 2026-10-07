@@ -7,9 +7,12 @@ const html = document.documentElement;
 beforeEach(() => { html.removeAttribute("data-accent"); html.removeAttribute("data-oled"); localStorage.clear(); });
 
 describe("ThemeSettings", () => {
-  it("offers the six colours, violet selected by default", () => {
+  it("offers twelve themes under the heading \"Theme\", violet (the default) selected", () => {
     render(<ThemeSettings />);
-    expect(screen.getAllByRole("radio")).toHaveLength(6);
+    expect(screen.getByText("Theme")).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
+    expect(screen.getAllByRole("radio")).toHaveLength(12);
+    for (const name of ["Sky", "Indigo", "Orchid", "Amber", "Coffee", "Midnight"]) expect(screen.getByRole("radio", { name })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Violet" })).toBeChecked();
   });
 

@@ -110,7 +110,7 @@ export default function RecurringPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>
-                  <p className={cn("text-xs", isPayer ? "text-green-600 dark:text-green-400" : "text-muted-foreground")}>
+                  <p className={cn("text-xs", isPayer ? "text-green-700 dark:text-green-400" : "text-muted-foreground")}>
                     {isPayer ? "you pay" : `paid by ${expense.paidBy?.name?.split(" ")[0]}`}
                   </p>
                 </div>

@@ -117,6 +117,7 @@ function ExpensesPageInner() {
             )}
           </div>
           <select
+            aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground"
@@ -360,7 +361,7 @@ function ExpenseRow({
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, displayCurrency)}</p>
         {net !== null && net !== 0 && (
-          <p className={cn("text-xs", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+          <p className={cn("text-xs", net > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
             {net > 0 ? `you lent ${formatCurrency(net, displayCurrency)}` : `you owe ${formatCurrency(-net, displayCurrency)}`}
           </p>
         )}

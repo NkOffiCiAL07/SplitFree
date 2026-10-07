@@ -68,8 +68,8 @@ describe("DeleteAccountDialog", () => {
     await userEvent.click(confirmBtn(dialog));
     const list = await screen.findByTestId("delete-blockers");
     expect(within(list).getByRole("link", { name: "Asha" })).toHaveAttribute("href", "/friends/a1");
-    expect(within(list).getByText("owes you ₹500.00")).toHaveClass("text-green-600");
-    expect(within(list).getByText("you owe $20.00")).toHaveClass("text-red-600");
+    expect(within(list).getByText("owes you ₹500.00")).toHaveClass("text-green-700");
+    expect(within(list).getByText("you owe $20.00")).toHaveClass("text-red-700");
     expect(list.textContent).not.toMatch(/[−+]\s?[$₹]/);
     expect(h.signOut).not.toHaveBeenCalled();
     expect(loc.href).toBe("");

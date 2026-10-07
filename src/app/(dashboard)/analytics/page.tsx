@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
               <Card>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className={`text-lg md:text-xl font-bold mt-1 leading-tight ${positive && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-green-600 dark:text-green-400" : negative && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-red-600 dark:text-red-400" : ""}`}>
+                  <p className={`text-lg md:text-xl font-bold mt-1 leading-tight ${positive && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-green-700 dark:text-green-400" : negative && value !== "—" && !/^\D*0(\.0+)?$/.test(value) ? "text-red-700 dark:text-red-400" : ""}`}>
                     {value}
                   </p>
                 </CardContent>

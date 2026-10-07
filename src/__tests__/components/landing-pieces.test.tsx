@@ -89,8 +89,8 @@ describe("SplitTryout — the live bill splitter", () => {
 describe("PhoneDemo — the phone screen changes with the tabs", () => {
   const sample = {
     owed: "₹1,190", owe: "₹1,200", received: "₹850 · UPI", trip: "Goa trip", payChip: "UPI",
-    people: [{ name: "Himanshu", note: "you owe", amount: "₹1,200", tone: "text-red-600", bg: "bg-rose-400" }],
-    recent: [{ emoji: "🍔", name: "Dinner", share: "you owe ₹600", tone: "text-red-600", amount: "₹1,800" }],
+    people: [{ name: "Himanshu", note: "you owe", amount: "₹1,200", tone: "text-red-700", bg: "bg-rose-400" }],
+    recent: [{ emoji: "🍔", name: "Dinner", share: "you owe ₹600", tone: "text-red-700", amount: "₹1,800" }],
     payments: [{ from: "Rohan", to: "Ananya", amount: "₹2,400" }, { from: "Kavya", to: "Ananya", amount: "₹1,150" }, { from: "Aditya", to: "Rohan", amount: "₹600" }],
     bill: { title: "Dinner at Barbeque Nation", total: "₹1,800", shares: [{ name: "You", amount: "₹600" }, { name: "Divyansh", amount: "₹600" }] },
   };

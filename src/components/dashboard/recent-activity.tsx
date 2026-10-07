@@ -91,7 +91,7 @@ export function RecentActivity({ activities = [], currency = DEFAULT_CURRENCY, i
                         <p className="text-xs truncate">{text}</p>
                       </div>
                       {amount != null && amountCurrency && ( // never print an amount in a guessed currency
-                        <span className="text-xs font-semibold shrink-0 text-green-600 dark:text-green-400">
+                        <span className="text-xs font-semibold shrink-0 text-green-700 dark:text-green-400">
                           {formatCurrency(amount, amountCurrency)}
                         </span>
                       )}

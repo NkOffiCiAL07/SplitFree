@@ -109,7 +109,7 @@ export default function ImportPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      <Link href="/settings" className="-my-2 inline-flex items-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-3.5" /> Settings
       </Link>
 
@@ -276,7 +276,7 @@ export default function ImportPage() {
               <span aria-hidden="true" className="anim-float-slow absolute -left-7 top-3 text-xl">✨</span>
             </div>
             <div>
-              <p className="text-xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-xl font-bold text-green-700 dark:text-green-400">
                 Imported {result.imported} expense{result.imported === 1 ? "" : "s"}
                 {result.settlements > 0 && ` and ${result.settlements} payment${result.settlements === 1 ? "" : "s"}`}
               </p>

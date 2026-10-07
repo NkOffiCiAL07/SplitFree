@@ -84,7 +84,7 @@ export function PayersEditor({
           ))}
           <p
             role="status"
-            className={cn("text-xs", remaining === 0 ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400")}
+            className={cn("text-xs", remaining === 0 ? "text-green-700 dark:text-green-400" : "text-amber-600 dark:text-amber-400")}
           >
             {remaining === 0
               ? "Payers add up to the total ✓"

@@ -12,7 +12,7 @@ describe("StatCard", () => {
   });
   it("the money variants keep their meaning: green is owed to you, red is what you owe", () => {
     render(<><StatCard title="a" value="₹1" icon={Wallet} variant="green" /><StatCard title="b" value="₹2" icon={Wallet} variant="red" /></>);
-    expect(screen.getByText("₹1").className).toContain("text-green-600");
-    expect(screen.getByText("₹2").className).toContain("text-red-600");
+    expect(screen.getByText("₹1").className).toContain("text-green-700");
+    expect(screen.getByText("₹2").className).toContain("text-red-700");
   });
 });

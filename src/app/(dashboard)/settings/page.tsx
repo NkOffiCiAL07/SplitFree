@@ -10,6 +10,7 @@ import { Moon, Sun, Monitor, Download, Shield } from "lucide-react";
 import { APP_NAME } from "@/lib/app-config";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -83,9 +84,10 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Appearance</CardTitle>
-            <CardDescription>Light or dark, and the colour of the app</CardDescription>
+            <CardDescription>Light or dark, and the theme of the whole app</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
+            <Label className="mb-2.5 block text-sm">Mode</Label>
             <div className="grid grid-cols-3 gap-3">
               {themes.map(({ value, label, icon: Icon }) => (
                 <button
@@ -171,7 +173,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <Select value={currency} onValueChange={handleCurrencyChange} disabled={savingCurrency}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40" aria-label="Home currency">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

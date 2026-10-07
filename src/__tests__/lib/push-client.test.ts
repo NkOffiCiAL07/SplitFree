@@ -51,11 +51,22 @@ describe("getPushSubscription", () => {
     expect(await getPushSubscription()).toBeNull();
   });
 
-  it("registers the service worker if none is registered yet", async () => {
+  it("only LOOKS for an existing registration: it never registers a service worker just to ask (nothing registered means nothing subscribed)", async () => {
     install();
     sw.getRegistration.mockResolvedValue(undefined);
-    await getPushSubscription();
-    expect(sw.register).toHaveBeenCalledWith("/sw.js");
+    expect(await getPushSubscription()).toBeNull();
+    expect(sw.register).not.toHaveBeenCalled();
+  });
+
+  it("stops waiting when the browser never answers, so a page can never hang on it", async () => {
+    vi.useFakeTimers();
+    try {
+      install();
+      sw.getRegistration.mockReturnValue(new Promise(() => {})); // never resolves
+      const pending = getPushSubscription();
+      await vi.advanceTimersByTimeAsync(3100);
+      expect(await pending).toBeNull();
+    } finally { vi.useRealTimers(); }
   });
 });
 

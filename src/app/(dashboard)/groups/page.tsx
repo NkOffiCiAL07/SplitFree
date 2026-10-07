@@ -50,7 +50,7 @@ export default function GroupsPage() {
             role="tab"
             aria-selected={showArchived === value}
             onClick={() => setShowArchived(value)}
-            className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+            className={`px-3.5 py-2 rounded-full text-xs border transition-colors ${
               showArchived === value ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground hover:bg-accent"
             }`}
           >
@@ -77,6 +77,7 @@ export default function GroupsPage() {
             )}
           </div>
           <select
+            aria-label="Filter by group type"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="h-9 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground shrink-0"
@@ -126,7 +127,7 @@ export default function GroupsPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Create new group</p>
-              <p className="text-xs text-muted-foreground/70">Trip, home, work, or anything else</p>
+              <p className="text-xs text-muted-foreground">Trip, home, work, or anything else</p>
             </div>
           </m.button>
         </div>

@@ -19,6 +19,8 @@
     "test:run": "vitest run",
     "check:ui": "node scripts/ui-guard.mjs",
     "check:ui:build": "node scripts/ui-guard.mjs --build",
+    "check:ui:app": "node scripts/ui-guard-app.mjs",
+    "check:ui:themes": "THEMES=1 node scripts/ui-guard-app.mjs",
     "check:live": "BASE_URL=https://www.splitr.pro node scripts/ui-guard.mjs",
     "prepare": "husky",
     "apk:update": "node scripts/update-apk.mjs",

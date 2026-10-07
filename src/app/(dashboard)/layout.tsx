@@ -27,7 +27,7 @@ export default function DashboardLayout({
         <InstallBanner />
         <DemoBanner />
         <TopNav />
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+        <main tabIndex={0} aria-label="Page content" className="flex-1 overflow-y-auto pb-20 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:pb-0">
           {children}
         </main>
       </div>

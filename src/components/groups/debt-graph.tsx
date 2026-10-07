@@ -174,8 +174,8 @@ export function DebtGraph({ people, debts, meId, format, onPay, personHref }: Pr
         ) : selectedNode ? (
           <div data-testid="debt-detail" className="space-y-1">
             <p className="font-semibold">{nameOf(selectedNode)}</p>
-            {shown.filter((d) => d.fromUserId === selectedNode).map((d) => <p key={key(d)} className="text-red-600 dark:text-red-400">pays {nameOf(d.toUserId)} {format(d.amount, d.currency)}</p>)}
-            {shown.filter((d) => d.toUserId === selectedNode).map((d) => <p key={key(d)} className="text-green-600 dark:text-green-400">gets {format(d.amount, d.currency)} from {nameOf(d.fromUserId)}</p>)}
+            {shown.filter((d) => d.fromUserId === selectedNode).map((d) => <p key={key(d)} className="text-red-700 dark:text-red-400">pays {nameOf(d.toUserId)} {format(d.amount, d.currency)}</p>)}
+            {shown.filter((d) => d.toUserId === selectedNode).map((d) => <p key={key(d)} className="text-green-700 dark:text-green-400">gets {format(d.amount, d.currency)} from {nameOf(d.fromUserId)}</p>)}
           </div>
         ) : (
           <p className="text-muted-foreground">Tap a person or an arrow. <span className="text-red-500">Red</span> is what you pay, <span className="text-green-600">green</span> is what you receive.</p>

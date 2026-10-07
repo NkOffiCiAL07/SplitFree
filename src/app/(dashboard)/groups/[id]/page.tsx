@@ -192,7 +192,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon-sm" aria-label="Back" onClick={() => router.back()}>
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1 min-w-0">
@@ -205,7 +205,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           {/* Add expense — icon-only on mobile, text on desktop (archived groups are read-only) */}
           {!isArchived && (
             <AddExpenseDialog groupId={id} groupCurrency={group.currency} members={group.members ?? []}>
-              <Button variant="brand" size="sm" className="gap-1.5">
+              <Button variant="brand" size="sm" className="gap-1.5" aria-label="Add expense">
                 <Plus className="size-4" />
                 <span className="hidden sm:inline">Add expense</span>
               </Button>
@@ -275,7 +275,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
               {/* Mobile: ⋮ dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" className="sm:hidden text-muted-foreground">
+                  <Button variant="ghost" size="icon-sm" aria-label="More actions" className="sm:hidden text-muted-foreground">
                     <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -363,9 +363,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           myBalance >= 0 ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/15 dark:text-emerald-300" : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/25 dark:bg-rose-500/15 dark:text-rose-300"
         )}
       >
-        <p className="text-sm opacity-80">Your balance in this group</p>
+        <p className="text-sm font-medium">Your balance in this group</p>
         <p className="text-3xl font-bold mt-1">{formatCurrency(Math.abs(myBalance), group.currency)}</p>
-        <p className="text-sm mt-1 opacity-80">
+        <p className="text-sm mt-1 font-medium">
           {myBalance > 0 ? "You are owed" : myBalance < 0 ? "You owe" : "All settled up!"}
         </p>
       </m.div>
@@ -524,6 +524,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                       variant="ghost"
                       size="icon-sm"
                       title="Make admin"
+                      aria-label="Make admin"
                       className="text-muted-foreground hover:text-amber-500 size-7"
                       onClick={() => setTransferTarget(member.userId)}
                     >
@@ -533,6 +534,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   <Button
                     variant="ghost"
                     size="icon-sm"
+                    aria-label={`Remove ${member.user?.name ?? "member"} from the group`}
                     className="text-muted-foreground hover:text-destructive size-7"
                     onClick={() => removeMemberMutation.mutate({ groupId: id, userId: member.userId })}
                   >
@@ -572,11 +574,11 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{mb.name}</p>
-                    <p className={cn("text-xs", mb.balance > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                    <p className={cn("text-xs", mb.balance > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                       {mb.balance > 0 ? "owes you" : "you owe"}
                     </p>
                   </div>
-                  <span className={cn("text-sm font-bold shrink-0", mb.balance > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                  <span className={cn("text-sm font-bold shrink-0", mb.balance > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                     {formatCurrency(Math.abs(mb.balance), group.currency)}
                   </span>
                   {mb.balance < 0 && (
@@ -855,16 +857,16 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
       <div className="text-right shrink-0">
         <p className="text-sm font-semibold">{formatCurrency(expense.amount, currency)}</p>
         {net !== null && net !== 0 && (
-          <p className={cn("text-xs", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+          <p className={cn("text-xs", net > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
             {net > 0 ? `you lent ${formatCurrency(net, currency)}` : `you owe ${formatCurrency(-net, currency)}`}
           </p>
         )}
       </div>
       <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-        <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+        <Button variant="ghost" size="icon-sm" aria-label={`Edit ${expense.description}`} className="size-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
           <Pencil className="size-3.5" />
         </Button>
-        <Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+        <Button variant="ghost" size="icon-sm" aria-label={`Delete ${expense.description}`} className="size-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
           <Trash2 className="size-3.5" />
         </Button>
       </div>

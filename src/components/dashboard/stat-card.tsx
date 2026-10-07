@@ -15,8 +15,8 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  green:  { icon: "bg-green-500/10 text-green-600 dark:text-green-400",  bar: "bg-green-500",  text: "text-green-600 dark:text-green-400" },
-  red:    { icon: "bg-red-500/10 text-red-600 dark:text-red-400",        bar: "bg-red-500",    text: "text-red-600 dark:text-red-400" },
+  green:  { icon: "bg-green-500/10 text-green-700 dark:text-green-400",  bar: "bg-green-500",  text: "text-green-700 dark:text-green-400" },
+  red:    { icon: "bg-red-500/10 text-red-700 dark:text-red-400",        bar: "bg-red-500",    text: "text-red-700 dark:text-red-400" },
   amber:  { icon: "bg-muted text-muted-foreground", bar: "bg-border", text: "text-foreground" }, // (colour means money here: only green and red)
   violet: { icon: "bg-brand-500/10 text-brand-600 dark:text-brand-400", bar: "bg-brand-500", text: "text-brand-600 dark:text-brand-400" },
   neutral:{ icon: "bg-muted text-muted-foreground", bar: "bg-border", text: "text-foreground" }, // nothing owed either way: no green/red

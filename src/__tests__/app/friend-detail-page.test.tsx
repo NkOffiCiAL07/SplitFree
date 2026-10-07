@@ -126,9 +126,9 @@ describe("FriendDetailPage", () => {
     await renderPage();
     expect(screen.getByText("Dinner")).toBeInTheDocument();
     expect(screen.getByText(/You paid ₹10\.00 · Goa Trip/)).toBeInTheDocument();
-    expect(screen.getByText("you lent ₹5.00")).toHaveClass("text-green-600"); // Asha owes me her ₹5 share
+    expect(screen.getByText("you lent ₹5.00")).toHaveClass("text-green-700"); // Asha owes me her ₹5 share
     expect(screen.getByText(/Asha paid ₹4\.00/)).toBeInTheDocument();
-    expect(screen.getByText("you owe ₹2.00")).toHaveClass("text-red-600"); // I owe Asha my ₹2 share
+    expect(screen.getByText("you owe ₹2.00")).toHaveClass("text-red-700"); // I owe Asha my ₹2 share
     expect(screen.getByText(/Paid by several ₹90\.00/)).toBeInTheDocument(); // multi-payer expense
     expect(screen.getByText("you lent ₹15.00")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/[−+]\s?₹/); // no +/− signs on money anywhere

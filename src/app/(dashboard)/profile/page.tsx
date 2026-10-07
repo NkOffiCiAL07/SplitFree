@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { m } from "framer-motion";
-import { Camera, Mail, User, LogOut, KeyRound } from "lucide-react";
+import { Mail, User, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -79,12 +79,9 @@ export default function ProfilePage() {
             <div className="flex items-center gap-5">
               <div className="relative">
                 <Avatar className="size-20">
-                  <AvatarImage src={avatarUrl} />
+                  <AvatarImage src={avatarUrl} alt={displayName ? `${displayName}'s photo` : "Your photo"} />
                   <AvatarFallback className="text-2xl">{getInitials(displayName)}</AvatarFallback>
                 </Avatar>
-                <button className="absolute -bottom-1 -right-1 w-7 h-7 gradient-brand rounded-full flex items-center justify-center shadow-md hover:opacity-90 transition-opacity">
-                  <Camera className="size-3.5 text-white" />
-                </button>
               </div>
               <div>
                 <h3 className="font-semibold text-base">{displayName}</h3>
@@ -116,6 +113,7 @@ export default function ProfilePage() {
               <Label>Email address</Label>
               <Input
                 value={user?.email ?? ""}
+                aria-label="Email address"
                 disabled
                 startIcon={<Mail />}
                 className="opacity-60"

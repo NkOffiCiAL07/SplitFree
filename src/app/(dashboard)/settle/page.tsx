@@ -194,14 +194,14 @@ export default function SettlePage() {
         <div className="grid grid-cols-2 gap-3">
           <div className={cn("rounded-xl border p-4", myDebts.length > 0 ? "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30" : "bg-card")}>
             <p className="text-xs text-muted-foreground mb-1">You owe</p>
-            <p className={cn("text-xl font-bold", myDebts.length > 0 ? "text-red-600 dark:text-red-400" : "text-foreground")}>
+            <p className={cn("text-xl font-bold", myDebts.length > 0 ? "text-red-700 dark:text-red-400" : "text-foreground")}>
               {totalsLabel(myDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{myDebts.length} payment{myDebts.length !== 1 ? "s" : ""}</p>
           </div>
           <div className={cn("rounded-xl border p-4", othersDebts.length > 0 ? "bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30" : "bg-card")}>
             <p className="text-xs text-muted-foreground mb-1">Owed to you</p>
-            <p className={cn("text-xl font-bold", othersDebts.length > 0 ? "text-green-600 dark:text-green-400" : "text-foreground")}>
+            <p className={cn("text-xl font-bold", othersDebts.length > 0 ? "text-green-700 dark:text-green-400" : "text-foreground")}>
               {totalsLabel(othersDebts, userCurrency)}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{othersDebts.length} payment{othersDebts.length !== 1 ? "s" : ""}</p>
@@ -261,18 +261,18 @@ export default function SettlePage() {
                       {isMyDebt ? (debt.toUser?.name ?? "someone") : "You"}
                     </span>
                   </div>
-                  <span className={cn("text-sm font-bold shrink-0", isMyDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
+                  <span className={cn("text-sm font-bold shrink-0", isMyDebt ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>
                     {formatCurrency(debt.amount, debt.currency ?? userCurrency)}
                   </span>
                   <div className="flex shrink-0 items-center gap-2 max-sm:basis-full max-sm:justify-end">
                   {isMyDebt && (
-                    <UpiPayLink vpa={debt.toUser?.upiId} payeeName={debt.toUser?.name} amountCents={debt.amount} currency={debt.currency ?? userCurrency} className="h-7 gap-1 px-2 text-xs shrink-0" />
+                    <UpiPayLink vpa={debt.toUser?.upiId} payeeName={debt.toUser?.name} amountCents={debt.amount} currency={debt.currency ?? userCurrency} className="h-8 gap-1 px-2 text-xs shrink-0" />
                   )}
                   {isMyDebt && (
                     <Button
                       variant="brand"
                       size="sm"
-                      className="text-xs h-7 px-3 shrink-0"
+                      className="text-xs h-8 px-3 shrink-0"
                       onClick={() => openSettleFor(debt.toUserId, debt.amount, debt.currency ?? userCurrency)}
                     >
                       Pay
@@ -282,7 +282,7 @@ export default function SettlePage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs h-7 px-3 gap-1 shrink-0"
+                      className="text-xs h-8 px-3 gap-1 shrink-0"
                       disabled={sendReminder.isPending}
                       onClick={() => sendReminder.mutate({ debtorId: debt.fromUserId, amount: debt.amount, currency: debt.currency ?? userCurrency })}
                     >
@@ -290,7 +290,7 @@ export default function SettlePage() {
                     </Button>
                   )}
                   {!isMyDebt && (
-                    <WhatsAppRemindButton debtorName={debt.fromUser?.name} amount={debt.amount} currency={debt.currency ?? userCurrency} className="text-xs h-7 px-3 gap-1 shrink-0" />
+                    <WhatsAppRemindButton debtorName={debt.fromUser?.name} amount={debt.amount} currency={debt.currency ?? userCurrency} className="text-xs h-8 px-3 gap-1 shrink-0" />
                   )}
                   </div>
                 </m.div>
@@ -337,7 +337,7 @@ export default function SettlePage() {
                     </p>
                     {s.note && <p className="text-[10px] text-muted-foreground truncate">{s.note}</p>}
                   </div>
-                  <span className={cn("font-semibold shrink-0 text-sm", isOutgoing ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400")}>
+                  <span className={cn("font-semibold shrink-0 text-sm", isOutgoing ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400")}>
                     {formatCurrency(s.amount, s.currency ?? userCurrency)}
                   </span>
                   <span className="text-[10px] text-muted-foreground shrink-0">{formatDate(s.createdAt)}</span>

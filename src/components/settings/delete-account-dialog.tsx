@@ -94,7 +94,7 @@ export function DeleteAccountDialog() {
                     <Link href={`/friends/${b.userId}`} onClick={() => reset(false)} className="min-w-0 truncate font-medium underline-offset-2 hover:underline">
                       {b.name}
                     </Link>
-                    <span className={cn("shrink-0 font-semibold", b.net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                    <span className={cn("shrink-0 font-semibold", b.net > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                       {b.net > 0 ? "owes you " : "you owe "}{formatCurrency(Math.abs(b.net), b.currency)}
                     </span>
                   </li>

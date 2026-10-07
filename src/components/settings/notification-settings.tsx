@@ -29,10 +29,12 @@ export function NotificationSettings() {
     let cancelled = false;
     (async () => {
       const ok = isPushSupported();
-      const sub = ok ? await getPushSubscription() : null;
+      // Only ask the browser about an existing push subscription when notifications were already allowed here: for
+      // everyone else the answer is "off", and the page never has to wait on the service-worker machinery just to open.
+      const sub = ok && Notification.permission === "granted" ? await getPushSubscription() : null;
       if (cancelled) return;
       setSupported(ok);
-      setPushOn(!!sub && Notification.permission === "granted");
+      setPushOn(!!sub);
     })();
     return () => { cancelled = true; };
   }, []);

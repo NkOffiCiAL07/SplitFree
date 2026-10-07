@@ -67,12 +67,12 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
         <CardHeader className="pb-2"><CardTitle className="text-sm">Balance</CardTitle></CardHeader>
         <CardContent className="space-y-2 pt-0">
           {balances.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+            <p className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
               <CheckCircle2 className="size-4" /> You&apos;re all settled up with {firstName}.
             </p>
           ) : balances.map(({ currency, net }) => (
             <div key={currency} className="flex items-center gap-2">
-              <p className={cn("flex-1 text-sm font-semibold", net > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+              <p className={cn("flex-1 text-sm font-semibold", net > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                 {net > 0
                   ? `${firstName} owes you ${formatCurrency(net, currency)}`
                   : `You owe ${firstName} ${formatCurrency(-net, currency)}`}
@@ -120,7 +120,7 @@ export default function FriendDetailPage({ params }: { params: Promise<{ id: str
                   {e.group ? ` · ${e.group.name}` : ""}
                 </p>
               </div>
-              <span className={cn("text-xs font-semibold shrink-0", delta > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+              <span className={cn("text-xs font-semibold shrink-0", delta > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
                 {delta > 0 ? "you lent " : "you owe "}{formatCurrency(Math.abs(delta), e.currency)}
               </span>
             </div>
