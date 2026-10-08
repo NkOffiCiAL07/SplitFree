@@ -13,6 +13,18 @@ const nextConfig: NextConfig = {
   },
   headers: async () => [
     {
+      // Safe hardening for every page and API response. (No Content-Security-Policy yet: the app relies on inline
+      // scripts for theming, so a strict policy needs nonces first.)
+      source: "/:path*",
+      headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+      ],
+    },
+    {
       // Service worker must NEVER be cached — browser needs to check for updates on every load
       source: "/sw.js",
       headers: [

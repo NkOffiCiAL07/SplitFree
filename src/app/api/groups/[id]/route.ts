@@ -20,7 +20,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     if (error) return error;
     const { id } = await params;
 
-    const member = await assertMember(id, user!.id);
+    // The membership check gates the expensive queries (a non-member must not be able to trigger a full ledger load);
+    // the cheap home-currency lookup rides along with it, and the heavy queries then run together.
+    const [member, home] = await Promise.all([assertMember(id, user!.id), homeCurrencyOf(user!.id)]);
     if (!member) return err("Not a member of this group", 403);
 
     const [group, groupLedger] = await Promise.all([
@@ -61,7 +63,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .filter((m) => m.balance !== 0 || m.others.length > 0);
 
     // Spending is summarised in the viewer's home currency (other currencies converted, flagged approximate)
-    const home = await homeCurrencyOf(user!.id);
     const conv = await loadConverter(home, groupLedger.expenses.some((e) => e.currency !== home));
     const stats = computeGroupStats(groupLedger.expenses.map((e) => ({ ...e, category: e.category ?? "OTHER" })), user!.id, conv);
 
