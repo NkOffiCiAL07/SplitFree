@@ -178,6 +178,7 @@ model Expense {
   category          ExpenseCategory    @default(OTHER)
   splitType         SplitType          @default(EQUAL)
   paidById          String             @map("paid_by_id")
+  createdById       String?            @map("created_by_id") // who added it; only they can edit it (null on very old rows: falls back to the payer)
   date              DateTime
   isRecurring          Boolean            @default(false) @map("is_recurring")
   recurringInterval    RecurringInterval? @map("recurring_interval")

@@ -7,6 +7,7 @@ import { m } from "framer-motion";
 import { netForUser, payersLabel } from "@/lib/expense-display";
 import { ExpenseHistory } from "@/components/expenses/expense-history";
 import { Receipt, Trash2, Download, Search, X, ChevronRight, Pencil, Copy, FileText, CalendarDays } from "lucide-react";
+import { canEditExpense } from "@/lib/expense-permissions";
 import { useInfiniteExpenses, useDeleteExpense, useDuplicateExpense } from "@/hooks/use-expenses";
 import { useDebounceValue } from "usehooks-ts";
 import { useAuth } from "@/hooks/use-auth";
@@ -268,9 +269,9 @@ function ExpensesPageInner() {
               <ExpenseComments expenseId={selectedExpense.id} />
               <Separator />
 
-              {/* Action buttons — group members can edit/delete any group expense */}
+              {/* Action buttons — only whoever added an expense can edit or delete it */}
               {(() => {
-                const canManage = selectedExpense.paidById === user?.id || !!selectedExpense.groupId;
+                const canManage = canEditExpense(selectedExpense, user?.id);
                 return (
                   <div className="flex gap-2 pt-1">
                     <Button

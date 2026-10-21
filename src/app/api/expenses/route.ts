@@ -124,6 +124,7 @@ export async function POST(req: NextRequest) {
         category: data.category,
         splitType: data.splitType,
         paidById: primaryPayer,
+        createdById: user!.id,
         groupId: data.groupId ?? null,
         date: data.date,
         notes: data.notes ?? null,

@@ -9,6 +9,7 @@ import { updateExpenseSchema } from "@/lib/validations/expense";
 import { calculateSplits } from "@/lib/algorithms/debt-simplification";
 import { toCents } from "@/lib/utils";
 import { validatePayers } from "@/lib/ledger";
+import { canEditExpense, NOT_EXPENSE_OWNER_MESSAGE } from "@/lib/expense-permissions";
 import { snapshotExpense, diffSnapshots } from "@/lib/revisions";
 
 async function getGroupMemberIds(groupId: string | null, excludeId: string): Promise<string[]> {
@@ -52,16 +53,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!existing) return err("Expense not found", 404);
     if (existing.groupId && (await isGroupArchived(existing.groupId))) return err(ARCHIVED_MESSAGE, 409);
 
-    // Group expenses: any member can edit. Personal expenses: only a payer.
-    const isPayer = existing.paidById === user!.id || existing.payers.some((p) => p.userId === user!.id);
-    if (!isPayer && existing.groupId) {
-      const memberCheck = await prisma.groupMember.findUnique({
-        where: { groupId_userId: { groupId: existing.groupId, userId: user!.id } },
-      });
-      if (!memberCheck) return err("Not authorized to edit this expense", 403);
-    } else if (!isPayer && !existing.groupId) {
-      return err("Only the payer can edit this expense", 403);
-    }
+    // Only the person who added the expense can edit it (anyone in the group can still comment and react)
+    if (!canEditExpense(existing, user!.id)) return err(NOT_EXPENSE_OWNER_MESSAGE, 403);
 
     const body = await req.json();
     const data = updateExpenseSchema.parse({ ...body, id });
@@ -217,15 +210,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (!expense) return err("Expense not found", 404);
     if (expense.groupId && (await isGroupArchived(expense.groupId))) return err(ARCHIVED_MESSAGE, 409);
 
-    // Group expenses: any member can delete. Personal expenses: only payer.
-    if (expense.paidById !== user!.id && expense.groupId) {
-      const memberCheck = await prisma.groupMember.findUnique({
-        where: { groupId_userId: { groupId: expense.groupId, userId: user!.id } },
-      });
-      if (!memberCheck) return err("Not authorized to delete this expense", 403);
-    } else if (expense.paidById !== user!.id && !expense.groupId) {
-      return err("Only the payer can delete this expense", 403);
-    }
+    // Same rule as editing: only the person who added the expense can remove it
+    if (!canEditExpense(expense, user!.id)) return err("Only the person who added this expense can delete it", 403);
 
     // Fetch group members before deleting (cascade will remove related data)
     const notifyIds = await getGroupMemberIds(expense.groupId, user!.id);

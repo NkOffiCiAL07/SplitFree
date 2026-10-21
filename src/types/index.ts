@@ -133,6 +133,8 @@ export interface Expense {
   category: ExpenseCategory;
   splitType: SplitType;
   paidById: string;
+  /** who added the expense; only they can edit it (null on very old rows) */
+  createdById?: string | null;
   date: Date;
   isRecurring: boolean;
   recurringInterval: string | null;

@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
               category: e.category as ExpenseCategory,
               splitType: "EXACT",
               paidById: e.paidById,
+              createdById: me,
               date: noon(e.date),
               ...(e.payers.length > 0 ? { payers: { create: e.payers } } : {}),
               splits: { create: e.splits.map((s) => ({ userId: s.userId, amount: s.amount })) },

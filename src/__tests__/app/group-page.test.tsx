@@ -163,34 +163,17 @@ describe("GroupDetailPage — your balance banner (regression: it always said 'A
   });
 });
 
-describe("GroupDetailPage — who owes who & settling", () => {
-  beforeEach(() => {
+describe("GroupDetailPage — one clear settle-up plan", () => {
+  it("shows a single plan (the settle-up card), not a second 'who owes who' list with different numbers", async () => {
     h.group.data = baseGroup({ memberBalances: [
-      { userId: "a", name: "Asha", avatarUrl: null, balance: -25000, others: [] }, // I owe Asha
-      { userId: "b", name: "Bhanu", avatarUrl: null, balance: 10000, others: [] }, // Bhanu owes me
+      { userId: "a", name: "Asha", avatarUrl: null, balance: -25000, others: [] },
+      { userId: "b", name: "Bhanu", avatarUrl: null, balance: 10000, others: [] },
     ] });
-  });
-
-  it("shows each person with direction and amount, and Settle only where I owe", async () => {
     await renderPage();
-    expect(screen.getByText("Who owes who")).toBeInTheDocument();
-    expect(screen.getByText(/simplified plan below can route payments differently/i)).toBeInTheDocument(); // two sets of numbers, both right: say why they differ
-    expect(screen.getByText("you owe")).toBeInTheDocument();
-    expect(screen.getByText("owes you")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Settle" })).toHaveLength(1);
-  });
-
-  it("settles the full amount with the group's id and currency, with an optional note", async () => {
-    await renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "Settle" }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Settle with Asha")).toBeInTheDocument();
-    expect(within(dialog).getByText("₹250.00")).toBeInTheDocument();
-    await userEvent.type(within(dialog).getByPlaceholderText(/paid via upi/i), "GPay");
-    await userEvent.click(within(dialog).getByRole("button", { name: /record full payment/i }));
-    await waitFor(() => expect(h.hooks.settleUp).toHaveBeenCalled());
-    expect(h.hooks.settleUp.mock.calls[0][0]).toEqual({ toUserId: "a", amount: 250, currency: "INR", groupId: "g1", note: "GPay" });
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.queryByText("Who owes who")).not.toBeInTheDocument();
+    expect(screen.queryByText(/simplified plan below/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Settle" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("debts-card")).toBeInTheDocument();
   });
 });
 

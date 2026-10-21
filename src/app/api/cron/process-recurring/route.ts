@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
                 category: expense.category,
                 splitType: expense.splitType,
                 paidById: expense.paidById,
+                createdById: expense.createdById ?? expense.paidById, // the copy keeps the original's owner
                 date: nextDue,
                 isRecurring: false,
                 notes: expense.notes,

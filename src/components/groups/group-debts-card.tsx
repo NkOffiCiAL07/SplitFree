@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Share2, Zap } from "lucide-react";
+import { Share2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ export function GroupDebtsCard({ groupId, names, currentUserId, upiIds = {}, onP
   const [view, setView] = useState<"list" | "graph">("list");
   const debts = data?.simplified ?? [];
   const label = (id: string) => (id === currentUserId ? "You" : names[id] ?? "Someone");
+  // Your own payments first, so the first thing you read is what concerns you
+  const mine = (d: SimplifiedDebt) => d.fromUserId === currentUserId || d.toUserId === currentUserId;
+  const ordered = [...debts].sort((a, b) => Number(mine(b)) - Number(mine(a)));
 
   const share = async () => {
     const withNames = debts.map((d) => ({
@@ -52,7 +55,7 @@ export function GroupDebtsCard({ groupId, names, currentUserId, upiIds = {}, onP
     <Card data-testid="group-debts">
       <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm flex items-center gap-1.5">
-          <Zap className="size-3.5 text-primary" /> Simplified debts
+          <Zap className="size-3.5 text-primary" /> Settle up
         </CardTitle>
         {debts.length > 0 && (
           <div className="flex items-center gap-1.5">
@@ -75,7 +78,7 @@ export function GroupDebtsCard({ groupId, names, currentUserId, upiIds = {}, onP
         ) : (
           <>
             <p className="text-[11px] text-muted-foreground">
-              {debts.length} payment{debts.length === 1 ? "" : "s"} settle the whole group
+              {debts.length} payment{debts.length === 1 ? "" : "s"} and everyone in the group is even
             </p>
             {view === "graph" && (
               <DebtGraph
@@ -87,11 +90,13 @@ export function GroupDebtsCard({ groupId, names, currentUserId, upiIds = {}, onP
                 personHref={(id) => `/friends/${id}`}
               />
             )}
-            {view === "list" && debts.map((d) => (
-              <div key={`${d.fromUserId}-${d.toUserId}-${d.currency}`} className="flex items-center gap-2 text-sm">
-                <span className="font-medium truncate">{label(d.fromUserId)}</span>
-                <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
-                <span className="font-medium truncate flex-1">{label(d.toUserId)}</span>
+            {view === "list" && ordered.map((d) => (
+              <div key={`${d.fromUserId}-${d.toUserId}-${d.currency}`} className={`flex items-center gap-2 text-sm ${mine(d) ? "rounded-lg bg-primary/5 px-2 py-1.5" : ""}`}>
+                <span className="min-w-0 flex-1 truncate">
+                  <span className="font-medium">{label(d.fromUserId)}</span>
+                  <span className="text-muted-foreground"> {d.fromUserId === currentUserId ? "pay" : "pays"} </span>
+                  <span className="font-medium">{label(d.toUserId)}</span>
+                </span>
                 <span className="font-semibold shrink-0">{formatCurrency(d.amount, d.currency ?? "INR")}</span>
                 {d.fromUserId === currentUserId && (
                   <UpiPayLink vpa={upiIds[d.toUserId]} payeeName={names[d.toUserId]} amountCents={d.amount} currency={d.currency ?? "INR"} />

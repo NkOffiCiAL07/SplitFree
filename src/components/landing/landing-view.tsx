@@ -203,8 +203,8 @@ export function LandingView({ international = false }: { international?: boolean
   return (
     <div className="min-h-dvh overflow-x-clip bg-background">
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f5f7fb]/80 text-slate-900 backdrop-blur-xl dark:border-white/10 dark:bg-[#0a0720]/80 dark:text-white">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <header className="pointer-events-none sticky top-3 z-50 -mb-[68px] mt-3 px-3 text-slate-900 dark:text-white">
+        <div className="pointer-events-auto mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border border-slate-200/80 bg-[#f5f7fb]/80 px-4 shadow-lg shadow-slate-900/10 backdrop-blur-xl dark:border-white/15 dark:bg-[#0a0720]/80 dark:shadow-black/40 sm:px-5">
           <Link href="/">
             <BrandLogo size={34} />
           </Link>
@@ -223,7 +223,7 @@ export function LandingView({ international = false }: { international?: boolean
       </header>
 
       {/* Hero — a soft off-white canvas lit by ambient indigo/violet light (a deep-indigo night scene in dark mode) */}
-      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-24 pt-10 text-slate-900 sm:pb-28 sm:pt-20 dark:bg-[#090a0f] dark:text-white">
+      <section data-testid="hero" className="hero-light relative isolate overflow-hidden bg-[#f5f7fb] px-4 pb-24 pt-24 text-slate-900 sm:pb-28 sm:pt-32 dark:bg-[#090a0f] dark:text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(99,91,255,0.22),transparent_38%)] dark:bg-[radial-gradient(circle_at_50%_0%,rgba(99,91,255,0.20),transparent_38%)]" />
           <div className="lg-blob -left-24 top-8 h-[460px] w-[460px] bg-sky-300/20 sm:bg-sky-300/40 dark:bg-cyan-400/10" />
@@ -274,7 +274,7 @@ export function LandingView({ international = false }: { international?: boolean
             </div>
           </div>
 
-          <div id="product" className="anim-fade-up relative scroll-mt-20" style={{ animationDelay: "200ms" }}>
+          <div id="product" className="anim-fade-up relative scroll-mt-24" style={{ animationDelay: "200ms" }}>
             <div className="pointer-events-none absolute -left-52 top-36 z-10 hidden min-[1700px]:block anim-float-slow"><TripCard t={sample.tripCard} /></div>
             <PhoneDemo
               // (only plain data crosses to the browser: the full sample also holds an icon component, which cannot)
@@ -306,7 +306,7 @@ export function LandingView({ international = false }: { international?: boolean
 
 
       {/* How it works */}
-      <section id="how-it-works" className="scroll-mt-16 px-4 py-16 sm:py-20">
+      <section id="how-it-works" className="scroll-mt-24 px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center sm:mb-14">
             <p className="mb-2 flex items-center justify-center gap-1.5 text-sm font-medium text-[#4f48e6] dark:text-[#8b83ff]">
@@ -334,7 +334,7 @@ export function LandingView({ international = false }: { international?: boolean
       <OfflineSync />
 
       {/* Android download */}
-      <section id="download" className="scroll-mt-16 px-4 pb-16 sm:pb-20">
+      <section id="download" className="scroll-mt-24 px-4 pb-16 sm:pb-20">
         <div className="mx-auto max-w-5xl">
           <Reveal className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-700 to-purple-800 p-8 text-white shadow-2xl shadow-violet-900/30 sm:p-12">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -360,7 +360,7 @@ export function LandingView({ international = false }: { international?: boolean
       </section>
 
       {/* Features */}
-      <section id="features" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
+      <section id="features" className="relative scroll-mt-24 overflow-hidden bg-gradient-to-b from-violet-50/70 via-muted/30 to-sky-50/60 px-4 py-24 dark:from-violet-950/20 dark:via-transparent dark:to-sky-950/10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="lg-blob -left-20 top-10 h-72 w-72 bg-violet-400/20" />
           <div className="lg-blob lg-blob-2 -right-16 top-1/2 h-80 w-80 bg-sky-300/25" />
@@ -395,7 +395,7 @@ export function LandingView({ international = false }: { international?: boolean
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-sky-50/60 to-violet-50/60 px-4 py-24 dark:from-transparent dark:to-violet-950/20">
+      <section id="faq" className="relative scroll-mt-24 overflow-hidden bg-gradient-to-b from-sky-50/60 to-violet-50/60 px-4 py-24 dark:from-transparent dark:to-violet-950/20">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="lg-blob -right-10 top-10 h-64 w-64 bg-violet-300/30" />
           <div className="lg-blob lg-blob-2 -left-10 bottom-10 h-64 w-64 bg-sky-300/30" />

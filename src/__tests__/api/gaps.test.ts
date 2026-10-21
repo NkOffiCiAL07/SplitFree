@@ -150,17 +150,18 @@ describe("/api/expenses/[id] — remaining paths", () => {
     expect(p.expense.delete).not.toHaveBeenCalled();
   });
 
-  it("DELETE: a group member who isn't the payer may delete; a non-member may not", async () => {
-    p.expense.findFirst.mockResolvedValue(stored({ paidById: OTHER }));
+  it("DELETE: whoever added the expense may delete it even if someone else paid; other members may not", async () => {
     p.group.findUnique.mockResolvedValue({ archivedAt: null });
-    p.groupMember.findUnique.mockResolvedValue(null);
+    p.expense.findFirst.mockResolvedValue(stored({ paidById: ME, createdById: OTHER }));
     expect((await DELETE_EXPENSE(req("DELETE"), ectx)).status).toBe(403);
-    p.groupMember.findUnique.mockResolvedValue({ userId: ME });
+    expect(p.expense.delete).not.toHaveBeenCalled();
+    p.expense.findFirst.mockResolvedValue(stored({ paidById: OTHER, createdById: ME }));
     p.groupMember.findMany.mockResolvedValue([]);
     p.expense.delete.mockResolvedValue({});
     p.activity.create.mockResolvedValue({});
     expect((await DELETE_EXPENSE(req("DELETE"), ectx)).status).toBe(200);
   });
+
 });
 
 describe("/api/groups/[id] GET — failure paths", () => {

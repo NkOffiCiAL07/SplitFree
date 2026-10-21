@@ -145,6 +145,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
   const isRecurring = watch("isRecurring");
   const amountStr = watch("amount");
   const selectedCurrency = watch("currency");
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
 
   // Resolve the effective members list
   const resolvedMembers: GroupMember[] = useMemo(() => {
@@ -284,6 +285,7 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
     });
     setOpen(false);
     reset();
+    setShowCurrencyPicker(false);
     setSplitValues({});
     setParticipants([]);
     setMultiPayers(false);
@@ -452,18 +454,26 @@ export function AddExpenseDialog({ groupId, groupCurrency = DEFAULT_CURRENCY, me
             </div>
             <div className="space-y-1.5">
               <Label>Currency</Label>
-              <Controller
-                name="currency"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              {showCurrencyPicker ? (
+                <Controller
+                  name="currency"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              ) : (
+                // The currency follows where you live (or the group's); changing it is the exception, e.g. paying on a trip abroad
+                <div className="flex h-9 items-center justify-between rounded-md border bg-muted/40 px-3 text-sm">
+                  <span className="font-medium">{selectedCurrency}</span>
+                  <button type="button" className="text-xs text-primary hover:underline" onClick={() => setShowCurrencyPicker(true)}>Change</button>
+                </div>
+              )}
             </div>
           </div>
 

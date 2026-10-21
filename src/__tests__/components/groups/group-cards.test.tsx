@@ -75,7 +75,7 @@ describe("GroupDebtsCard", () => {
       ] },
     });
     render(<GroupDebtsCard groupId="g" names={names} currentUserId="me" onPay={onPay} />);
-    expect(screen.getByText(/2 payments settle the whole group/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 payments and everyone in the group is even/i)).toBeInTheDocument();
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("Bhanu")).toBeInTheDocument();
     expect(screen.getByText("₹500.00")).toBeInTheDocument();

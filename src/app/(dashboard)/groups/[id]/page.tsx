@@ -9,6 +9,7 @@ import { m } from "framer-motion";
 import { MessageCircle, ArrowLeft, UserPlus, Trash2, CheckCircle2, LogOut, Archive, ArchiveRestore, Crown, Link2, Pencil, QrCode, Plus, MoreVertical, Search, Mail, Download, Share2, X } from "lucide-react";
 import { useGroup, useDeleteGroup, useAddMember, useRemoveMember, useLeaveGroup, useTransferOwnership, useArchiveGroup } from "@/hooks/use-groups";
 import { useFriendContacts } from "@/hooks/use-friends";
+import { canEditExpense } from "@/lib/expense-permissions";
 import { useDeleteExpense, useInfiniteExpenses } from "@/hooks/use-expenses";
 import { useDebounceValue } from "usehooks-ts";
 import { useSettleUp } from "@/hooks/use-settlements";
@@ -547,58 +548,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* Per-member balances */}
-      {(() => {
-        const memberBalances = group.memberBalances ?? [];
-        if (memberBalances.length === 0) return null;
-        return (
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-sm">Who owes who</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Direct totals between you and each person. The simplified plan below can route payments differently to need fewer of them, so a person&apos;s amount there may not match.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {memberBalances.map((mb) => (
-                <m.div
-                  key={mb.userId}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border",
-                    mb.balance > 0 ? "bg-green-50 border-green-100 dark:bg-green-900/10 dark:border-green-900/30" : "bg-red-50 border-red-100 dark:bg-red-900/10 dark:border-red-900/30"
-                  )}
-                >
-                  <Avatar className="size-8 shrink-0">
-                    <AvatarImage src={mb.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">{getInitials(mb.name)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{mb.name}</p>
-                    <p className={cn("text-xs", mb.balance > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
-                      {mb.balance > 0 ? "owes you" : "you owe"}
-                    </p>
-                  </div>
-                  <span className={cn("text-sm font-bold shrink-0", mb.balance > 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
-                    {formatCurrency(Math.abs(mb.balance), group.currency)}
-                  </span>
-                  {mb.balance < 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7 px-2 shrink-0"
-                      onClick={() => setSettleTarget({ userId: mb.userId, name: mb.name, balance: mb.balance })}
-                    >
-                      Settle
-                    </Button>
-                  )}
-                </m.div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Group-wide summary: fewest payments to settle everyone + spending totals */}
+      {/* One clear plan: who pays whom to settle the group (fewest payments), next to the spending totals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <GroupDebtsCard
           groupId={id}
@@ -734,6 +684,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 userId={user?.id ?? ""}
                 index={i}
                 groupCurrency={group.currency}
+                canEdit={canEditExpense(exp, user?.id)}
                 onEdit={() => setEditingExpense(exp as Expense)}
                 onDelete={() => deleteExpense.mutate(exp)}
                 onClick={() => setViewingExpense(exp as Expense)}
@@ -802,18 +753,22 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 <ExpenseComments expenseId={viewingExpense.id} />
                 <Separator />
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline" size="sm" className="flex-1 gap-1.5"
-                    onClick={() => { setEditingExpense(viewingExpense); setViewingExpense(null); }}
-                  >
-                    <Pencil className="size-3.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="destructive" size="sm" className="gap-1.5"
-                    onClick={() => { deleteExpense.mutate(viewingExpense); setViewingExpense(null); }}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                  {canEditExpense(viewingExpense, user?.id) && (
+                    <Button
+                      variant="outline" size="sm" className="flex-1 gap-1.5"
+                      onClick={() => { setEditingExpense(viewingExpense); setViewingExpense(null); }}
+                    >
+                      <Pencil className="size-3.5" /> Edit
+                    </Button>
+                  )}
+                  {canEditExpense(viewingExpense, user?.id) && (
+                    <Button
+                      variant="destructive" size="sm" className="gap-1.5"
+                      onClick={() => { deleteExpense.mutate(viewingExpense); setViewingExpense(null); }}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </>
@@ -829,8 +784,8 @@ const EXPENSE_EMOJI: Record<string, string> = {
   UTILITIES:"💡",SHOPPING:"🛒",HEALTH:"💊",TRAVEL:"✈️",EDUCATION:"📚",OTHER:"📦",
 };
 
-function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, onClick }: {
-  expense: Expense; userId: string; index: number; groupCurrency?: string;
+function ExpenseRow({ expense, userId, index, groupCurrency, canEdit, onEdit, onDelete, onClick }: {
+  expense: Expense; userId: string; index: number; groupCurrency?: string; canEdit: boolean;
   onEdit: () => void; onDelete: () => void; onClick?: () => void;
 }) {
   const net = netForUser(expense, userId);
@@ -863,12 +818,16 @@ function ExpenseRow({ expense, userId, index, groupCurrency, onEdit, onDelete, o
         )}
       </div>
       <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-        <Button variant="ghost" size="icon-sm" aria-label={`Edit ${expense.description}`} className="size-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-          <Pencil className="size-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon-sm" aria-label={`Delete ${expense.description}`} className="size-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
-          <Trash2 className="size-3.5" />
-        </Button>
+        {canEdit && (
+          <Button variant="ghost" size="icon-sm" aria-label={`Edit ${expense.description}`} className="size-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+            <Pencil className="size-3.5" />
+          </Button>
+        )}
+        {canEdit && (
+          <Button variant="ghost" size="icon-sm" aria-label={`Delete ${expense.description}`} className="size-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+            <Trash2 className="size-3.5" />
+          </Button>
+        )}
       </div>
     </m.div>
   );

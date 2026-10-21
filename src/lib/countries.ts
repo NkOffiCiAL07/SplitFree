@@ -79,3 +79,14 @@ export function parseE164(e164: string | null | undefined): { country: string; n
   }
   return null;
 }
+
+/** The country a "+<dial><number>" phone number belongs to (longest dial code wins; "+1" is read as the US). */
+export function countryFromPhone(phone?: string | null): string | null {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  let best: { code: string; dial: string } | null = null;
+  for (const c of COUNTRIES) {
+    if (digits.startsWith(c.dial) && (!best || c.dial.length > best.dial.length)) best = c;
+  }
+  return best?.code === "CA" ? "US" : best?.code ?? null;
+}

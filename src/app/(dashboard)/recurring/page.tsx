@@ -1,5 +1,6 @@
 "use client";
 
+import { canEditExpense } from "@/lib/expense-permissions";
 import { useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { RefreshCw, Trash2, Calendar } from "lucide-react";
@@ -114,7 +115,7 @@ export default function RecurringPage() {
                     {isPayer ? "you pay" : `paid by ${expense.paidBy?.name?.split(" ")[0]}`}
                   </p>
                 </div>
-                {isPayer && (
+                {canEditExpense(expense, user?.id) && (
                   <Button
                     variant="ghost"
                     size="icon-sm"

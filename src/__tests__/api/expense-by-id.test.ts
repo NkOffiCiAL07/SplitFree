@@ -18,7 +18,7 @@ const patch = (b: unknown) => PATCH(new NextRequest(`http://x/api/expenses/${ID}
 const split = (userId: string, amount: number, extra = {}) => ({ userId, amount, percentage: null, shares: null, ...extra });
 const existing = (over = {}) => ({
   id: ID, groupId: GROUP, amount: 30000, paidById: ME, splitType: "EQUAL", description: "Dinner",
-  currency: "INR", category: "FOOD", date: new Date("2026-03-01"), notes: null, isRecurring: false, recurringInterval: null,
+  createdById: ME, currency: "INR", category: "FOOD", date: new Date("2026-03-01"), notes: null, isRecurring: false, recurringInterval: null,
   payers: [] as { userId: string; amount: number }[],
   splits: [split(ME, 15000), split(OTHER, 15000)], ...over,
 });
@@ -103,8 +103,43 @@ describe("PATCH — keeping splits consistent", () => {
   });
 
   it("only the payer may edit a personal (non-group) expense", async () => {
-    p.expense.findFirst.mockResolvedValue(existing({ groupId: null, paidById: OTHER }));
+    p.expense.findFirst.mockResolvedValue(existing({ groupId: null, paidById: OTHER, createdById: OTHER }));
     expect((await patch({ description: "x" })).status).toBe(403);
+  });
+});
+
+describe("PATCH — only the person who added the expense can edit it", () => {
+  it("refuses a group member who did not add it, even when they are the payer or in the split", async () => {
+    for (const over of [{ createdById: OTHER }, { createdById: OTHER, paidById: ME }]) {
+      p.expense.findFirst.mockResolvedValue(existing(over));
+      const res = await patch({ description: "tampered" });
+      expect(res.status).toBe(403);
+      expect(JSON.stringify(await res.json())).toMatch(/added this expense/i);
+    }
+    expect(p.expense.update).not.toHaveBeenCalled();
+    expect(p.expenseRevision.create).not.toHaveBeenCalled();
+  });
+
+  it("lets the creator edit, even when someone else is the payer", async () => {
+    const cur = existing({ createdById: ME, paidById: OTHER }); p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
+    expect((await patch({ description: "Renamed" })).status).toBe(200);
+  });
+
+  it("only the creator can delete: not the payer, not another member", async () => {
+    p.expense.findFirst.mockResolvedValue(existing({ createdById: OTHER, paidById: ME }));
+    expect((await DELETE(new NextRequest("http://x"), ctx)).status).toBe(403);
+    expect(p.expense.delete).not.toHaveBeenCalled();
+    p.expense.findFirst.mockResolvedValue(existing({ createdById: ME, paidById: OTHER, paidBy: { name: "O" } }));
+    p.expense.delete.mockResolvedValue({});
+    expect((await DELETE(new NextRequest("http://x"), ctx)).status).toBe(200);
+    expect(p.expense.delete).toHaveBeenCalledTimes(1);
+  });
+
+  it("old rows with no creator fall back to the payer", async () => {
+    p.expense.findFirst.mockResolvedValue(existing({ createdById: null, paidById: OTHER }));
+    expect((await patch({ description: "x" })).status).toBe(403);
+    const cur = existing({ createdById: null, paidById: ME }); p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
+    expect((await patch({ description: "x" })).status).toBe(200);
   });
 });
 
@@ -150,7 +185,7 @@ describe("PATCH — multiple payers", () => {
   });
 
   it("lets any payer edit a personal expense, not just the primary one", async () => {
-    const cur = existing({ groupId: null, paidById: OTHER, payers: [{ userId: OTHER, amount: 20000 }, { userId: ME, amount: 10000 }] });
+    const cur = existing({ groupId: null, paidById: OTHER, createdById: ME, payers: [{ userId: OTHER, amount: 20000 }, { userId: ME, amount: 10000 }] });
     p.expense.findFirst.mockResolvedValue(cur); mockUpdateFrom(cur);
     p.friendship.findMany.mockResolvedValue([{ friendId: OTHER }]);
     p.groupMember.findMany.mockResolvedValue([]);

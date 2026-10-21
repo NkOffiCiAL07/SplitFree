@@ -1,6 +1,7 @@
 import { SplitError } from "@/lib/algorithms/debt-simplification";
 import { AccountDeletedError, isDeletedAccount } from "@/lib/account";
-import { DEFAULT_CURRENCY } from "@/lib/currencies";
+import { currencyForCountry } from "@/lib/currencies";
+import { countryFromPhone } from "@/lib/countries";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -90,7 +91,7 @@ async function createUserProfile(userId: string, email: string, name?: string, p
       email,
       name: name ?? email.split("@")[0],
       phone: phone ?? null,
-      currency: DEFAULT_CURRENCY, // DB default is USD; most users are in India
+      currency: currencyForCountry(countryFromPhone(phone)), // where they live (their phone's country); INR when unknown, as most users are in India
     },
   });
 }

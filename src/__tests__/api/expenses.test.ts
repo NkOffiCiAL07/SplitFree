@@ -71,6 +71,7 @@ describe("POST /api/expenses — integrity", () => {
     const data = p.expense.create.mock.calls[0][0].data;
     expect(data.amount).toBe(30000);
     expect(data.currency).toBe("INR");
+    expect(data.createdById).toBe(ME); // the adder owns the expense, whoever the payer is
     expect(data.splits.create.map((s: { amount: number }) => s.amount)).toEqual([15000, 15000]);
   });
 
