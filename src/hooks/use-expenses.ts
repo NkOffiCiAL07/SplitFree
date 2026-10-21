@@ -46,6 +46,7 @@ export function useCreateExpense() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["settlements"] }); // the group's settle-up plan is worked out from its expenses
       if (expense.groupId) qc.invalidateQueries({ queryKey: ["groups", expense.groupId] });
       toast.success("Expense added");
       haptic("success");
@@ -69,6 +70,7 @@ export function useUpdateExpense() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["settlements"] }); // the group's settle-up plan is worked out from its expenses
       if (expense.groupId) qc.invalidateQueries({ queryKey: ["groups", expense.groupId] });
       toast.success("Expense updated");
     },
@@ -81,6 +83,7 @@ function invalidateExpenseData(qc: ReturnType<typeof useQueryClient>, groupId?: 
   qc.invalidateQueries({ queryKey: ["dashboard"] });
   qc.invalidateQueries({ queryKey: ["analytics"] });
   qc.invalidateQueries({ queryKey: ["balance"] });
+  qc.invalidateQueries({ queryKey: ["settlements"] }); // the group's settle-up plan is worked out from its expenses
   qc.invalidateQueries({ queryKey: ["balances"] });
   qc.invalidateQueries({ queryKey: ["groups"] });
   if (groupId) qc.invalidateQueries({ queryKey: ["budget", groupId] });
@@ -144,6 +147,7 @@ export function useDuplicateExpense() {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       qc.invalidateQueries({ queryKey: ["balance"] });
+      qc.invalidateQueries({ queryKey: ["settlements"] }); // the group's settle-up plan is worked out from its expenses
       if (dup.groupId) qc.invalidateQueries({ queryKey: ["groups", dup.groupId] });
       toast.success("Expense duplicated");
     },

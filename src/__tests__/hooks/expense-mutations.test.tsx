@@ -25,7 +25,7 @@ describe("useCreateExpense", () => {
     const { result } = renderHook(() => useCreateExpense(), { wrapper });
     await act(async () => { await result.current.mutateAsync({ description: "x" }); });
     expect(callOf(fetchMock)).toEqual({ url: "/api/expenses", method: "POST", body: { description: "x", clientId: expect.any(String) } }); // clientId makes a retry idempotent
-    expect(refreshed(invalidated)).toEqual(expect.arrayContaining(["expenses", "dashboard", "analytics", "balance"]));
+    expect(refreshed(invalidated)).toEqual(expect.arrayContaining(["expenses", "dashboard", "analytics", "balance", "settlements"]));
     expect(invalidated()).toContainEqual(["groups", "g1"]);
     expect(toast.success).toHaveBeenCalledWith("Expense added");
   });
@@ -61,6 +61,14 @@ describe("useDeleteExpense", () => {
     expect(callOf(fetchMock)).toEqual({ url: "/api/expenses/e1", method: "DELETE", body: undefined });
     expect(toast.success).toHaveBeenCalledWith("Expense deleted");
     expect(toast.success.mock.calls[0]).toHaveLength(1); // no options → no Undo action
+  });
+
+  it("refreshes the group's settle-up plan (it is worked out from the expenses, so it must not go stale)", async () => {
+    stubFetch({ data: {} });
+    const { wrapper, invalidated } = createHarness();
+    const { result } = renderHook(() => useDeleteExpense(), { wrapper });
+    await act(async () => { await result.current.mutateAsync(expense); });
+    expect(refreshed(invalidated)).toContain("settlements");
   });
 
   it("deleting a whole expense shows an Undo that re-creates it with the same splits", async () => {
